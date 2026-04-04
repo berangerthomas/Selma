@@ -120,7 +120,7 @@ export default function MarkdownViewerPage() {
           <MarkdownRenderer
             content={markdown || '*Chargement…*'}
             sanitize={sanitize}
-            className="max-w-none lg:prose-lg"
+            className="max-w-none lg:prose-lg dark:prose-invert"
           />
         </Suspense>
       </main>

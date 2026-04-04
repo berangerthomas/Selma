@@ -72,7 +72,7 @@ export default function MarkdownRenderer({ content, className = '', sanitize = t
     }
 
   return (
-    <div className={`prose prose-slate ${className}`}>      
+    <div className={`prose prose-slate dark:prose-invert ${className}`}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath]}
         rehypePlugins={rehypePlugins}
