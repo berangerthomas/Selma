@@ -2,6 +2,8 @@
 
 Selma is a React + Vite application template for visualizing a hierarchical taxonomy. This guide explains how to create an exploitable classification visualisation after cloning or forking the repository.
 
+https://github.com/user-attachments/assets/91edd707-f2af-4425-9ae5-e039c732d6e0
+
 **Prerequisites**
 - **Node.js**: recent version (18+ recommended).
 - **Install dependencies**:
