@@ -1,0 +1,62 @@
+name: Update release from CHANGELOG
+
+on:
+  release:
+    types: [created, published, edited]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update_release_from_changelog:
+    name: Update release body from CHANGELOG.md
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract changelog section
+        id: extract
+        run: |
+          set -euo pipefail
+          TAG="${{ github.event.release.tag_name }}"
+          TAG_NO_V="${TAG#v}"
+          echo "Searching CHANGELOG for tag: $TAG (also trying $TAG_NO_V)"
+          awk -v tag="$TAG" -v tag2="$TAG_NO_V" '
+            BEGIN{found=0}
+            /^##+\s*/{
+              if(found==1) exit
+              if(index($0,"[" tag "]") || index($0,tag) || index($0,"[" tag2 "]") || index($0,tag2)) {found=1; print; next}
+            }
+            found==1{print}
+          ' CHANGELOG.md > changelog_section.md || true
+          if [ ! -s changelog_section.md ]; then
+            echo "No matching changelog section for tag $TAG"
+            exit 0
+          fi
+          echo "Wrote changelog_section.md"
+
+      - name: Update GitHub release body
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const path = 'changelog_section.md';
+            if (!fs.existsSync(path)) {
+              console.log('No changelog_section.md found; skipping update.');
+              return;
+            }
+            const body = fs.readFileSync(path, 'utf8').trim();
+            if (!body) {
+              console.log('Changelog section empty; skipping update.');
+              return;
+            }
+            const releaseId = context.payload.release.id;
+            console.log(`Updating release ${releaseId}`);
+            await github.rest.repos.updateRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: releaseId,
+              body,
+            });

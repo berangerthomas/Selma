@@ -1,0 +1,63 @@
+{
+  "details_default_title": "Détails",
+  "description_not_provided": "Aucune description pédagogique fournie.",
+  "close": "Fermer",
+  "collapse_all": "Tout réduire",
+  "search_placeholder": "Aller à un nœud (id ou nom)...",
+  "change_language": "Langue",
+  "toolbar_title": "Outils",
+  "go": "Aller",
+  "resize_handle_title": "Redimensionner la colonne",
+  "reset_view": "Réinitialiser la vue",
+  "cluster_items_one": "{{count}} élément",
+  "cluster_items_other": "{{count}} éléments",
+  "nodes": {
+    "taxonomy_root": {
+      "name": "Taxonomie des Fruits"
+    },
+    "citrus": {
+      "name": "Agrumes",
+      "description": "Fruits juteux et souvent acidulés (ex: Orange, Citron)"
+    },
+    "orange": {
+      "name": "Orange",
+      "description": "Agrume sucré"
+    },
+    "lemon": {
+      "name": "Citron",
+      "description": "Agrume acide"
+    },
+    "berries": {
+      "name": "Baies",
+      "description": "Petits fruits tendres (ex: Fraise, Myrtille)"
+    },
+    "strawberry": {
+      "name": "Fraise",
+      "description": "Baie sucrée et rouge"
+    },
+    "blueberry": {
+      "name": "Myrtille",
+      "description": "Petite baie bleue"
+    },
+    "pome": {
+      "name": "Pomme / Poire (Pome)",
+      "description": "Fruits à noyau central (ex: Pomme, Poire)"
+    },
+    "apple": {
+      "name": "Pomme",
+      "description": "Fruit pommé courant"
+    },
+    "pear": {
+      "name": "Poire",
+      "description": "Fruit pommé sucré"
+    },
+    "legend": {
+      "name": "Légende & Tâches"
+    }
+  },
+  "prev_result": "Précédent",
+  "next_result": "Suivant",
+  "open_in_new_tab": "Ouvrir dans un nouvel onglet",
+  "loading": "Chargement...",
+  "error": "Erreur:"
+}

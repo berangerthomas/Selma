@@ -1,0 +1,33 @@
+{
+  "id": "taxonomy_root",
+  "name": "Fruit Taxonomy",
+  "children": [
+    {
+      "id": "citrus",
+      "name": "Citrus",
+      "color": "#f97316",
+      "children": [
+        { "id": "orange", "name": "Orange" },
+        { "id": "lemon", "name": "Lemon" }
+      ]
+    },
+    {
+      "id": "berries",
+      "name": "Berries",
+      "color": "#ef4444",
+      "children": [
+        { "id": "strawberry", "name": "Strawberry" },
+        { "id": "blueberry", "name": "Blueberry" }
+      ]
+    },
+    {
+      "id": "pome",
+      "name": "Pome",
+      "color": "#10b981",
+      "children": [
+        { "id": "apple", "name": "Apple" },
+        { "id": "pear", "name": "Pear" }
+      ]
+    }
+  ]
+}

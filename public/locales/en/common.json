@@ -1,0 +1,63 @@
+{
+  "details_default_title": "Details",
+  "description_not_provided": "No pedagogical description provided.",
+  "close": "Close",
+  "collapse_all": "Collapse all",
+  "search_placeholder": "Go to a node (id or name)...",
+  "change_language": "Language",
+  "toolbar_title": "Tools",
+  "go": "Go",
+  "resize_handle_title": "Resize column",
+  "reset_view": "Reset View",
+  "cluster_items_one": "{{count}} item",
+  "cluster_items_other": "{{count}} items",
+  "nodes": {
+    "taxonomy_root": {
+      "name": "Fruit Taxonomy"
+    },
+    "citrus": {
+      "name": "Citrus",
+      "description": "Juicy, often sour fruits (eg. Orange, Lemon)"
+    },
+    "orange": {
+      "name": "Orange",
+      "description": "Sweet citrus fruit"
+    },
+    "lemon": {
+      "name": "Lemon",
+      "description": "Sour citrus fruit"
+    },
+    "berries": {
+      "name": "Berries",
+      "description": "Small soft fruits (eg. Strawberry, Blueberry)"
+    },
+    "strawberry": {
+      "name": "Strawberry",
+      "description": "Sweet red berry"
+    },
+    "blueberry": {
+      "name": "Blueberry",
+      "description": "Small blue berry"
+    },
+    "pome": {
+      "name": "Pome",
+      "description": "Fruits with a core (eg. Apple, Pear)"
+    },
+    "apple": {
+      "name": "Apple",
+      "description": "Common pomaceous fruit"
+    },
+    "pear": {
+      "name": "Pear",
+      "description": "Sweet pomaceous fruit"
+    },
+    "legend": {
+      "name": "Legend & Tasks"
+    }
+  },
+  "prev_result": "Previous",
+  "next_result": "Next",
+  "open_in_new_tab": "Open in new tab",
+  "loading": "Loading...",
+  "error": "Error:"
+}
