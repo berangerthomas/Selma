@@ -99,6 +99,8 @@ Reference: https://docs.github.com/en/github/collaborating-with-issues-and-pull-
 
 **Expected formats**
 
+Selma is shipped with a minimal working example - see the _public_ directory content.
+
 1) `public/structured_taxonomy.json` — minimal structure
 
 ```json
