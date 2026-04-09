@@ -26,7 +26,7 @@ jobs:
           echo "Searching CHANGELOG for tag: $TAG (also trying $TAG_NO_V)"
           awk -v tag="$TAG" -v tag2="$TAG_NO_V" '
             BEGIN{found=0}
-            /^##+\s*/{
+            /^##\s+/{
               if(found==1) exit
               if(index($0,"[" tag "]") || index($0,tag) || index($0,"[" tag2 "]") || index($0,tag2)) {found=1; next} # Skip the title for release body
             }
