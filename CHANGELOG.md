@@ -1,6 +1,17 @@
 # Changelog
 
-## [Unreleased]
+## [v0.2.0]
+
+### Fixed
+- **Markdown rendering**: Fixed Tailwind CSS Typography implementation (v4 syntax and `prose` classes application in tabbed/linear modes).
+- **UI**: theme and icons fixes.
+
+### Modified
+- **New example set**: animal kingdom instead of fruit taxonomy. More complex; deeper levels.
+
+### Added
+- Tabbed view (Markdown sections '##' automatically create tabs).
+- **Dynamic Localization**: Supported languages are now automatically detected based on the directory structure in `public/locales/` during the build process, replacing hardcoded language arrays.
 
 ## [v0.1.0] - 2026-04-04
 

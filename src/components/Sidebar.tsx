@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useI18n } from '../i18n'
-import MarkdownRenderer from './MarkdownRenderer'
+import TabbedMarkdown from './TabbedMarkdown'
+import { buildMarkdownPath, defaultLanguage, isSupportedLanguage } from '../utils/localization'
 
 type SidebarProps = {
   open: boolean
@@ -16,11 +17,16 @@ const mdCache = new Map<string, string>()
 
 export default function Sidebar({ open, onClose, node, initialWidth = 420, minWidth = 220, maxWidth = 720, onWidthChange }: SidebarProps) {
   const [width, setWidth] = useState<number>(initialWidth)
+  const [presentationMode, setPresentationMode] = useState<'tabs' | 'linear'>('tabs')
   const dragging = useRef(false)
   const startX = useRef(0)
   const startWidth = useRef(0)
   const [markdownContent, setMarkdownContent] = useState<string>('')
   const { t, lang } = useI18n()
+
+  const viewModeLabel = presentationMode === 'tabs'
+    ? t('markdown_view_linear', { defaultValue: 'Vue linéaire' })
+    : t('markdown_view_tabs', { defaultValue: 'Avec onglets' })
 
   useEffect(() => {
     let mounted = true
@@ -169,10 +175,20 @@ export default function Sidebar({ open, onClose, node, initialWidth = 420, minWi
           <div className="sidebar-actions">
             {node?.id && (
               <button
+                className="sidebar-view-toggle"
+                onClick={() => setPresentationMode((prev) => (prev === 'tabs' ? 'linear' : 'tabs'))}
+                title={viewModeLabel}
+                aria-label={viewModeLabel}
+              >
+                {presentationMode === 'tabs' ? '≡' : '▦'}
+              </button>
+            )}
+            {node?.id && (
+              <button
                 className="sidebar-open-tab"
                 onClick={() => {
-                  const mdPath = `/details/${lang}/${node.id}.md`
-                  const url = `/markdown-viewer?path=${encodeURIComponent(mdPath)}&sanitize=1`
+                  const mdPath = buildMarkdownPath(isSupportedLanguage(lang) ? lang : defaultLanguage, node.id)
+                  const url = `/markdown-viewer?path=${encodeURIComponent(mdPath)}&sanitize=1&view=${presentationMode}`
                   window.open(url, '_blank')
                 }}
                 title={t('open_in_new_tab')}
@@ -185,7 +201,7 @@ export default function Sidebar({ open, onClose, node, initialWidth = 420, minWi
           </div>
         </div>
         <div className="sidebar-content">
-          <MarkdownRenderer content={markdownContent} className="max-w-none" />
+          <TabbedMarkdown key={node?.id || 'none'} content={markdownContent} className="max-w-none" presentationMode={presentationMode} />
         </div>
       </div>
     </div>

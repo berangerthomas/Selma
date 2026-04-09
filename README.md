@@ -13,7 +13,7 @@ npm install
 ```
 
 **Useful commands**
-- **Start development server**: `npm run dev` (Vite)
+- **Start development server**: `npm run dev`
 - **Build for production**: `npm run build`
 - **Preview the build**: `npm run preview`
 
@@ -29,6 +29,7 @@ npm run preview
 **Recommended order to customize the template**
 1. Update the taxonomy: see [public/structured_taxonomy.json](public/structured_taxonomy.json). Each node must have a unique `id` (used to name detail files), a `name`, and optionally `children`.
 2. Add Markdown files for each node: place them under [public/details/en/](public/details/en/) and [public/details/fr/](public/details/fr/) using the node `id` as the filename (for example `orange.md`). The Sidebar first tries `/details/{{lang}}/{{id}}.md` and falls back to `/details/{{id}}.md` if the translated version is missing.
+   > **Note on Language Codes**: Always use [ISO 639-1 two-letter codes](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) (e.g., `en`, `fr`, `es`) for your translation directories. Avoid 3-letter codes like `fra`. The app automatically detects available languages based on the presence of these folders.
 3. Complete translations: edit [public/locales/en/common.json](public/locales/en/common.json) and [public/locales/fr/common.json](public/locales/fr/common.json) — add entries under `nodes` for each `id`:
 
 ```json
@@ -48,6 +49,7 @@ npm run preview
 **Best practices**
 - Use stable, short `id` values without spaces (for example `orange`, `apple`) — they act as keys and filenames.
 - Provide at least the English Markdown file and a French translation when possible.
+- **Tabbed Layout**: In your Markdown files, use `##` (Level-2 headers) to automatically separate content into tabs. The first header defines the first tab, the second defines the next, and so on.
 - Update `nodes.<id>.name` in the localization files to ensure the interface displays the correct label.
 - Verify Markdown rendering using the URL pattern: `/markdown-viewer?path=/details/en/<id>.md&sanitize=1`.
 

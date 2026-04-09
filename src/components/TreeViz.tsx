@@ -99,8 +99,9 @@ export default function TreeViz({}: Props = {}) {
     }
 
     function totalCount(n: TreeNode): number {
-      if (!n || !n.children || n.children.length === 0) return 1
-      return n.children.reduce((s: number, c: TreeNode) => s + totalCount(c), 0)
+      if (!n || !n.children || n.children.length === 0) return 0
+      // Count only immediate/direct children, not all descendants
+      return n.children.length
     }
 
     function prune(node: TreeNode, depth = 0): PrunedNode | null {

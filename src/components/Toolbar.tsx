@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useI18n } from '../i18n'
 import { useTheme } from '../hooks/useTheme'
+import { getNextSupportedLanguage } from '../utils/localization'
 
 type Props = {
   onCollapseAll: () => void
@@ -50,7 +51,7 @@ export default function Toolbar({ onCollapseAll, onSearch, onNextResult, onPrevR
   }
 
   function toggleLang() {
-    setLang(lang === 'en' ? 'fr' : 'en')
+    setLang(getNextSupportedLanguage(lang))
   }
 
   const hasResults = totalResults > 0 && currentResultIndex >= 0
@@ -72,7 +73,7 @@ export default function Toolbar({ onCollapseAll, onSearch, onNextResult, onPrevR
           onMouseDown={(e) => e.stopPropagation()} 
           onClick={toggleTheme}
         >
-          {isDark ? '🌙' : '☀️'}
+          {isDark ? '☀️' : '🌙'}
         </button>
       </div>
       <div className="toolbar-body">

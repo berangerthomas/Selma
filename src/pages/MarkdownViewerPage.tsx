@@ -1,16 +1,19 @@
 import React, { useEffect, useState, Suspense } from 'react'
-const MarkdownRenderer = React.lazy(() => import('../components/MarkdownRenderer'))
+const TabbedMarkdown = React.lazy(() => import('../components/TabbedMarkdown'))
 import { useI18n } from '../i18n'
 import { useTheme } from '../hooks/useTheme'
+import { getNextSupportedLanguage, replaceMarkdownLanguage, stripMarkdownLanguage } from '../utils/localization'
 
 export default function MarkdownViewerPage() {
   const params = new URLSearchParams(window.location.search)
   const initialPath = params.get('path') || ''
   const sanitize = params.get('sanitize') !== '0'
+  const initialView = params.get('view') === 'linear' ? 'linear' : 'tabs'
 
   const [currentPath, setCurrentPath] = useState<string>(initialPath)
   const [markdown, setMarkdown] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
+  const [presentationMode, setPresentationMode] = useState<'tabs' | 'linear'>(initialView)
 
   const { lang, setLang, t } = useI18n()
   const { isDark, toggleTheme } = useTheme()
@@ -28,10 +31,12 @@ export default function MarkdownViewerPage() {
         if (!mounted) return
 
         // S'il ne trouve pas la trad, on fallback sur la racine au cas où
-        if (!res.ok && currentPath.match(/^\/details\/(en|fr)\//)) {
-          const fallbackPath = currentPath.replace(/^\/details\/(en|fr)\//, '/details/')
-          res = await fetch(fallbackPath)
-          if (!mounted) return
+        if (!res.ok) {
+          const fallbackPath = stripMarkdownLanguage(currentPath)
+          if (fallbackPath !== currentPath) {
+            res = await fetch(fallbackPath)
+            if (!mounted) return
+          }
         }
 
         if (!res.ok) {
@@ -57,27 +62,34 @@ export default function MarkdownViewerPage() {
     window.history.replaceState(null, '', newUrl.toString())
   }
 
+  function updateUrlView(newView: 'tabs' | 'linear') {
+    const newUrl = new URL(window.location.href)
+    newUrl.searchParams.set('view', newView)
+    window.history.replaceState(null, '', newUrl.toString())
+  }
+
   function toggleLang() {
-    const newLang = lang === 'en' ? 'fr' : 'en'
+    const newLang = getNextSupportedLanguage(lang)
     setLang(newLang)
 
-    // Si le chemin actuel est un document traduit (ex: /details/fr/nom_fichier.md), on l'adapte
-    let match = currentPath.match(/^\/details\/(en|fr)\/(.+)$/)
-    if (match) {
-      const newPath = `/details/${newLang}/${match[2]}`
-      setCurrentPath(newPath)
-      updateUrlPath(newPath)
-      return
-    }
-
-    // Cas où le chemin serait directement /details/nom_fichier.md
-    match = currentPath.match(/^\/details\/(.+)$/)
-    if (match) {
-      const newPath = `/details/${newLang}/${match[1]}`
+    const newPath = replaceMarkdownLanguage(currentPath, newLang)
+    if (newPath !== currentPath) {
       setCurrentPath(newPath)
       updateUrlPath(newPath)
     }
   }
+
+  function togglePresentationMode() {
+    setPresentationMode((prev) => {
+      const next = prev === 'tabs' ? 'linear' : 'tabs'
+      updateUrlView(next)
+      return next
+    })
+  }
+
+  const viewModeLabel = presentationMode === 'tabs'
+    ? t('markdown_view_linear', { defaultValue: 'Vue linéaire' })
+    : t('markdown_view_tabs', { defaultValue: 'Avec onglets' })
 
   if (error) {
     return <div className="min-h-screen p-6"><div className="text-red-600">{error}</div></div>
@@ -85,30 +97,43 @@ export default function MarkdownViewerPage() {
 
   return (
     <div style={{ background: "transparent", color: "var(--text-main)" }} className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 relative">
-      <div style={{ position: 'fixed', top: '18px', left: '18px', zIndex: 50, display: 'flex', gap: '8px' }}>
-      <button
-        onClick={toggleLang}
-        aria-label={t('change_language', { defaultValue: 'Traduction' })}
-        title={t('change_language', { defaultValue: 'Traduction' }) + `: ${lang.toUpperCase()}`}
-        className="translate-btn"
-        style={{ position: 'static' }}
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" className="translate-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">     
-          <path d="M12 2v20M2 12h20" />
-          <circle cx="12" cy="12" r="3" />
-        </svg>
-        <span className="hidden sm:inline">{t('change_language', { defaultValue: 'Traduction' })}:</span>   
-        <span className="translate-lang">{lang.toUpperCase()}</span>
-      </button>
+      <div style={{ position: 'fixed', top: '18px', left: '18px', zIndex: 50, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <button
+            onClick={toggleLang}
+            aria-label={t('change_language', { defaultValue: 'Traduction' })}
+            title={t('change_language', { defaultValue: 'Traduction' }) + `: ${lang.toUpperCase()}`}
+            className="translate-btn"
+            style={{ position: 'static' }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="translate-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">     
+              <path d="M12 2v20M2 12h20" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+            <span className="hidden sm:inline">{t('change_language', { defaultValue: 'Traduction' })}:</span>   
+            <span className="translate-lang">{lang.toUpperCase()}</span>
+          </button>
 
-      <button
-        onClick={toggleTheme}
-        aria-label="Toggle Theme"
-        className="translate-btn"
-        style={{ position: 'static', padding: '6px 10px', fontSize: '16px' }}
-      >
-        {isDark ? '🌙' : '☀️'}
-      </button>
+          <button
+            onClick={toggleTheme}
+            aria-label="Toggle Theme"
+            className="translate-btn"
+            style={{ position: 'static', padding: '6px 10px', fontSize: '16px' }}
+          >
+            {isDark ? '☀️' : '🌙'}
+          </button>
+        </div>
+
+        <button
+          onClick={togglePresentationMode}
+          aria-label={viewModeLabel}
+          title={viewModeLabel}
+          className="translate-btn"
+          style={{ position: 'static', alignSelf: 'flex-start' }}
+        >
+          <span aria-hidden="true">{presentationMode === 'tabs' ? '≡' : '▦'}</span>
+          <span className="translate-lang">{viewModeLabel}</span>
+        </button>
       </div>
 
       {/*
@@ -117,10 +142,13 @@ export default function MarkdownViewerPage() {
       */}
       <main id="viewer" className="mx-auto w-full" style={{ maxWidth: '700px' }}>
         <Suspense fallback={<div>*Chargement…*</div>}>
-          <MarkdownRenderer
+          <TabbedMarkdown
+            key={stripMarkdownLanguage(currentPath)}
             content={markdown || '*Chargement…*'}
-            sanitize={sanitize}
             className="max-w-none lg:prose-lg dark:prose-invert"
+            sanitize={sanitize}
+            presentationMode={presentationMode}
+            introClassName="mb-20"
           />
         </Suspense>
       </main>
