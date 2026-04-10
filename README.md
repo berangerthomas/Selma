@@ -1,5 +1,11 @@
 # Selma
 
+[![Demo](https://img.shields.io/badge/demo-Hugging%20Face-orange?logo=huggingface&style=flat)](https://huggingface.co/spaces/berangerthomas/selma) [![License](https://img.shields.io/badge/license-MIT-brightgreen?style=flat)](LICENSE) [![Release](https://img.shields.io/github/v/release/berangerthomas/selma?label=release&style=flat)](https://github.com/berangerthomas/selma/releases) [![React](https://img.shields.io/badge/-React-61DAFB?logo=react&logoColor=white&style=flat)](https://reactjs.org/)
+[![Vite](https://img.shields.io/badge/-Vite-646cff?logo=vite&logoColor=white&style=flat)](https://vitejs.dev/)
+[![D3](https://img.shields.io/badge/-D3-f9a03c?logo=d3&logoColor=white&style=flat)](https://d3js.org/)
+[![Tailwind CSS](https://img.shields.io/badge/-Tailwind_CSS-06B6D4?logo=tailwindcss&logoColor=white&style=flat)](https://tailwindcss.com/)
+
+
 Selma is a React + Vite application template for visualizing a hierarchical taxonomy. This guide explains how to create an exploitable classification visualisation after cloning or forking the repository.
 
 https://github.com/user-attachments/assets/818b9470-f46a-4c78-9ad3-79276246899b
@@ -61,7 +67,7 @@ If you forked Selma or have a local clone, synchronize your copy with the offici
 
 ```bash
 # from the repository root
-git remote add upstream https://github.com/<ORIGINAL_OWNER>/<REPO>.git
+git remote add upstream https://github.com/berangerthomas/selma.git
 git remote -v
 ```
 

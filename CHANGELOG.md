@@ -1,6 +1,6 @@
 # Changelog
 
-## [v0.2.0]
+## [v0.2.0] - 2026-04-09
 
 ### Fixed
 - **Markdown rendering**: Fixed Tailwind CSS Typography implementation (v4 syntax and `prose` classes application in tabbed/linear modes).

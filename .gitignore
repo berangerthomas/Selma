@@ -1,5 +1,11 @@
 # Project
 todo/
+dist/
+node_modules/
+scripts/
+*.mp4
+*.7z
+*.zip
 
 # Logs
 logs
