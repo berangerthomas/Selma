@@ -278,7 +278,3 @@ If you contribute, please open a PR, keep changes focused and test locally.
 ## License
 
 This project is licensed under the MIT License — see [LICENSE](LICENSE).
-
----
-
-If you want, I can commit this README update and open a suggested commit message. Do you want me to commit and push the change, or keep it uncommitted so you can review first?
