@@ -34,8 +34,12 @@ window.addEventListener('unhandledrejection', (ev: PromiseRejectionEvent) => {
 })
 
 try {
+  const urlParams = new URLSearchParams(window.location.search)
   // route to standalone markdown viewer
-  if (window.location.pathname && window.location.pathname.startsWith('/markdown-viewer')) {
+  if (
+    (window.location.pathname && window.location.pathname.startsWith('/markdown-viewer')) ||
+    urlParams.get('route') === 'markdown-viewer'
+  ) {
     root.render(
       <React.StrictMode>
         <MarkdownViewerPage />

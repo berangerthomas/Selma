@@ -1,5 +1,8 @@
 # Mammals
 
+![Estimated mammal species distribution chart](/assets/images/mammals_chart_en.svg)
+*Distribution of mammals based on the number of distinct species (taxonomic diversity). Does not represent the total number of individuals, biomass (total weight).*
+
 ## Overview
 Mammals (*Mammalia*) are a class of vertebrates defined by three unique features: the presence of **hair**, the production of **milk** by mammary glands, and three **middle-ear bones** (malleus, incus, stapes).
 

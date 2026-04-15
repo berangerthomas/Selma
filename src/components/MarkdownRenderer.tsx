@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import 'react-medium-image-zoom/dist/styles.css';
+import Zoom from 'react-medium-image-zoom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
@@ -26,6 +28,7 @@ const katexSanitizeSchema = (() => {
   attributes.pre = Array.from(new Set([...(attributes.pre || []), ...keepClassAndStyle]));
   attributes.annotation = Array.from(new Set([...(attributes.annotation || []), 'encoding']));
   attributes.math = Array.from(new Set([...(attributes.math || []), 'xmlns']));
+  attributes.img = Array.from(new Set([...(attributes.img || []), 'src', 'alt', 'title', 'width', 'height']));
 
   return {
     ...base,
@@ -38,9 +41,10 @@ interface MarkdownRendererProps {
   content: string;
   className?: string;
   sanitize?: boolean;
+  basePath?: string;
 }
 
-export default function MarkdownRenderer({ content, className = '', sanitize = true }: MarkdownRendererProps) {
+export default function MarkdownRenderer({ content, className = '', sanitize = true, basePath }: MarkdownRendererProps) {
     // We'll dynamically load heavy rehype plugins (katex, highlight) on mount
     const [extraRehypePlugins, setExtraRehypePlugins] = useState<any[]>([]);
 
@@ -70,12 +74,32 @@ export default function MarkdownRenderer({ content, className = '', sanitize = t
     if (sanitize) {
       rehypePlugins.push([rehypeSanitize, katexSanitizeSchema]);
     }
+    
+    // Custom components to intercept img and fix relative paths
+    const components = {
+      img: (props: any) => {
+        let src = props.src;
+        if (src && basePath && !src.startsWith('http') && !src.startsWith('data:') && !src.startsWith('//') && !src.startsWith('/')) {
+            // If the src is relative, resolve it against the basePath
+            // basePath is expected as a file path, e.g. /details/en/mammals.md
+            // we use the directory portion, e.g. /details/en/
+          const dir = basePath.substring(0, basePath.lastIndexOf('/') + 1);
+          src = dir + src;
+        }
+        return (
+          <Zoom>
+            <img {...props} src={src} className="cursor-pointer" />
+          </Zoom>
+        );
+      }
+    };
 
   return (
     <div className={`prose prose-slate dark:prose-invert ${className}`}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath]}
         rehypePlugins={rehypePlugins}
+        components={components}
       >
         {content}
       </ReactMarkdown>

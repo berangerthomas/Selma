@@ -1,5 +1,8 @@
 # Lion (*Panthera leo*)
 
+![Photo d'un lion](/assets/images/Lion_waiting_in_Namibia.jpg)
+*Crédit photo : Kevin Pluck (CC BY 2.0)*
+
 ## Présentation
 Le lion est le plus grand félin d'Afrique et le seul à vivre en groupes sociaux appelés **troupes** (ou prides). Il occupe savanes, prairies et forêts claires d'Afrique subsaharienne, avec une petite population relique en Inde (forêt de Gir).
 

@@ -10,14 +10,21 @@ interface TabbedMarkdownProps {
   presentationMode?: PresentationMode;
   introClassName?: string;
   tabsWrapperClassName?: string;
+  basePath?: string;
 }
 
-export default function TabbedMarkdown({ content, className = '', sanitize = true, presentationMode = 'tabs', introClassName = 'mb-6', tabsWrapperClassName = '' }: TabbedMarkdownProps) {
+export default function TabbedMarkdown({ content, className = '', sanitize = true, presentationMode = 'tabs', introClassName = 'mb-6', tabsWrapperClassName = '', basePath }: TabbedMarkdownProps) {
   const [activeTab, setActiveTab] = useState(0);
 
+  const tabTextStyles = className.includes('prose-sm') ? 'text-[12px] px-2.5 py-1' :
+                        className.includes('prose-lg') ? 'text-[15px] px-3.5 py-2' :
+                        className.includes('prose-xl') ? 'text-[17px] px-4 py-2.5' :
+                        className.includes('prose-2xl') ? 'text-[20px] px-5 py-3' :
+                        'text-[13px] px-3 py-1.5';
+
   const { intro, tabs } = useMemo(() => {
-    // Découper le contenu Markdown par les titres de niveau 2 (##)
-    // Séparateur : une ligne commençant par "## "
+    // Split the Markdown content by level-2 headings (##)
+    // Separator: a line starting with "## "
     const parts = content.split(/^## /m);
     
     if (parts.length === 0) {
@@ -28,13 +35,13 @@ export default function TabbedMarkdown({ content, className = '', sanitize = tru
     const tabs = parts.slice(1).map(part => {
       const firstNewlinePos = part.indexOf('\n');
       if (firstNewlinePos === -1) {
-        // Le cas où il n'y a que le titre sans contenu
+        // Case where there is only a title without content
         return { title: part.trim(), content: '' };
       }
       return {
         title: part.substring(0, firstNewlinePos).trim(),
-        // On rajoute les ## virtuels si l'utilisateur s'attendait à voir un h2 ? 
-        // Non, dans un onglet on enlève le titre général "## Titre de l'onglet" car c'est redondant
+        // Consider adding virtual ## if the user expected an h2?
+        // No: in a tab we remove the general "## Tab title" because it's redundant
         content: part.substring(firstNewlinePos + 1).trim()
       };
     });
@@ -42,27 +49,27 @@ export default function TabbedMarkdown({ content, className = '', sanitize = tru
     return { intro, tabs };
   }, [content]);
 
-  // Réinitialiser l'onglet actif si on change de fichier et qu'il y a moins d'onglets
+  // Reset the active tab if we change files and there are fewer tabs
   const currentTab = activeTab >= tabs.length ? 0 : activeTab;
 
   if (presentationMode === 'linear') {
     return (
       <div className={`flex flex-col h-full`}>
-        <MarkdownRenderer content={content} className={className} sanitize={sanitize} />
+        <MarkdownRenderer content={content} className={className} sanitize={sanitize} basePath={basePath} />
       </div>
     );
   }
 
   return (
     <div className={`flex flex-col h-full`}>
-      {/* Intro (Niveau # et texte jusqu'au premier ##) */}
+      {/* Intro (heading level and text up to the first ##) */}
       {intro && (
         <div className={tabs.length > 0 ? introClassName : ''}>
-          <MarkdownRenderer content={intro} className={className} sanitize={sanitize} />
+          <MarkdownRenderer content={intro} className={className} sanitize={sanitize} basePath={basePath} />
         </div>
       )}
 
-      {/* Onglets générés dynamiquement via les "##" */}
+      {/* Tabs generated dynamically from "##" */}
       {tabs.length > 0 && (
         <div className={`flex flex-col flex-1 ${tabsWrapperClassName}`}>
           <div 
@@ -78,7 +85,7 @@ export default function TabbedMarkdown({ content, className = '', sanitize = tru
               <button
                 key={idx}
                 onClick={() => setActiveTab(idx)}
-                className={`px-3 py-1.5 text-[13px] rounded-[6px] transition-colors border-0 cursor-pointer ${
+                className={`${tabTextStyles} rounded-[6px] transition-colors border-0 cursor-pointer ${
                   currentTab !== idx ? 'hover:bg-slate-200/50 dark:hover:bg-slate-700/50' : 'shadow-sm'
                 }`}
                 aria-pressed={currentTab === idx}
@@ -98,6 +105,7 @@ export default function TabbedMarkdown({ content, className = '', sanitize = tru
                content={tabs[currentTab]?.content || ''}
                className={className}
                sanitize={sanitize}
+               basePath={basePath}
              />
           </div>
         </div>

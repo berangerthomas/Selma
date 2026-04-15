@@ -11,6 +11,8 @@
           "id": "mammals",
           "name": "Mammals",
           "color": "#f97316",
+          "iconChar": "MA",
+          "iconFont": "\"AsapCondensed-Bold\"",
           "children": [
             {
               "id": "carnivores",
@@ -46,6 +48,8 @@
           "id": "birds",
           "name": "Birds",
           "color": "#06b6d4",
+          "iconChar": "Raven",
+          "iconFont": "\"Material Symbols Outlined\"",
           "children": [
             {
               "id": "raptors",
@@ -60,6 +64,8 @@
               "id": "passerines",
               "name": "Passerines",
               "color": "#14b8a6",
+              "iconChar": "🐦",
+              "iconFont": "\"NotoEmoji\"",
               "children": [
                 { "id": "sparrow", "name": "House Sparrow" },
                 { "id": "robin", "name": "European Robin" }
@@ -71,6 +77,8 @@
           "id": "reptiles",
           "name": "Reptiles",
           "color": "#10b981",
+          "iconChar": "RE",
+          "iconFont": "\"AsapCondensed-Bold\"",
           "children": [
             {
               "id": "crocodilians",
@@ -97,12 +105,13 @@
     {
       "id": "invertebrates",
       "name": "Invertebrates",
-      "color": "#a855f7",
       "children": [
         {
           "id": "arthropods",
           "name": "Arthropods",
           "color": "#f97316",
+          "iconChar": "AR",
+          "iconFont": "\"AsapCondensed-Bold\"",
           "children": [
             {
               "id": "insects",
@@ -117,6 +126,7 @@
               "id": "arachnids",
               "name": "Arachnids",
               "color": "#dc2626",
+              "image": "/assets/nodes/spider.svg",
               "children": [
                 { "id": "wolf_spider", "name": "Wolf Spider" },
                 { "id": "emperor_scorpion", "name": "Emperor Scorpion" }
@@ -128,9 +138,11 @@
           "id": "mollusks",
           "name": "Mollusks",
           "color": "#8b5cf6",
+          "iconChar": "MO",
+          "iconFont": "\"AsapCondensed-Bold\"",
           "children": [
-            { "id": "giant_pacific_octopus", "name": "Giant Pacific Octopus" },
-            { "id": "garden_snail", "name": "Garden Snail" }
+            { "id": "giant_pacific_octopus", "name": "Giant Pacific Octopus", "image": "/assets/nodes/octopus.svg" },
+            { "id": "garden_snail", "name": "Garden Snail", "iconChar": "🐌", "iconFont": "\"AsapCondensed-Bold\"" }
           ]
         }
       ]

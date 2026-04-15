@@ -1,5 +1,10 @@
 # Araña lobo (*Lycosidae*)
 
+![Diagrama de la anatomía interna de una araña hembra de dos pulmones.](https://commons.wikimedia.org/wiki/Special:FilePath/Spider_internal_anatomy-es.svg?width=960)
+
+[Diagrama de la anatomía interna de una araña hembra de dos pulmones.](https://commons.wikimedia.org/wiki/File:Spider_internal_anatomy-es.svg)  
+Original: John Henry Comstock | Vectorización: Pbroks13 (Ryan Wilson) | Traducción: Xvazquez, [CC BY 3.0](https://creativecommons.org/licenses/by/3.0), vía Wikimedia Commons
+
 ## Presentación
 Las arañas lobo forman la familia *Lycosidae*, con más de **2 400 especies** distribuidas por todo el mundo. Deben su nombre a su estrategia de caza: como lobos, persiguen activamente a sus presas.
 

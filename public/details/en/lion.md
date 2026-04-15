@@ -1,5 +1,8 @@
 # Lion (*Panthera leo*)
 
+![Photo of a lion](/assets/images/Lion_waiting_in_Namibia.jpg)
+*Photo credit: Kevin Pluck (CC BY 2.0)*
+
 ## Overview
 The lion is the largest cat in Africa and the only felid to live in social groups called **prides**. It inhabits savannahs, grasslands and open woodlands of sub-Saharan Africa, with a small relict population in the Gir Forest of India.
 

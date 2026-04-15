@@ -1,11 +1,13 @@
-# Project
+# Documentation (VitePress source is tracked; ignore built output)
+docs/.vitepress/dist/
+docs/.vitepress/cache/
 todo/
 dist/
 node_modules/
-scripts/
 *.mp4
 *.7z
 *.zip
+todo.md
 
 # Logs
 logs

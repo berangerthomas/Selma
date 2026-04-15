@@ -1,6 +1,6 @@
 {
   "name": "selma",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "type": "module",
   "private": true,
   "scripts": {
@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@floating-ui/react": "^0.27.19",
     "d3": "^7.9.0",
     "highlight.js": "^11.11.1",
     "i18next": "^26.0.3",
@@ -19,6 +20,7 @@
     "react-dom": "^19.2.4",
     "react-i18next": "^17.0.2",
     "react-markdown": "^10.1.0",
+    "react-medium-image-zoom": "^5.4.3",
     "rehype-highlight": "^7.0.2",
     "rehype-katex": "^7.0.1",
     "rehype-sanitize": "^6.0.0",
@@ -36,6 +38,8 @@
     "postcss": "^8.5.8",
     "tailwindcss": "^4.2.2",
     "typescript": "^6.0.2",
-    "vite": "^8.0.3"
+    "vite": "^8.0.3",
+    "vitepress": "^1.6.4",
+    "vue": "^3.5.32"
   }
 }

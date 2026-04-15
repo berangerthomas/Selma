@@ -1,5 +1,8 @@
 # Mamíferos
 
+![Gráfico de distribución estimada de mamíferos](/assets/images/mammals_chart_es.svg)
+*Distribución de los mamíferos según el número de especies distintas (diversidad taxonómica). No representa el número total de individuos, ni la biomasa (peso total).*
+
 ## Presentación
 Los mamíferos (*Mammalia*) son una clase de vertebrados definida por tres rasgos únicos: presencia de **pelo**, producción de **leche** por glándulas mamarias y tres **huesecillos** en el oído medio (martillo, yunque, estribo).
 

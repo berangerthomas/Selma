@@ -1,5 +1,10 @@
 # Wolf Spider (*Lycosidae*)
 
+![Diagram of the internal anatomy of a female two-lunged spider.](https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Spider_internal_anatomy-en.svg/960px-Spider_internal_anatomy-en.svg.png)
+
+[Diagram of the internal anatomy of a female two-lunged spider.](https://commons.wikimedia.org/wiki/File:Spider_internal_anatomy-en.svg)  
+Original: John Henry Comstock Vector: Pbroks13 (Ryan Wilson), [CC BY 3.0](https://creativecommons.org/licenses/by/3.0), via Wikimedia Commons
+
 ## Overview
 Wolf spiders form the family *Lycosidae*, with over **2,400 species** found worldwide. Their common name reflects their hunting strategy: like wolves, they actively stalk and chase their prey.
 

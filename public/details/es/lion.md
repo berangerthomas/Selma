@@ -1,5 +1,8 @@
 # León (*Panthera leo*)
 
+![Foto de un león](/assets/images/Lion_waiting_in_Namibia.jpg)
+*Crédito de la foto: Kevin Pluck (CC BY 2.0)*
+
 ## Presentación
 El león es el félido más grande de África y el único que vive en grupos sociales llamados **manadas** (prides). Habita en sabanas, pastizales y bosques claros del África subsahariana, con una pequeña población relicta en India (bosque de Gir).
 

@@ -1,5 +1,8 @@
 # Mammifères
 
+![Graphique représentant la répartition des espèces de mammifères](/assets/images/mammals_chart_fr.svg)
+*Répartition des mammifères selon le nombre d'espèces distinctes (diversité taxonomique). Ne représente ni le nombre total d'individus, ni la biomasse (poids total).*
+
 ## Présentation
 Les mammifères (*Mammalia*) constituent une classe de vertébrés définie par trois caractères uniques : présence de **poils**, production de **lait** par des glandes mammaires, et présence de trois **osselets** dans l'oreille moyenne.
 

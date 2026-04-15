@@ -1,9 +1,9 @@
 // Use Vite's meta.glob to automatically detect locale directories at build time
-const locales = import.meta.glob('../../public/locales/*/common.json')
+const locales = import.meta.glob('../../public/locales/*/taxonomy.json')
 
 export const supportedLanguages = Object.keys(locales)
   .map((path) => {
-    const match = path.match(/locales\/([^/]+)\/common\.json$/)
+    const match = path.match(/locales\/([^/]+)\/taxonomy\.json$/)
     return match ? match[1] : null
   })
   .filter(Boolean) as string[]

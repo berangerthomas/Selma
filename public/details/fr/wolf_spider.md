@@ -1,5 +1,10 @@
 # Araignée-loup (*Lycosidae*)
 
+![Diagramme de l'anatomie interne d'une araignée femelle à deux poumons.](https://commons.wikimedia.org/wiki/Special:FilePath/Spider_internal_anatomy-fr.svg?width=960)
+
+[Diagramme de l'anatomie interne d'une araignée femelle à deux poumons.](https://commons.wikimedia.org/wiki/File:Spider_internal_anatomy-fr.svg)  
+Original : John Henry Comstock | Vectorisation : Pbroks13 (Ryan Wilson),[CC BY 3.0](https://creativecommons.org/licenses/by/3.0), via Wikimedia Commons
+
 ## Présentation
 Les araignées-loups forment la famille *Lycosidae* avec plus de **2 400 espèces** réparties dans le monde entier. Elles doivent leur nom à leur mode de chasse : comme un loup, elles pourchassent activement leurs proies.
 

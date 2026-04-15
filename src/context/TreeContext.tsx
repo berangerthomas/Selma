@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect, useRef, useMemo } from 'react';
 import type { TreeNode } from '../types';
 import { findAllPathsByQuery, findNodePath } from '../utils/treeUtils';
 import { useTaxonomyData } from '../hooks/useTaxonomyData';
@@ -11,9 +11,11 @@ interface TreeContextType {
   searchResults: string[];
   currentResultIndex: number;
   forceCenterOnActive: boolean;
+  isFullyExpanded: boolean;
   toggleNode: (id: string) => void;
   setExpandedToPath: (pathIds: string[]) => void;
   collapseAll: () => void;
+  expandAll: () => void;
   handleSearch: (query: string) => void;
   goToNextResult: () => void;
   goToPrevResult: () => void;
@@ -22,6 +24,12 @@ interface TreeContextType {
   requestForceCenter: () => void;
   resetViewTrigger: number;
   resetView: () => void;
+  
+  // Custom navigation history
+  canGoBack: boolean;
+  canGoForward: boolean;
+  goBack: () => void;
+  goForward: () => void;
 }
 
 const TreeContext = createContext<TreeContextType | undefined>(undefined);
@@ -38,6 +46,26 @@ export function TreeProvider({ children }: { children: ReactNode }) {
   const [currentResultIndex, setCurrentResultIndex] = useState<number>(-1);
   const [forceCenterOnActive, setForceCenterOnActive] = useState<boolean>(false);
   const [resetViewTrigger, setResetViewTrigger] = useState<number>(0);
+
+  // Custom history state
+  const [historyStack, setHistoryStack] = useState<string[]>([]);
+  const [historyIndex, setHistoryIndex] = useState<number>(-1);
+  const isNavigatingHistory = useRef(false);
+
+  const isFullyExpanded = useMemo(() => {
+    if (!data) return false;
+
+    const allIds: string[] = [];
+    const traverse = (node: TreeNode) => {
+      allIds.push(node.id);
+      if (node.children) {
+        node.children.forEach(traverse);
+      }
+    };
+
+    traverse(data);
+    return allIds.every((id) => expanded.has(id));
+  }, [data, expanded]);
 
   useEffect(() => {
     if (data) {
@@ -82,6 +110,60 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('popstate', handlePopState);
   }, [data]);
 
+  useEffect(() => {
+    if (activeId && data) {
+      if (isNavigatingHistory.current) {
+        isNavigatingHistory.current = false;
+        return;
+      }
+      
+      setHistoryStack(prevStack => {
+        // Drop any future history if we're branching off from a past point
+        const newStack = prevStack.slice(0, historyIndex + 1);
+        if (newStack[newStack.length - 1] === activeId) {
+          return newStack;
+        }
+        return [...newStack, activeId];
+      });
+      setHistoryIndex(prevIndex => prevIndex + 1);
+    }
+  }, [activeId, data]);
+
+  const canGoBack = historyIndex > 0;
+  const canGoForward = historyIndex < historyStack.length - 1;
+
+  const goBack = useCallback(() => {
+    if (canGoBack && data) {
+      const newIndex = historyIndex - 1;
+      const prevId = historyStack[newIndex];
+      isNavigatingHistory.current = true;
+      setHistoryIndex(newIndex);
+      
+      const path = findNodePath(data, prevId)?.map(n => n.id);
+      if (path) {
+        setExpanded(new Set(path));
+        setActiveId(prevId);
+        setForceCenterOnActive(true);
+      }
+    }
+  }, [canGoBack, historyIndex, historyStack, data]);
+
+  const goForward = useCallback(() => {
+    if (canGoForward && data) {
+      const newIndex = historyIndex + 1;
+      const nextId = historyStack[newIndex];
+      isNavigatingHistory.current = true;
+      setHistoryIndex(newIndex);
+      
+      const path = findNodePath(data, nextId)?.map(n => n.id);
+      if (path) {
+        setExpanded(new Set(path));
+        setActiveId(nextId);
+        setForceCenterOnActive(true);
+      }
+    }
+  }, [canGoForward, historyIndex, historyStack, data]);
+
   const toggleNode = useCallback((id: string) => {
     setExpanded((prev) => {
       const next = new Set(prev);
@@ -96,12 +178,46 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     setActiveId(pathIds[pathIds.length - 1]);
   }, []);
 
+  const resetView = useCallback(() => {
+    setResetViewTrigger(prev => prev + 1);
+  }, []);
+
   const collapseAll = useCallback(() => {
-    if (data) {
+    if (!data) return;
+
+    // build the set of IDs along the path from root to the active node
+    const path = findNodePath(data, activeId || data.id)?.map(n => n.id) ?? [data.id];
+    const pathSet = new Set(path);
+
+    // Current status: are there expanded nodes that are NOT on the active path?
+    const hasNodesOutsidePath = Array.from(expanded).some(id => !pathSet.has(id));
+
+    if (hasNodesOutsidePath) {
+      // Step 1: collapse everything else to isolate only the selected node's branch
+      setExpanded(pathSet);
+    } else {
+      // Step 2 (or if the branch was already the only one open): collapse everything back to the root
       setExpanded(new Set([data.id]));
+      // Optional: we can bring the activeId back to the root for a full reset
       setActiveId(data.id);
     }
-  }, [data]);
+
+    resetView();
+  }, [data, activeId, expanded, resetView]);
+
+  const expandAll = useCallback(() => {
+    if (!data) return;
+    const allIds = new Set<string>();
+    const traverse = (node: TreeNode) => {
+      allIds.add(node.id);
+      if (node.children) {
+        node.children.forEach(traverse);
+      }
+    };
+    traverse(data);
+    setExpanded(allIds);
+    resetView();
+  }, [data, resetView]);
 
   const navigateToResult = useCallback((nodeId: string, forceCenter: boolean = true) => {
     if (!data) return;
@@ -152,9 +268,16 @@ export function TreeProvider({ children }: { children: ReactNode }) {
       }
     }
     
+    // If we land here and it's NOT a new query (e.g. language change),
+    // and the user has already navigated away or the result changed,
+    // DO NOT force jump back to the first result and steal focus from activeId.
+    if (!isNewQuery) {
+      setCurrentResultIndex(-1);
+      return; 
+    }
+
     setCurrentResultIndex(0);
-    // If it's a new query, force center. If it's just a language change, don't.
-    navigateToResult(results[0], isNewQuery);
+    navigateToResult(results[0], true);
   }, [searchQuery, lang, data, t, navigateToResult]);
 
   const goToNextResult = useCallback(() => {
@@ -179,16 +302,12 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     setForceCenterOnActive(true);
   }, []);
 
-  const resetView = useCallback(() => {
-    setResetViewTrigger(prev => prev + 1);
-  }, []);
-
   if (loading) {
-    return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', fontFamily: 'sans-serif' }}>{t('loading', { defaultValue: 'Chargement...' })}</div>;
+    return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', fontFamily: 'sans-serif' }}>{t('loading', { defaultValue: 'Loading...' })}</div>;
   }
 
   if (error) {
-    return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'red', fontFamily: 'sans-serif' }}>{t('error', { defaultValue: 'Erreur:' })} {error.message}</div>;
+    return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'red', fontFamily: 'sans-serif' }}>{t('error', { defaultValue: 'Error:' })} {error.message}</div>;
   }
 
   if (!data) {
@@ -202,9 +321,11 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     searchResults,
     currentResultIndex,
     forceCenterOnActive,
+    isFullyExpanded,
     toggleNode,
     setExpandedToPath,
     collapseAll,
+    expandAll,
     handleSearch,
     goToNextResult,
     goToPrevResult,
@@ -212,7 +333,11 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     clearForceCenter,
     requestForceCenter,
     resetViewTrigger,
-    resetView
+    resetView,
+    canGoBack,
+    canGoForward,
+    goBack,
+    goForward
   };
 
   return <TreeContext.Provider value={value}>{children}</TreeContext.Provider>;

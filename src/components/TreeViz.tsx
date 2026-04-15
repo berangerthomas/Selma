@@ -1,12 +1,13 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import * as d3 from 'd3'
 import { useI18n } from '../i18n'
 import { useTree } from '../context/TreeContext'
 import type { TreeNode } from '../types'
 import { findNodeById } from '../utils/treeUtils'
 import Sidebar from './Sidebar'
-
-type Props = {}
+type Props = {
+  forwardedSvgRef?: React.RefObject<SVGSVGElement | null>
+}
 
 const COLLAPSE_DEPTH = 1
 const LEFT_FRACTION = 0.32
@@ -20,52 +21,56 @@ function computeTransform(
   sidebarOffset: number,
   forcedScale?: number
 ): d3.ZoomTransform {
-  const effectiveWidth = svgRect.width - sidebarOffset
-  const topOcclusion = 50 // Toolbar on top
-  const bottomOcclusion = 80 // Breadcrumb on bottom
-  const availableHeight = svgRect.height - topOcclusion - bottomOcclusion
-  
+const topOcclusion = 30 // Toolbar on top
+  const bottomOcclusion = 40 // Breadcrumb on bottom
+  const leftOcclusion = 20
+  const rightOcclusion = 20
+
+  const effectiveWidth = Math.max(10, svgRect.width - sidebarOffset - leftOcclusion - rightOcclusion)
+  const availableHeight = Math.max(10, svgRect.height - topOcclusion - bottomOcclusion)
+
   let targetScale = forcedScale || 1
 
   if (subtreeExtents && !forcedScale) {
-    const visualMinY = subtreeExtents.minY - 30
-    const visualMaxY = subtreeExtents.maxY + 400
-    const visualMinX = subtreeExtents.minX - 5
-    const visualMaxX = subtreeExtents.maxX + 5
+    const visualMinY = subtreeExtents.minY - 20
+    const visualMaxY = subtreeExtents.maxY + 350
+    const visualMinX = subtreeExtents.minX - 40
+    const visualMaxX = subtreeExtents.maxX + 40
 
-    const paddingX = 5
-    const paddingY = 5
-    
-    const maxDistLeft = Math.max(1, nodePos.y - visualMinY)
-    const maxDistRight = Math.max(1, visualMaxY - nodePos.y)
-    const maxDistTop = Math.max(1, nodePos.x - visualMinX)
-    const maxDistBottom = Math.max(1, visualMaxX - nodePos.x)
+    const treeWidth = Math.max(1, visualMaxY - visualMinY)
+    const treeHeight = Math.max(1, visualMaxX - visualMinX)
 
-    const scaleLeft = (effectiveWidth * LEFT_FRACTION - paddingX) / maxDistLeft
-    const scaleRight = (effectiveWidth * (1 - LEFT_FRACTION) - paddingX) / maxDistRight
-    const scaleTop = (availableHeight / 2 - paddingY) / maxDistTop
-    const scaleBottom = (availableHeight / 2 - paddingY) / maxDistBottom
+    const scaleX = effectiveWidth / treeWidth
+    const scaleY = availableHeight / treeHeight
 
-    const proposed = Math.min(scaleLeft, scaleRight, scaleTop, scaleBottom)
+    const proposed = Math.min(scaleX, scaleY)
     const MIN_SCALE = 0.05
     const MAX_SCALE = 1.3
     targetScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, proposed))
+
+    // Position the tree bounding box perfectly centered within the safe area
+    const tx = leftOcclusion + (effectiveWidth - treeWidth * targetScale) / 2 - visualMinY * targetScale
+    const ty = topOcclusion + (availableHeight - treeHeight * targetScale) / 2 - visualMinX * targetScale
+
+    return d3.zoomIdentity.translate(tx, ty).scale(targetScale)
   }
-  
-  const tx = effectiveWidth * LEFT_FRACTION - nodePos.y * targetScale
-  const ty = (topOcclusion + availableHeight / 2) - nodePos.x * targetScale
+
+  const tx = leftOcclusion + effectiveWidth * LEFT_FRACTION - nodePos.y * targetScale
+  const ty = topOcclusion + availableHeight / 2 - nodePos.x * targetScale
   
   return d3.zoomIdentity.translate(tx, ty).scale(targetScale)
 }
 
-export default function TreeViz({}: Props = {}) {
-  const svgRef = useRef<SVGSVGElement | null>(null)
+export default function TreeViz({ forwardedSvgRef }: Props = {}) {
+  const defaultSvgRef = useRef<SVGSVGElement | null>(null)
+  const svgRef = forwardedSvgRef || defaultSvgRef
   const zoomRef = useRef<any>(null)
   const { 
     data, 
     expanded, 
     activeId, 
     forceCenterOnActive, 
+    isFullyExpanded,
     resetViewTrigger,
     setActiveId, 
     clearForceCenter,
@@ -78,7 +83,7 @@ export default function TreeViz({}: Props = {}) {
     toggleNode(id);
     setTimeout(() => {
       setActiveId(id);
-      if (willOpen) requestForceCenter();
+      if (willOpen || isFullyExpanded) requestForceCenter();
     }, 80);
   };
 
@@ -96,6 +101,9 @@ export default function TreeViz({}: Props = {}) {
       __cluster_for?: string
       __cluster_count?: number
       children?: PrunedNode[]
+      image?: string
+      iconChar?: string
+      iconFont?: string
     }
 
     function totalCount(n: TreeNode): number {
@@ -105,10 +113,14 @@ export default function TreeViz({}: Props = {}) {
     }
 
     function prune(node: TreeNode, depth = 0): PrunedNode | null {
-      if (node.id === 'legend') return null
       const hasChildren = Array.isArray(node.children) && node.children.length > 0
       const base: PrunedNode = { id: node.id, name: node.name, description: node.description }
       if (node.color) base.color = node.color
+      if (node.image) base.image = node.image
+      if (node.iconChar) {
+        base.iconChar = node.iconChar
+        base.iconFont = node.iconFont
+      }
       
       if (!hasChildren) return base
       
@@ -175,9 +187,55 @@ export default function TreeViz({}: Props = {}) {
   }
 
   const activeIdRef = useRef<string>(activeId)
-  useEffect(() => {
-    activeIdRef.current = activeId
-  }, [activeId])
+  useLayoutEffect(() => {
+    const svgEl = svgRef.current
+    if (!svgEl) return
+
+    const centerIcons = () => {
+      const icons = svgEl.querySelectorAll('text.icon-char, image.icon-img, svg.icon-svg, g.icon-svg') as NodeListOf<SVGElement>
+      icons.forEach((el) => {
+        try {
+          el.removeAttribute('transform')
+          const bbox = (el as unknown as SVGGraphicsElement).getBBox()
+          const cx = bbox.x + bbox.width / 2
+          const cy = bbox.y + bbox.height / 2
+          el.setAttribute('transform', `translate(${-cx}, ${-cy})`)
+        } catch (err) {
+          // getBBox may throw if element not ready; ignore and rely on retries/listeners
+        }
+      })
+    }
+
+    // Initial attempt
+    centerIcons()
+
+    // Re-run after fonts are available (helps icon fonts)
+    let fontsListener: Promise<void> | null = null
+    if ((document as any).fonts && (document as any).fonts.ready) {
+      fontsListener = (document as any).fonts.ready.then(() => {
+        centerIcons()
+      }).catch(() => {})
+    }
+
+    // Re-run when SVG <image> elements load
+    const imgs = svgEl.querySelectorAll('image.icon-img') as NodeListOf<SVGImageElement>
+    const onImgLoad = () => centerIcons()
+    imgs.forEach((img) => img.addEventListener('load', onImgLoad))
+
+    // Also re-run on window load and provide timed retries for late-loaded resources
+    window.addEventListener('load', onImgLoad)
+    const timers: number[] = []
+    timers.push(window.setTimeout(centerIcons, 250))
+    timers.push(window.setTimeout(centerIcons, 800))
+    timers.push(window.setTimeout(centerIcons, 2000))
+
+    return () => {
+      imgs.forEach((img) => img.removeEventListener('load', onImgLoad))
+      window.removeEventListener('load', onImgLoad)
+      timers.forEach(clearTimeout)
+      // no-op for fontsListener; it's a promise that resolves once
+    }
+  }, [visibleNodes, lang])
 
   useEffect(() => {
     const svgEl = svgRef.current
@@ -194,7 +252,7 @@ export default function TreeViz({}: Props = {}) {
     }
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
-    // Exécution unique au montage, les dépendances dynamiques sont accédées via hooks/refs
+    // Single-run on mount; dynamic dependencies are accessed via hooks/refs
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -243,7 +301,7 @@ export default function TreeViz({}: Props = {}) {
     d3.select(svgEl).transition().duration(650).call(zoomRef.current.transform as any, transform)
     lastActiveRef.current = activeId
     if (forceCenterOnActive) { clearForceCenter(); }
-    // Désactivation intentionnelle des autres dépendances (refs et fonctions stables)
+    // Intentional omission of other dependencies (refs and stable functions)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeId, positions, sidebarOpen, sidebarWidth, activeSubtree, forceCenterOnActive])
 
@@ -254,34 +312,47 @@ export default function TreeViz({}: Props = {}) {
       const current = d3.zoomTransform(svgEl)
       centerOn(activeId, current.k || 1)
     }
-    // Désactivation intentionnelle : recentrage uniquement au changement de la sidebar
+    // Intentional omission: re-centering only on sidebar change
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sidebarOpen, sidebarWidth])
 
+  const fitView = (duration: number = 650) => {
+    const svgEl = svgRef.current
+    if (!svgEl || !layoutRoot) return
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
+    layoutRoot.descendants().forEach(node => {
+      const p = positions.get(node.data.id)
+      if (!p) return
+      if (p.x < minX) minX = p.x
+      if (p.x > maxX) maxX = p.x
+      if (p.y < minY) minY = p.y
+      if (p.y > maxY) maxY = p.y
+    })
+    const rootPos = positions.get(layoutRoot.data.id)
+    if (!rootPos) return
+    
+    const extents = { minX, maxX, minY, maxY }
+    const rect = svgEl.getBoundingClientRect()
+    const transform = computeTransform(rootPos, extents, rect, sidebarOpen ? sidebarWidth : 0)
+
+    d3.select(svgEl).transition().duration(duration).call(zoomRef.current.transform as any, transform)
+  }
+
   const lastResetRef = useRef<number>(0)
+  const initialFitDone = useRef<boolean>(false)
+
+  // Fit view on initial load
+  useEffect(() => {
+    if (!initialFitDone.current && layoutRoot && positions.size > 0 && zoomRef.current) {
+      initialFitDone.current = true
+      fitView(0)
+    }
+  }, [layoutRoot, positions])
 
   useEffect(() => {
     if (resetViewTrigger > lastResetRef.current && layoutRoot && layoutRoot.descendants().length > 0) {
       lastResetRef.current = resetViewTrigger
-      const svgEl = svgRef.current
-      if (!svgEl) return
-      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
-      layoutRoot.descendants().forEach(node => {
-        const p = positions.get(node.data.id)
-        if (!p) return
-        if (p.x < minX) minX = p.x
-        if (p.x > maxX) maxX = p.x
-        if (p.y < minY) minY = p.y
-        if (p.y > maxY) maxY = p.y
-      })
-      const rootPos = positions.get(layoutRoot.data.id)
-      if (!rootPos) return
-      
-      const extents = { minX, maxX, minY, maxY }
-      const rect = svgEl.getBoundingClientRect()
-      const transform = computeTransform(rootPos, extents, rect, sidebarOpen ? sidebarWidth : 0)
-
-      d3.select(svgEl).transition().duration(650).call(zoomRef.current.transform as any, transform)
+      fitView()
     }
   }, [resetViewTrigger, layoutRoot, positions, sidebarOpen, sidebarWidth])
 
@@ -323,6 +394,35 @@ export default function TreeViz({}: Props = {}) {
 
   const activeNode = findD3NodeById(activeId)
 
+  useLayoutEffect(() => {
+    const svgEl = svgRef.current
+    if (!svgEl) return
+    // select text glyphs, image elements we added, and any inline svg/group marked as icon
+    const icons = svgEl.querySelectorAll('text.icon-char, image.icon-img, svg.icon-svg, g.icon-svg') as NodeListOf<SVGElement>
+    icons.forEach((el) => {
+      try {
+        // remove any previous transform then measure the visual bbox
+        el.removeAttribute('transform')
+        const bbox = (el as unknown as SVGGraphicsElement).getBBox()
+        const cx = bbox.x + bbox.width / 2
+        const cy = bbox.y + bbox.height / 2
+        // translate so the visual center (cx,cy) aligns with the local (0,0)
+        el.setAttribute('transform', `translate(${-cx}, ${-cy})`)
+      } catch (e) {
+        // measurement may fail in some environments (fonts not loaded, image not yet available); ignore silently
+      }
+    })
+  }, [visibleNodes, lang])
+
+  // Automatically open the sidebar when the active node changes (e.g., from search or history)
+  useEffect(() => {
+    if (activeId && activeId !== '') {
+      setSidebarOpen(true);
+    } else {
+      setSidebarOpen(false);
+    }
+  }, [activeId]);
+
   return (
     <div
       className="viz-container"
@@ -331,7 +431,7 @@ export default function TreeViz({}: Props = {}) {
         setActiveId('');
       }}
     >
-      <svg ref={svgRef} className="viz-svg" viewBox="0 0 1200 800">
+      <svg ref={svgRef as React.LegacyRef<SVGSVGElement>} className="viz-svg" viewBox="0 0 1200 800">
         <g transform={transform.toString()}>
           <g className="links">
             {links.map((l) => {
@@ -357,6 +457,8 @@ export default function TreeViz({}: Props = {}) {
               const color = colorFor(node)
               const isCluster = Boolean((node.data as any).__cluster_for)
               const clusterFor = (node.data as any).__cluster_for
+              const finalIconChar = t(`nodes.${node.data.id}.iconChar`, { defaultValue: node.data.iconChar || '' })
+              const finalIconFont = t(`nodes.${node.data.id}.iconFont`, { defaultValue: node.data.iconFont || 'sans-serif' })
               return (
                 <g
                   key={node.data.id}
@@ -371,10 +473,6 @@ export default function TreeViz({}: Props = {}) {
                     e.stopPropagation()
                     const targetId = clusterFor || node.data.id
                     onToggleNode(targetId)
-                    if (!clusterFor) {
-                      if (activeId === targetId && sidebarOpen) setSidebarOpen(false)
-                      else setSidebarOpen(true)
-                    }
                   }}
                   onMouseEnter={isCluster ? () => setHovered(node.data.id) : undefined}
                   onMouseLeave={isCluster ? () => setHovered(null) : undefined}
@@ -391,6 +489,23 @@ export default function TreeViz({}: Props = {}) {
                   ) : (
                     <>
                       <circle r={26} fill={color} stroke="#fff" strokeWidth={2} />
+                      {node.data.image ? (
+                        <image className="icon-img" href={node.data.image} x={0} y={0} width={32} height={32} />
+                      ) : finalIconChar ? (
+                        <text
+                          className="icon-char"
+                          x={0}
+                          y={0}
+                          textAnchor="start"
+                          fill="white"
+                          fontSize={28}
+                          fontFamily={finalIconFont}
+                          style={{ pointerEvents: 'none', userSelect: 'none' }}
+                          aria-hidden="true"
+                        >
+                          {finalIconChar}
+                        </text>
+                      ) : null}
                       <text x={node.children ? 0 : 36} y={node.children ? -34 : 6} fontSize={14} textAnchor={node.children ? 'middle' : 'start'} style={{ userSelect: 'none', paintOrder: 'stroke', stroke: 'var(--panel-bg)', fill: 'var(--text-main)', strokeWidth: 4, strokeLinecap: 'round', strokeLinejoin: 'round' }}>
                         {node.data.__cluster_for ? t('cluster_items', { count: node.data.__cluster_count }) : t(`nodes.${node.data.id}.name`, { defaultValue: node.data.name })}
                       </text>
@@ -403,7 +518,10 @@ export default function TreeViz({}: Props = {}) {
         </g>
       </svg>
 
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} node={activeNode?.data} initialWidth={sidebarWidth} onWidthChange={(w) => setSidebarWidth(w)} />
+      <Sidebar open={sidebarOpen} onClose={() => {
+        setSidebarOpen(false);
+        setActiveId(''); // Closing sidebar resets active node to allow full-screen view
+      }} node={activeNode?.data} initialWidth={sidebarWidth} onWidthChange={(w) => setSidebarWidth(w)} />
     </div>
   )
 }

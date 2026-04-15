@@ -13,8 +13,9 @@ i18n
   .init({
     supportedLngs: [...supportedLanguages],
     fallbackLng: defaultLanguage,
-    ns: ['common'],
-    defaultNS: 'common',
+    ns: ['ui', 'taxonomy'],
+    defaultNS: 'ui',
+    fallbackNS: 'taxonomy',
     backend: { loadPath: '/locales/{{lng}}/{{ns}}.json' },
     detection: { order: ['localStorage', 'navigator'], caches: ['localStorage'] },
     react: { useSuspense: false },

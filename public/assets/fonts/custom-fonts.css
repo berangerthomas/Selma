@@ -1,0 +1,18 @@
+/* custom-fonts.css */
+/* Put custom taxonomy fonts in this folder and define them here. This avoids editing the React source code. */
+
+@font-face {
+  font-family: "AsapCondensed-Bold";
+  src: url("./AsapCondensed-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "NotoEmoji";
+  src: url("./NotoEmoji-VariableFont_wght.ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}

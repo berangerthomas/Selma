@@ -20,5 +20,17 @@ Herbívoro: se alimenta de vegetales muertos o vivos, hongos y ocasionalmente ca
 ## Gastronomía
 Consumido desde la prehistoria. El caracol de Borgoña y el petit-gris son muy apreciados en la cocina francesa y española.
 
+![Plato de caracoles. Toledo, España](/assets/images/snail_spain.jpg)
+*Plato de caracoles. Toledo, España.*
+
+Crédito de la foto: [caracoles-del-restaurante-granero](https://www.flickr.com/photos/131983688@N04/21346727783) de [Restaurante Granero](https://www.flickr.com/photos/131983688@N04/), [Public Domain Mark](https://creativecommons.org/publicdomain/mark/1.0/deed.fr)
+
+---
+
+[![Eating Snails in France](https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Eating_Snails_in_France.jpg/960px-Eating_Snails_in_France.jpg)](https://commons.wikimedia.org/wiki/File:Eating_Snails_in_France.jpg)
+*Plato de caracoles en Francia*
+
+Tom Corser, [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0), via Wikimedia Commons
+
 ## Estado de conservación
 **Preocupación menor** (UICN). Especie común y resistente.

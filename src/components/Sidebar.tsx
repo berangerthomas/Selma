@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useI18n } from '../i18n'
 import TabbedMarkdown from './TabbedMarkdown'
 import { buildMarkdownPath, defaultLanguage, isSupportedLanguage } from '../utils/localization'
+import { useTextSize } from '../hooks/useTextSize'
 
 type SidebarProps = {
   open: boolean
@@ -22,11 +23,14 @@ export default function Sidebar({ open, onClose, node, initialWidth = 420, minWi
   const startX = useRef(0)
   const startWidth = useRef(0)
   const [markdownContent, setMarkdownContent] = useState<string>('')
+  const [currentPath, setCurrentPath] = useState<string | undefined>()
   const { t, lang } = useI18n()
+  const { textSizeClass, increaseSize, decreaseSize, canIncrease, canDecrease } = useTextSize()
 
-  const viewModeLabel = presentationMode === 'tabs'
-    ? t('markdown_view_linear', { defaultValue: 'Vue linéaire' })
-    : t('markdown_view_tabs', { defaultValue: 'Avec onglets' })
+  // Label reflects the current presentation mode (icon shows current state)
+  const viewModeLabel = presentationMode === 'linear'
+    ? t('markdown_view_linear', { defaultValue: 'Linear view' })
+    : t('markdown_view_tabs', { defaultValue: 'Tabbed view' })
 
   useEffect(() => {
     let mounted = true
@@ -42,7 +46,7 @@ export default function Sidebar({ open, onClose, node, initialWidth = 420, minWi
         return
       }
 
-      setMarkdownContent(`*${t('loading', { defaultValue: 'Chargement...' })}*`)
+      setMarkdownContent(`*${t('loading', { defaultValue: 'Loading...' })}*`)
       
       try {
         const preferredPath = `/details/${lang}/${node.id}.md`
@@ -50,7 +54,10 @@ export default function Sidebar({ open, onClose, node, initialWidth = 420, minWi
         if (!mounted) return
         const isHtml = (r: Response) => r?.ok && r.headers?.get?.('content-type')?.includes('text/html')
         if (!res || !res.ok || isHtml(res)) {
+          setCurrentPath(`/details/${node.id}.md`)
           res = await fetch(`/details/${node.id}.md`)
+        } else {
+          setCurrentPath(preferredPath)
         }
         if (!mounted) return
         if (res && res.ok && !isHtml(res)) {
@@ -61,7 +68,7 @@ export default function Sidebar({ open, onClose, node, initialWidth = 420, minWi
           }
         } else {
           const title = t(`nodes.${node.id}.name`, { defaultValue: node.name })
-          const mdFallback = `# ${title}\n\n*${t('description_not_provided', { defaultValue: 'Description à venir...'})}*`
+          const mdFallback = `# ${title}\n\n*${t('description_not_provided', { defaultValue: 'No description provided.' })}*`
           if (mounted) {
             mdCache.set(cacheKey, mdFallback)
             setMarkdownContent(mdFallback)
@@ -69,7 +76,7 @@ export default function Sidebar({ open, onClose, node, initialWidth = 420, minWi
         }
       } catch (err) {
         const title = t(`nodes.${node.id}.name`, { defaultValue: node.name })
-        const mdFallback = `# ${title}\n\n*${t('description_not_provided', { defaultValue: 'Description à venir...'})}*`
+        const mdFallback = `# ${title}\n\n*${t('description_not_provided', { defaultValue: 'No description provided.' })}*`
         if (mounted) {
           mdCache.set(cacheKey, mdFallback)
           setMarkdownContent(mdFallback)
@@ -173,6 +180,22 @@ export default function Sidebar({ open, onClose, node, initialWidth = 420, minWi
             {node ? t(`nodes.${node.id}.name`, { defaultValue: node.name }) : t('details_default_title')}
           </div>
           <div className="sidebar-actions">
+            <button 
+              className="sidebar-view-toggle text-sm font-bold disabled:opacity-50" 
+              onClick={decreaseSize} 
+              disabled={!canDecrease} 
+              title={t('decrease_text_size', { defaultValue: 'Decrease text' })}
+            >
+              A-
+            </button>
+            <button 
+              className="sidebar-view-toggle text-[15px] font-bold disabled:opacity-50" 
+              onClick={increaseSize} 
+              disabled={!canIncrease} 
+              title={t('increase_text_size', { defaultValue: 'Increase text' })}
+            >
+              A+
+            </button>
             {node?.id && (
               <button
                 className="sidebar-view-toggle"
@@ -180,15 +203,15 @@ export default function Sidebar({ open, onClose, node, initialWidth = 420, minWi
                 title={viewModeLabel}
                 aria-label={viewModeLabel}
               >
-                {presentationMode === 'tabs' ? '≡' : '▦'}
+                {presentationMode === 'tabs' ? '▦' : '≡'}
               </button>
             )}
             {node?.id && (
               <button
                 className="sidebar-open-tab"
                 onClick={() => {
-                  const mdPath = buildMarkdownPath(isSupportedLanguage(lang) ? lang : defaultLanguage, node.id)
-                  const url = `/markdown-viewer?path=${encodeURIComponent(mdPath)}&sanitize=1&view=${presentationMode}`
+                  const mdPath = buildMarkdownPath(lang && isSupportedLanguage(lang) ? lang : defaultLanguage, node.id as string)
+                  const url = `?route=markdown-viewer&path=${encodeURIComponent(mdPath)}&sanitize=1&view=${presentationMode}`
                   window.open(url, '_blank')
                 }}
                 title={t('open_in_new_tab')}
@@ -201,7 +224,7 @@ export default function Sidebar({ open, onClose, node, initialWidth = 420, minWi
           </div>
         </div>
         <div className="sidebar-content">
-          <TabbedMarkdown key={node?.id || 'none'} content={markdownContent} className="max-w-none" presentationMode={presentationMode} />
+          <TabbedMarkdown key={node?.id || 'none'} content={markdownContent} className={`max-w-none ${textSizeClass}`} presentationMode={presentationMode} basePath={currentPath} />
         </div>
       </div>
     </div>
