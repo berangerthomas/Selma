@@ -39,16 +39,12 @@ npm run build
 npm run preview
 ```
 
-If you only need the static build artifacts, publish the contents of `dist/` to any static host (S3, Netlify, Vercel, GitHub Pages, Surge, etc.).
-
 ## Overview & key features
 
 - Programmatic graph rendering: transforms a structured JSON payload into an interactive node-link diagram (D3).
 - Modular architecture: decoupled rendering, translation loading and markdown-driven node content.
 - Native localization: asynchronous loading of `taxonomy.json` and `ui.json` per language with safe fallbacks.
 - Export & print: inline fonts/images into exported SVG; produce PNG/JPG via canvas rasterization.
-
-For a short landing overview see the docs: [docs/index.md](docs/index.md).
 
 ## Project layout & architecture
 
@@ -112,8 +108,6 @@ Recommended practices:
 - Prefer `/assets/` absolute paths for images.
 - Use `image` for rich SVG icons and `iconChar` for lightweight glyphs.
 
-See [docs/data-schema.md](docs/data-schema.md) for more details.
-
 ## Content authoring & localization
 
 File locations & resolution:
@@ -139,8 +133,6 @@ Localization model:
 - `public/locales/<lang>/taxonomy.json` maps node ids → localized `name`, `description`, and optional `iconChar`/`iconFont`.
 - `public/locales/<lang>/ui.json` contains interface strings used by `i18next`.
 
-See [docs/content-customization.md](docs/content-customization.md) for examples and authoring tips.
-
 ## Screens & controls (UI)
 
 Main UI areas:
@@ -162,8 +154,6 @@ Implementation pointers:
 - [src/components/Toolbar.tsx](src/components/Toolbar.tsx) — buttons and toolbar actions.
 - [src/components/Sidebar.tsx](src/components/Sidebar.tsx) — Markdown fetching and rendering.
 
-See [docs/screens.md](docs/screens.md) for detailed UI notes.
-
 ## Deployment & CI
 
 Build and preview locally:
@@ -173,16 +163,6 @@ npm ci
 npm run build
 npm run preview
 ```
-
-Hosting options:
-
-- GitHub Pages (via Actions)
-- Netlify / Vercel — connect repo and run `npm ci && npm run build` as build step
-- Any static host serving the `dist/` directory
-
-If your CI requires a specific Node version adjust `actions/setup-node` in workflows.
-
-See [docs/deployment.md](docs/deployment.md) for a short guide.
 
 ## Technical reference
 
@@ -217,8 +197,6 @@ export type TreeNode = {
 }
 ```
 
-See [docs/reference.md](docs/reference.md) for more details.
-
 ## Updating Selma (forks & upgrades)
 
 Keep user data separate from the application code to simplify updates. Files and folders you should NOT overwrite when updating:
@@ -251,8 +229,6 @@ See [docs/updating-fork.md](docs/updating-fork.md) for full instructions.
 - Images or Markdown do not load: ensure content is under `public/details/` and referenced with correct paths; check network requests in devtools.
 - Translations missing: verify `public/locales/<lang>/taxonomy.json` and `ui.json` and restart dev server after adding a new locale.
 - Export issues (fonts/icons missing): ensure fonts are reachable (CORS) and included in `public/assets/fonts/` if serving locally.
-
-See [docs/faq.md](docs/faq.md) for additional troubleshooting tips.
 
 ## Contributing & development
 
