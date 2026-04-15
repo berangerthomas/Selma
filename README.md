@@ -4,8 +4,6 @@
 
 Selma is a React + Vite application for visualizing and navigating hierarchical taxonomies. It renders a JSON-based tree as an interactive node-link diagram (D3.js), supports multilingual content, and provides export/print helpers for diagrams and node content.
 
-This README aggregates the project's VitePress documentation so you can use or self-host Selma without browsing the site. It is intentionally comprehensive.
-
 ## Table of contents
 
 - [Quick start](#quick-start)
