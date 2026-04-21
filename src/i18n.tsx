@@ -11,14 +11,17 @@ i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
-    supportedLngs: [...supportedLanguages],
+    supportedLngs: supportedLanguages.length > 0 ? supportedLanguages : ['en'],
     fallbackLng: defaultLanguage,
     ns: ['ui', 'taxonomy'],
     defaultNS: 'ui',
     fallbackNS: 'taxonomy',
     backend: { loadPath: '/locales/{{lng}}/{{ns}}.json' },
-    detection: { order: ['localStorage', 'navigator'], caches: ['localStorage'] },
-    react: { useSuspense: false },
+    detection: { 
+      order: ['localStorage', 'navigator'], 
+      caches: ['localStorage']
+    },
+    react: { useSuspense: true },
     interpolation: { escapeValue: false }
   })
 
@@ -30,7 +33,7 @@ i18n.on('languageChanged', (lng) => {
 // Initialize lang attribute right away
 const initialLangCandidate = i18n.language || localStorage.getItem('i18nextLng') || defaultLanguage
 const initialLang = isSupportedLanguage(initialLangCandidate) ? initialLangCandidate : defaultLanguage
-if (!i18n.language) {
+if (!i18n.language || i18n.language !== initialLang) {
   i18n.changeLanguage(initialLang)
 }
 document.documentElement.lang = initialLang

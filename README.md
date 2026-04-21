@@ -44,7 +44,7 @@ npm run preview
 - Programmatic graph rendering: transforms a structured JSON payload into an interactive node-link diagram (D3).
 - Modular architecture: decoupled rendering, translation loading and markdown-driven node content.
 - Native localization: asynchronous loading of `taxonomy.json` and `ui.json` per language with safe fallbacks.
-- Export & print: inline fonts/images into exported SVG; produce PNG/JPG via canvas rasterization.
+- Export & print: inline fonts/images into exported SVG; produce PNG/JPG via canvas rasterization. Note that PNG and JPG exports have maximum dimension constraints imposed by browser memory limits (e.g., around 16,000 pixels for Chrome). The tool dynamically downscales the image to fit this limit. If the taxonomy tree is extremely large and exceeds this even at minimal scale, an error message is displayed recommending the SVG export, which is vector-based and has no such mathematical graphic limits.
 
 ## Project layout & architecture
 
@@ -53,7 +53,7 @@ Top-level layout (important folders and files):
 - `public/` — static assets and runtime content
 	- `public/structured_taxonomy.json` — canonical taxonomy tree (source of truth)
 	- `public/details/[lang]/[nodeId].md` — localized Markdown per node
-	- `public/locales/[lang]/taxonomy.json` — node translations (names, descriptions, icon overrides)
+	- `public/locales/[lang]/taxonomy.json` — node translations (names and optional icon overrides)
 	- `public/locales/[lang]/ui.json` — interface strings
 - `src/` — React + D3 application
 	- [src/context/TreeContext.tsx](src/context/TreeContext.tsx) — application state, search and URL sync
@@ -73,6 +73,18 @@ Notes:
 - Keep user-provided content under `public/locales/` and `public/details/` to simplify upgrades.
 - Supported languages are discovered at build/start using `import.meta.glob`; after adding a new `public/locales/<lang>/` folder restart the dev server.
 
+## Customizing Graph Margins
+
+If you want to adjust how the graph fits within the screen (its margins) when entering "fit view" mode, look in `src/components/TreeViz.tsx` inside the `computeTransform` function. You can modify the `visualMinY`, `visualMaxY`, `visualMinX`, and `visualMaxX` values to add or reduce empty space around the graph.
+
+**Note on D3 coordinates:** Because the tree is horizontal (grows from left to right), the D3 axes are inverted relative to the screen. D3's "Y" represents depth (horizontal on screen) and "X" represents breadth (vertical on screen).
+
+To adjust specific margins, modify these lines in `computeTransform`:
+- `visualMinY`: Adjusts the **Left** margin (space before the root node).
+- `visualMaxY`: Adjusts the **Right** margin (space after the deepest nodes, usually for text).
+- `visualMinX`: Adjusts the **Top** margin.
+- `visualMaxX`: Adjusts the **Bottom** margin.
+
 ## Data schema (`structured_taxonomy.json`)
 
 Minimal node example:
@@ -81,7 +93,6 @@ Minimal node example:
 {
 	"id": "mammals",
 	"name": "Mammals",
-	"description": "Warm-blooded, hair-bearing vertebrates",
 	"color": "#f97316",
 	"image": "/assets/nodes/mammal.svg",
 	"iconChar": "🐾",
@@ -94,10 +105,18 @@ Field reference:
 
 - `id` (string, required): stable identifier for lookups, translations and URLs. Recommended pattern: `^[a-z0-9_\\\\-]+$`. Avoid renaming ids.
 - `name` (string): default label shown when no translation exists.
-- `description` (string, optional): short description; can be overridden by localized `taxonomy.json`.
 - `color` (string, optional): CSS color for node background.
 - `image` (string, optional): path under `/assets/` used as a node image.
 - `iconChar` (string, optional) and `iconFont` (string, optional): glyph-based icons.
+- `attachments` (array of objects, optional): list of downloadable files (e.g. `[{"name": "Report", "path": "/attachments/node_id/report.pdf", "format": "pdf", "lang": "en"}]`). The optional `lang` field restricts an attachment to a specific language: attachments with a `lang` are shown only when the UI language matches that value; attachments without `lang` are language-agnostic and shown for all languages.
+- `attachments` (array of objects, optional): list of downloadable files (e.g. `[{"name": "Report", "path": "/attachments/node_id/report.pdf", "format": "pdf", "lang": "en"}]`). The optional `lang` field restricts an attachment to a specific language: attachments with a `lang` are shown only when the UI language matches that value; attachments without `lang` are language-agnostic and shown for all languages.
+
+Attachment display behavior (UI):
+
+- The viewer shows attachments compactly in this order: language-agnostic files (no `lang`), then files matching the current UI language, then other-language files grouped under a collapsible "Other languages" section.
+- This preserves a single, compact top-line for the most relevant documents while still exposing translations and extras on demand.
+- `lang` remains optional in the schema; keep it for translated files (or consider `langs: string[]` if a file targets multiple languages).
+
 - `children` (array): nested node objects.
 
 Precedence for visuals: localized overrides (in `public/locales/<lang>/taxonomy.json`) → `image` → `iconChar`/`iconFont` → text label.
@@ -130,8 +149,34 @@ Images and icons:
 
 Localization model:
 
-- `public/locales/<lang>/taxonomy.json` maps node ids → localized `name`, `description`, and optional `iconChar`/`iconFont`.
+- `public/locales/<lang>/taxonomy.json` maps node ids → localized `name` and optional `iconChar`/`iconFont`.
 - `public/locales/<lang>/ui.json` contains interface strings used by `i18next`.
+
+### Translations maintenance (dev-only Settings modal)
+
+- Location & access: In development mode only (`import.meta.env.DEV === true`), a gear icon appears in the floating toolbar header. Click it to open the **Settings** modal and switch to the **Translations** tab.
+
+- Purpose: the Translations tab helps maintain parity between the canonical taxonomy (`public/structured_taxonomy.json`) and the per-language `public/locales/<lang>/taxonomy.json` files. It computes coverage per language, lists missing node ids with English name hints, and allows downloading a fully scaffolded `taxonomy.[lang].json` file ready for translators.
+
+- How it works:
+	1. The modal fetches `public/structured_taxonomy.json` and each `public/locales/<lang>/taxonomy.json` directly (via `fetch()`), so it reports the persisted on-disk state rather than any in-memory i18next cache.
+ 2. For each language the UI shows `translated_count / total_count` and a status indicator. Expanding an incomplete language reveals the missing node IDs and their English `name` values from the structured taxonomy.
+ 3. Clicking `⬇ taxonomy.[lang].json` downloads a complete JSON file that merges existing translations and injects missing entries as `{ "name": "[TODO] <English name>" }`. Existing translations are preserved and never overwritten.
+
+	 You can also copy the scaffolded JSON directly to the clipboard from the Settings modal (dev-only) using the new "Copy" action — handy for pasting into an editor or creating a quick PR without saving the file first.
+
+- How to use the downloaded scaffold:
+	1. Download `taxonomy.<lang>.json` from the Translations tab.
+	2. Move the file into your project at `public/locales/<lang>/taxonomy.json`. If a `taxonomy.json` already exists, either replace it (recommended when you're intentionally committing the full updated file) or manually merge the new entries into the existing file.
+	3. Edit the file and replace any `name` values prefixed with `[TODO] ` with the proper translated string. Keep the node `id` keys unchanged.
+	4. Commit and push the updated translation file with a descriptive message (e.g., `git add public/locales/fr/taxonomy.json && git commit -m "locales(fr): scaffold and add missing taxonomy translations"`).
+	5. If you added an entirely new `public/locales/<lang>/` folder, restart the dev server so the build-time locale detection picks it up. Otherwise a simple page reload in dev mode is usually sufficient.
+
+- Notes and caveats:
+	- The download is a client-side Blob and currently does not write files to the repository automatically; the code contains a `// TODO: replace with backend API call` comment where a backend write could be enabled in the future.
+	- The scaffold uses the English `name` from `structured_taxonomy.json` as a translator hint; translators should remove the `[TODO] ` prefix when they provide the real translation.
+	- This feature is intentionally gated to development builds only and will not be exposed in production.
+
 
 ## Screens & controls (UI)
 
@@ -144,7 +189,7 @@ Main UI areas:
 Key interactions:
 
 - Click a node to show details in the Sidebar; the URL is synchronized with `?node=<id>` for deep links.
-- Search by id/name/description and cycle results with next/previous controls.
+- Search by id/name and cycle results with next/previous controls.
 - Use the toolbar for language switching, theme toggle and exporting the current view as SVG/PNG.
 - Adjust the reading text size dynamically from the Sidebar or the standalone Markdown viewer.
 
@@ -188,11 +233,17 @@ Type definition (see [src/types.ts](src/types.ts)):
 export type TreeNode = {
 	id: string
 	name: string
-	description?: string
 	color?: string
 	image?: string
 	iconChar?: string
 	iconFont?: string
+	attachments?: {
+		name: string
+		path: string
+		format: string
+		lang?: string
+		size?: number
+	}[]
 	children?: TreeNode[]
 }
 ```

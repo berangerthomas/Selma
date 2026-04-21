@@ -1,24 +1,32 @@
 // Use Vite's meta.glob to automatically detect locale directories at build time
-const locales = import.meta.glob('../../public/locales/*/taxonomy.json')
+// checking any json file so it catches either taxonomy.json or ui.json
+const localesFiles = import.meta.glob('../../public/locales/*/*.json')
 
-export const supportedLanguages = Object.keys(locales)
-  .map((path) => {
-    const match = path.match(/locales\/([^/]+)\/taxonomy\.json$/)
-    return match ? match[1] : null
-  })
-  .filter(Boolean) as string[]
+export const supportedLanguages = Array.from(
+  new Set(
+    Object.keys(localesFiles)
+      .map((path) => {
+        const match = path.match(/locales\/([^/]+)\/[^/]+\.json$/)
+        return match ? match[1] : null
+      })
+      .filter(Boolean) as string[]
+  )
+)
 
 export type SupportedLanguage = string
 
-export const defaultLanguage: SupportedLanguage = supportedLanguages.includes('en') ? 'en' : supportedLanguages[0]
+// S'il n'y a aucune langue détectée, on utilise 'en' par défaut
+export const defaultLanguage: SupportedLanguage = supportedLanguages.includes('en')
+  ? 'en'
+  : (supportedLanguages.length > 0 ? supportedLanguages[0] : 'en')
 
-const languagePattern = supportedLanguages.join('|')
+const languagePattern = supportedLanguages.length > 0 ? supportedLanguages.join('|') : 'en'
 
 export const translatedMarkdownPathPattern = new RegExp(`^/details/(${languagePattern})/(.+)$`)
 export const rootMarkdownPathPattern = /^\/details\/([^/]+)$/
 
 export function isSupportedLanguage(language: string): language is SupportedLanguage {
-  return supportedLanguages.includes(language as SupportedLanguage)
+  return supportedLanguages.length === 0 ? language === 'en' : supportedLanguages.includes(language as SupportedLanguage)
 }
 
 export function getNextSupportedLanguage(currentLanguage: string): SupportedLanguage {

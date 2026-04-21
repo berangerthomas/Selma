@@ -1,0 +1,10 @@
+## Brève histoire de la catégorie « mammifère »
+
+La catégorie zoologique des mammifères, ou *Mammalia*, est introduite par Carl von Linné dans la dixième édition de son *Systema Naturae* en 1758, pour désigner une classe de vertébrés au sein du règne animal. [oiseau-libre](http://www.oiseau-libre.net/Animaux/Classification/Regne-animal/Mammiferes/Mammiferes.html)
+Il choisit le nom latin *Mammalia* (« de la mamelle ») afin de mettre en avant le critère de l’allaitement des petits par des mamelles, plutôt que d’autres caractères possibles déjà connus à l’époque. [zoom-nature](https://www.zoom-nature.fr/la-genese-du-nom-mammifere/)
+
+Avant Linné, des auteurs comme Aristote ou les naturalistes de la Renaissance regroupaient déjà divers animaux « à sang chaud » ou quadrupèdes, mais sans constituer une catégorie unifiée équivalente à notre classe des mammifères. [geneve](https://www.geneve.ch/themes/culture/bibliotheques/interroge/reponses/le-terme-de-mammifere-ete-introduit-par-linne-appelait-cette-classe-animaux-apparition-de-ce-terme)
+En français, le mot « mammifère », formé sur *mamma* (« mamelle ») et le suffixe -fère (« qui porte »), n’apparaît qu’à la fin du XVIIIᵉ siècle, avec des attestations savantes à partir de 1791. [cnrtl](https://www.cnrtl.fr/etymologie/mammif%C3%A8re)
+
+Au XIXᵉ siècle, la classe des Mammalia s’impose progressivement dans la taxonomie comme l’un des grands groupes du règne animal, dans le cadre général du système linnéen de classes, ordres, genres et espèces. [oiseau-libre](http://www.oiseau-libre.net/Animaux/Classification/Regne-animal/Mammiferes/Mammiferes.html)
+Aux XXᵉ et XXIᵉ siècles, la paléontologie et la phylogénétique amènent à considérer les mammifères comme un clade monophylétique issu des synapsides, défini par des caractères évolutifs partagés (comme la transformation d’os de la mâchoire en osselets de l’oreille moyenne), tout en conservant la place historique de « classe » dans la taxonomie du règne animal. [fr.wikipedia](https://fr.wikipedia.org/wiki/Mammif%C3%A8re)

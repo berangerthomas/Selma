@@ -11,15 +11,17 @@ interface TabbedMarkdownProps {
   introClassName?: string;
   tabsWrapperClassName?: string;
   basePath?: string;
+  proseSize?: 'prose-sm' | 'prose-base' | 'prose-lg' | 'prose-xl' | 'prose-2xl';
+  searchQuery?: string;
 }
 
-export default function TabbedMarkdown({ content, className = '', sanitize = true, presentationMode = 'tabs', introClassName = 'mb-6', tabsWrapperClassName = '', basePath }: TabbedMarkdownProps) {
+export default function TabbedMarkdown({ content, className = '', sanitize = true, presentationMode = 'tabs', introClassName = 'mb-6', tabsWrapperClassName = '', basePath, proseSize = 'prose-base', searchQuery }: TabbedMarkdownProps) {
   const [activeTab, setActiveTab] = useState(0);
 
-  const tabTextStyles = className.includes('prose-sm') ? 'text-[12px] px-2.5 py-1' :
-                        className.includes('prose-lg') ? 'text-[15px] px-3.5 py-2' :
-                        className.includes('prose-xl') ? 'text-[17px] px-4 py-2.5' :
-                        className.includes('prose-2xl') ? 'text-[20px] px-5 py-3' :
+  const tabTextStyles = proseSize === 'prose-sm' ? 'text-[12px] px-2.5 py-1' :
+                        proseSize === 'prose-lg' ? 'text-[15px] px-3.5 py-2' :
+                        proseSize === 'prose-xl' ? 'text-[17px] px-4 py-2.5' :
+                        proseSize === 'prose-2xl' ? 'text-[20px] px-5 py-3' :
                         'text-[13px] px-3 py-1.5';
 
   const { intro, tabs } = useMemo(() => {
@@ -55,7 +57,7 @@ export default function TabbedMarkdown({ content, className = '', sanitize = tru
   if (presentationMode === 'linear') {
     return (
       <div className={`flex flex-col h-full`}>
-        <MarkdownRenderer content={content} className={className} sanitize={sanitize} basePath={basePath} />
+        <MarkdownRenderer content={content} className={className} sanitize={sanitize} basePath={basePath} searchQuery={searchQuery} />
       </div>
     );
   }
@@ -65,7 +67,7 @@ export default function TabbedMarkdown({ content, className = '', sanitize = tru
       {/* Intro (heading level and text up to the first ##) */}
       {intro && (
         <div className={tabs.length > 0 ? introClassName : ''}>
-          <MarkdownRenderer content={intro} className={className} sanitize={sanitize} basePath={basePath} />
+          <MarkdownRenderer content={intro} className={className} sanitize={sanitize} basePath={basePath} searchQuery={searchQuery} />
         </div>
       )}
 
@@ -105,8 +107,7 @@ export default function TabbedMarkdown({ content, className = '', sanitize = tru
                content={tabs[currentTab]?.content || ''}
                className={className}
                sanitize={sanitize}
-               basePath={basePath}
-             />
+               basePath={basePath}                searchQuery={searchQuery}             />
           </div>
         </div>
       )}

@@ -191,7 +191,7 @@ function processImage(
   width: number,
   height: number,
   type: 'image/png' | 'image/jpeg',
-  scale: number
+  initialScale: number
 ): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
@@ -200,6 +200,25 @@ function processImage(
     const img = new Image();
     img.crossOrigin = "anonymous";
     img.onload = () => {
+      const MAX_DIMENSION = 16384;
+      const MAX_AREA = 268435456; // 16384 * 16384 limit for Chrome/Edge
+
+      // Calculate maximum possible scales directly to keep the highest quality possible
+      const maxScaleW = MAX_DIMENSION / width;
+      const maxScaleH = MAX_DIMENSION / height;
+      const maxScaleArea = Math.sqrt(MAX_AREA / (width * height));
+
+      // Determine the optimal scale that respects all browser limits
+      let scale = Math.min(initialScale, maxScaleW, maxScaleH, maxScaleArea);
+      
+      // Round down slightly to avoid floating point precision issues against strict browser limits
+      scale = Math.floor(scale * 100) / 100;
+
+      if (scale < 0.1) {
+        URL.revokeObjectURL(blobURL);
+        return reject(new Error("The taxonomy tree is too large to export as a PNG/JPG. Please use SVG export instead."));
+      }
+
       const canvas = document.createElement('canvas');
       canvas.width = width * scale;
       canvas.height = height * scale;
@@ -259,7 +278,13 @@ function triggerDownload(blob: Blob, filename: string) {
 }
 
 export function usePrintSVG(svgRef: RefObject<SVGSVGElement | null>) {
-  
+  const prepareSVG = async (svgEl: SVGSVGElement) => {
+    const { svgString, width, height } = serializeSVG(svgEl);
+    let embedded = await embedFontInSVG(svgString);
+    embedded = await embedImagesInSVG(embedded);
+    return { svgString: embedded, width, height };
+  };
+
   const printSVG = async (title: string = 'Taxonomy') => {
     if (!svgRef.current) return;
     
@@ -270,9 +295,7 @@ export function usePrintSVG(svgRef: RefObject<SVGSVGElement | null>) {
       return;
     }
 
-    const { svgString } = serializeSVG(svgRef.current);
-    let embeddedSvgString = await embedFontInSVG(svgString);
-    embeddedSvgString = await embedImagesInSVG(embeddedSvgString);
+    const { svgString: embeddedSvgString } = await prepareSVG(svgRef.current);
     
     printWindow.document.write(`
       <html>
@@ -305,9 +328,7 @@ export function usePrintSVG(svgRef: RefObject<SVGSVGElement | null>) {
 
   const downloadSVG = async (filename: string = 'export.svg') => {
     if (!svgRef.current) return;
-    const { svgString } = serializeSVG(svgRef.current);
-    let embeddedSvgString = await embedFontInSVG(svgString);
-    embeddedSvgString = await embedImagesInSVG(embeddedSvgString);
+    const { svgString: embeddedSvgString } = await prepareSVG(svgRef.current);
     const blob = new Blob([embeddedSvgString], { type: 'image/svg+xml;charset=utf-8' });
     triggerDownload(blob, filename);
   };
@@ -318,20 +339,24 @@ export function usePrintSVG(svgRef: RefObject<SVGSVGElement | null>) {
 
   const downloadPNG = async (filename: string = 'export.png', scale?: number) => {
     if (!svgRef.current) return;
-    const { svgString, width, height } = serializeSVG(svgRef.current);
-    let embeddedSvgString = await embedFontInSVG(svgString);
-    embeddedSvgString = await embedImagesInSVG(embeddedSvgString);
-    const blob = await processImage(embeddedSvgString, width, height, 'image/png', getScale(scale));
-    triggerDownload(blob, filename);
+    try {
+      const { svgString: embeddedSvgString, width, height } = await prepareSVG(svgRef.current);
+      const blob = await processImage(embeddedSvgString, width, height, 'image/png', getScale(scale));
+      triggerDownload(blob, filename);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Failed to export image.");
+    }
   };
 
   const downloadJPG = async (filename: string = 'export.jpg', scale?: number) => {
     if (!svgRef.current) return;
-    const { svgString, width, height } = serializeSVG(svgRef.current);
-    let embeddedSvgString = await embedFontInSVG(svgString);
-    embeddedSvgString = await embedImagesInSVG(embeddedSvgString);
-    const blob = await processImage(embeddedSvgString, width, height, 'image/jpeg', getScale(scale));
-    triggerDownload(blob, filename);
+    try {
+      const { svgString: embeddedSvgString, width, height } = await prepareSVG(svgRef.current);
+      const blob = await processImage(embeddedSvgString, width, height, 'image/jpeg', getScale(scale));
+      triggerDownload(blob, filename);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Failed to export image.");
+    }
   };
 
   return { printSVG, downloadSVG, downloadPNG, downloadJPG };

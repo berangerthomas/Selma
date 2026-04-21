@@ -42,15 +42,19 @@ try {
   ) {
     root.render(
       <React.StrictMode>
-        <MarkdownViewerPage />
+        <React.Suspense fallback={<div>Loading...</div>}>
+          <MarkdownViewerPage />
+        </React.Suspense>
       </React.StrictMode>
     )
   } else {
     root.render(
       <React.StrictMode>
-        <TreeProvider>
-          <App />
-        </TreeProvider>
+        <React.Suspense fallback={<div>Loading...</div>}>
+          <TreeProvider>
+            <App />
+          </TreeProvider>
+        </React.Suspense>
       </React.StrictMode>
     )
   }

@@ -1,5 +1,36 @@
 # Changelog
 
+## [v0.4.0] - 2026-04-21
+
+### Added
+- **Deep search**: Added an advanced search module that inspects the full contents of Markdown files, in addition to titles.
+- **Result highlighting**: Dynamically highlights matched text in the interactive tree, sidebar headings, and article body when deep search is enabled.
+- **Node File Attachments**: Added support for associating downloadable attachments (PDFs, PPT, etc.) directly to any node in `structured_taxonomy.json`.
+- **Translations maintenance (dev-only)**: Added a developer-only Settings modal with a "Translations" tab. It shows per-language translation coverage against `structured_taxonomy.json` and lets maintainers download a fully scaffolded `taxonomy.[lang].json` that merges existing translations and inserts `[TODO] <English name>` placeholders for missing nodes.
+- **Attachments Settings Tab**: Extended the dev-only Settings modal with an "Attachments" tab to auto-discover files from `/public/attachments/` and scaffold missing `attachments` properties into `structured_taxonomy.json`.
+
+### Modified
+- **Refactor (Icons)**: Extracted and centralized all inline SVG icons to reusable React components using `vite-plugin-svgr` for cleaner code and improved styling via Tailwind.
+- Refactored `TreeViz.tsx` to extract helper functions (`computeBounds`) and properly expose `PrunedNode`.
+- Performance: `src/components/TreeViz.tsx` — replaced React `transform` state with direct DOM updates via an inner `<g>` ref to eliminate re-renders during zoom/pan; added D3 `.separation(...)` to reduce vertical spacing between cousin nodes.
+- Refactored `Toolbar.tsx` and `MarkdownViewerPage.tsx` to reuse extracted `ThemeIcon` and `LangMenu` components.
+- Updated search behavior: toolbar search arrow performs a simple search (matches only node `id` and localized `name` in the current language); the hover menu now exposes a `deep` search option that performs a runtime Markdown fetch across `/details/*` for more thorough matches.
+- Extracted shared export format preparations into `prepareSVG` within `usePrintSVG.ts`.
+- Replaced fragile CSS class string matching in `TabbedMarkdown.tsx` with a strongly typed `proseSize` prop.
+- Extracted `isHtmlResponse` to a top-level helper in `Sidebar.tsx`.
+- Improved TypeScript typings in `TreeViz.tsx` (`zoomRef`, `Props`).
+ - Removed runtime usage of the `description` field from node data: `taxonomy.json` no longer requires `description` entries; node content is sourced from Markdown detail files and search no longer matches `description`. The UI fallback key `description_not_provided` is preserved.
+
+### Fixed
+- Fixed standalone Markdown viewer fallback behavior to correctly display "No description provided." instead of rendering `index.html` fallback source when a markdown file does not exist, and properly displays the localized node name when data becomes available.
+- Fixed i18n fallback behavior when only one language is present by restoring reliable `React.Suspense` usage, removing manual pre-fetch hacks, and properly detecting all available language directories in `src/utils/localization.ts`.
+- Fixed responsive `fitView` bug on smaller screens by removing the hardcoded `viewBox="0 0 1200 800"` on the TreeViz SVG. The D3 transformation now accurately handles native screen bounds.
+- Fixed `activeIdRef` synchronization in `TreeViz.tsx` to prevent stale closure bugs in D3 callbacks.
+- Fixed silent export failures for PNG/JPG on very large taxonomies by dynamically downscaling the output to fit maximum supported browser canvas dimensions.
+- Removed duplicate `useLayoutEffect` hook in `TreeViz.tsx` to stop redundant initializations.
+- Fixed touch event memory leak in `Sidebar.tsx` by clearing listeners correctly via refs.
+- Fixed stale history closures in `TreeContext.tsx` by migrating the `historyStack` state to a `useReducer`.
+
 ## [v0.3.0] - 2026-04-15
 
 ### Added

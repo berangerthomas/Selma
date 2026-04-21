@@ -13,15 +13,43 @@
           "color": "#f97316",
           "iconChar": "MA",
           "iconFont": "\"AsapCondensed-Bold\"",
+          "attachments": [
+            {
+              "path": "/attachments/mammals/Mammalia_Taxonomic_Class.pptx",
+              "format": "pptx",
+              "name": "Mammalia Taxonomic Class Presentation",
+              "lang": "en"
+            },
+            {
+              "path": "/attachments/mammals/histoire_de_la_categorie_mammiferes.md",
+              "format": "md",
+              "name": "Histoire de la catégorie taxonomique des mammifères",
+              "lang": "fr"
+            },
+            {
+              "path": "/attachments/mammals/pictures.png",
+              "format": "png",
+              "name": "Pictures"
+            }
+          ],
           "children": [
             {
               "id": "carnivores",
               "name": "Carnivores",
               "color": "#ef4444",
               "children": [
-                { "id": "lion", "name": "Lion" },
-                { "id": "wolf", "name": "Wolf" },
-                { "id": "polar_bear", "name": "Polar Bear" }
+                {
+                  "id": "lion",
+                  "name": "Lion"
+                },
+                {
+                  "id": "wolf",
+                  "name": "Wolf"
+                },
+                {
+                  "id": "polar_bear",
+                  "name": "Polar Bear"
+                }
               ]
             },
             {
@@ -29,8 +57,14 @@
               "name": "Primates",
               "color": "#f59e0b",
               "children": [
-                { "id": "chimpanzee", "name": "Chimpanzee" },
-                { "id": "gorilla", "name": "Gorilla" }
+                {
+                  "id": "chimpanzee",
+                  "name": "Chimpanzee"
+                },
+                {
+                  "id": "gorilla",
+                  "name": "Gorilla"
+                }
               ]
             },
             {
@@ -38,8 +72,14 @@
               "name": "Cetaceans",
               "color": "#0ea5e9",
               "children": [
-                { "id": "blue_whale", "name": "Blue Whale" },
-                { "id": "dolphin", "name": "Common Dolphin" }
+                {
+                  "id": "blue_whale",
+                  "name": "Blue Whale"
+                },
+                {
+                  "id": "dolphin",
+                  "name": "Common Dolphin"
+                }
               ]
             }
           ]
@@ -56,8 +96,14 @@
               "name": "Raptors",
               "color": "#84cc16",
               "children": [
-                { "id": "golden_eagle", "name": "Golden Eagle" },
-                { "id": "great_horned_owl", "name": "Great Horned Owl" }
+                {
+                  "id": "golden_eagle",
+                  "name": "Golden Eagle"
+                },
+                {
+                  "id": "great_horned_owl",
+                  "name": "Great Horned Owl"
+                }
               ]
             },
             {
@@ -67,8 +113,14 @@
               "iconChar": "🐦",
               "iconFont": "\"NotoEmoji\"",
               "children": [
-                { "id": "sparrow", "name": "House Sparrow" },
-                { "id": "robin", "name": "European Robin" }
+                {
+                  "id": "sparrow",
+                  "name": "House Sparrow"
+                },
+                {
+                  "id": "robin",
+                  "name": "European Robin"
+                }
               ]
             }
           ]
@@ -85,8 +137,14 @@
               "name": "Crocodilians",
               "color": "#64748b",
               "children": [
-                { "id": "nile_crocodile", "name": "Nile Crocodile" },
-                { "id": "alligator", "name": "American Alligator" }
+                {
+                  "id": "nile_crocodile",
+                  "name": "Nile Crocodile"
+                },
+                {
+                  "id": "alligator",
+                  "name": "American Alligator"
+                }
               ]
             },
             {
@@ -94,8 +152,14 @@
               "name": "Squamata",
               "color": "#22c55e",
               "children": [
-                { "id": "reticulated_python", "name": "Reticulated Python" },
-                { "id": "komodo_dragon", "name": "Komodo Dragon" }
+                {
+                  "id": "reticulated_python",
+                  "name": "Reticulated Python"
+                },
+                {
+                  "id": "komodo_dragon",
+                  "name": "Komodo Dragon"
+                }
               ]
             }
           ]
@@ -118,8 +182,14 @@
               "name": "Insects",
               "color": "#eab308",
               "children": [
-                { "id": "honeybee", "name": "Honeybee" },
-                { "id": "monarch_butterfly", "name": "Monarch Butterfly" }
+                {
+                  "id": "honeybee",
+                  "name": "Honeybee"
+                },
+                {
+                  "id": "monarch_butterfly",
+                  "name": "Monarch Butterfly"
+                }
               ]
             },
             {
@@ -128,8 +198,14 @@
               "color": "#dc2626",
               "image": "/assets/nodes/spider.svg",
               "children": [
-                { "id": "wolf_spider", "name": "Wolf Spider" },
-                { "id": "emperor_scorpion", "name": "Emperor Scorpion" }
+                {
+                  "id": "wolf_spider",
+                  "name": "Wolf Spider"
+                },
+                {
+                  "id": "emperor_scorpion",
+                  "name": "Emperor Scorpion"
+                }
               ]
             }
           ]
@@ -141,8 +217,17 @@
           "iconChar": "MO",
           "iconFont": "\"AsapCondensed-Bold\"",
           "children": [
-            { "id": "giant_pacific_octopus", "name": "Giant Pacific Octopus", "image": "/assets/nodes/octopus.svg" },
-            { "id": "garden_snail", "name": "Garden Snail", "iconChar": "🐌", "iconFont": "\"AsapCondensed-Bold\"" }
+            {
+              "id": "giant_pacific_octopus",
+              "name": "Giant Pacific Octopus",
+              "image": "/assets/nodes/octopus.svg"
+            },
+            {
+              "id": "garden_snail",
+              "name": "Garden Snail",
+              "iconChar": "🐌",
+              "iconFont": "\"AsapCondensed-Bold\""
+            }
           ]
         }
       ]

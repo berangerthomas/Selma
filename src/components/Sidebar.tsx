@@ -3,11 +3,15 @@ import { useI18n } from '../i18n'
 import TabbedMarkdown from './TabbedMarkdown'
 import { buildMarkdownPath, defaultLanguage, isSupportedLanguage } from '../utils/localization'
 import { useTextSize } from '../hooks/useTextSize'
+import { useTree } from '../context/TreeContext'
+import { HighlightMatch } from '../utils/highlight'
+import AttachmentList from './AttachmentList'
+import { Attachment } from '../types'
 
 type SidebarProps = {
   open: boolean
   onClose?: () => void
-  node?: { id?: string; name?: string } | null
+  node?: { id?: string; name?: string; attachments?: Attachment[] } | null
   initialWidth?: number
   minWidth?: number
   maxWidth?: number
@@ -16,7 +20,12 @@ type SidebarProps = {
 
 const mdCache = new Map<string, string>()
 
+function isHtmlResponse(r: Response): boolean {
+  return r?.ok && (r.headers?.get('content-type')?.includes('text/html') ?? false)
+}
+
 export default function Sidebar({ open, onClose, node, initialWidth = 420, minWidth = 220, maxWidth = 720, onWidthChange }: SidebarProps) {
+  const { searchQuery, activeSearchType } = useTree()
   const [width, setWidth] = useState<number>(initialWidth)
   const [presentationMode, setPresentationMode] = useState<'tabs' | 'linear'>('tabs')
   const dragging = useRef(false)
@@ -52,15 +61,15 @@ export default function Sidebar({ open, onClose, node, initialWidth = 420, minWi
         const preferredPath = `/details/${lang}/${node.id}.md`
         let res = await fetch(preferredPath)
         if (!mounted) return
-        const isHtml = (r: Response) => r?.ok && r.headers?.get?.('content-type')?.includes('text/html')
-        if (!res || !res.ok || isHtml(res)) {
+        
+        if (!res || !res.ok || isHtmlResponse(res)) {
           setCurrentPath(`/details/${node.id}.md`)
           res = await fetch(`/details/${node.id}.md`)
         } else {
           setCurrentPath(preferredPath)
         }
         if (!mounted) return
-        if (res && res.ok && !isHtml(res)) {
+        if (res && res.ok && !isHtmlResponse(res)) {
           const text = await res.text()
           if (mounted) {
             mdCache.set(cacheKey, text)
@@ -159,7 +168,12 @@ export default function Sidebar({ open, onClose, node, initialWidth = 420, minWi
       document.body.style.userSelect = ''
       window.removeEventListener('touchmove', onTouchMove as any)
       window.removeEventListener('touchend', onTouchEnd as any)
+      moveListenerRef.current = null
+      upListenerRef.current = null
     }
+
+    moveListenerRef.current = onTouchMove as any
+    upListenerRef.current = onTouchEnd as any
 
     window.addEventListener('touchmove', onTouchMove as any)
     window.addEventListener('touchend', onTouchEnd as any)
@@ -173,15 +187,15 @@ export default function Sidebar({ open, onClose, node, initialWidth = 420, minWi
       role="dialog"
       aria-hidden={!open}
     >
-      <div className="sidebar-handle" onMouseDown={handlePointerDown} title={t('resize_handle_title')} />
+      <div className="sidebar-handle" onMouseDown={handlePointerDown} title={t('resize_handle_title', { defaultValue: 'Resize column' })} />
       <div className="sidebar-inner">
         <div className="sidebar-header">
           <div className="sidebar-title">
-            {node ? t(`nodes.${node.id}.name`, { defaultValue: node.name }) : t('details_default_title')}
+            {node ? <HighlightMatch text={t(`nodes.${node.id}.name`, { defaultValue: node.name || '' })} query={searchQuery} /> : t('details_default_title', { defaultValue: 'Details' })}
           </div>
           <div className="sidebar-actions">
             <button 
-              className="sidebar-view-toggle text-sm font-bold disabled:opacity-50" 
+              className="sidebar-view-toggle text-sm font-bold" 
               onClick={decreaseSize} 
               disabled={!canDecrease} 
               title={t('decrease_text_size', { defaultValue: 'Decrease text' })}
@@ -189,7 +203,7 @@ export default function Sidebar({ open, onClose, node, initialWidth = 420, minWi
               A-
             </button>
             <button 
-              className="sidebar-view-toggle text-[15px] font-bold disabled:opacity-50" 
+              className="sidebar-view-toggle text-[15px] font-bold" 
               onClick={increaseSize} 
               disabled={!canIncrease} 
               title={t('increase_text_size', { defaultValue: 'Increase text' })}
@@ -211,20 +225,27 @@ export default function Sidebar({ open, onClose, node, initialWidth = 420, minWi
                 className="sidebar-open-tab"
                 onClick={() => {
                   const mdPath = buildMarkdownPath(lang && isSupportedLanguage(lang) ? lang : defaultLanguage, node.id as string)
-                  const url = `?route=markdown-viewer&path=${encodeURIComponent(mdPath)}&sanitize=1&view=${presentationMode}`
+                  const url = `?route=markdown-viewer&path=${encodeURIComponent(mdPath)}&nodeId=${encodeURIComponent(node.id as string)}&sanitize=1&view=${presentationMode}`
                   window.open(url, '_blank')
                 }}
-                title={t('open_in_new_tab')}
-                aria-label={t('open_in_new_tab')}
+                title={t('open_in_new_tab', { defaultValue: 'Open in new tab' })}
+                aria-label={t('open_in_new_tab', { defaultValue: 'Open in new tab' })}
               >
                 ↗
               </button>
             )}
-            <button className="sidebar-close" onClick={onClose} aria-label={t('close')}>×</button>
+            <button className="sidebar-close" onClick={onClose} aria-label={t('close', { defaultValue: 'Close' })}>×</button>
           </div>
         </div>
+        
+        {node?.attachments && node.attachments.length > 0 && (
+          <div className="border-b border-gray-200 dark:border-gray-700">
+            <AttachmentList attachments={node.attachments} lang={lang || undefined} />
+          </div>
+        )}
+
         <div className="sidebar-content">
-          <TabbedMarkdown key={node?.id || 'none'} content={markdownContent} className={`max-w-none ${textSizeClass}`} presentationMode={presentationMode} basePath={currentPath} />
+          <TabbedMarkdown key={node?.id || 'none'} content={markdownContent} className={`max-w-none ${textSizeClass}`} proseSize={textSizeClass as any} presentationMode={presentationMode} basePath={currentPath} searchQuery={activeSearchType === 'deep' ? searchQuery : undefined} />
         </div>
       </div>
     </div>

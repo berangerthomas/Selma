@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { visit } from 'unist-util-visit';
 import 'react-medium-image-zoom/dist/styles.css';
 import Zoom from 'react-medium-image-zoom';
 import ReactMarkdown from 'react-markdown';
@@ -11,8 +12,8 @@ import { defaultSchema } from 'hast-util-sanitize';
 const katexSanitizeSchema = (() => {
   const base: any = defaultSchema || {};
   const tagNames = Array.isArray(base.tagNames) ? [...base.tagNames] : [];
-  const extras = ['math', 'semantics', 'annotation', 'mrow', 'mi', 'mn', 'mo', 'msup', 'msub', 'msubsup', 'mfrac', 'msqrt', 'mstyle', 'mtext', 'mtable', 'mtr', 'mtd', 'munder', 'mover', 'munderover'];
-  
+  const extras = ['mark', 'math', 'semantics', 'annotation', 'mrow', 'mi', 'mn', 'mo', 'msup', 'msub', 'msubsup', 'mfrac', 'msqrt', 'mstyle', 'mtext', 'mtable', 'mtr', 'mtd', 'munder', 'mover', 'munderover'];
+
   for (const t of extras) {
     if (!tagNames.includes(t)) {
       tagNames.push(t);
@@ -22,6 +23,7 @@ const katexSanitizeSchema = (() => {
   const attributes = { ...(base.attributes || {}) };
   // Ensure span/div and code/pre keep class/style for KaTeX and syntax highlighting
   const keepClassAndStyle = ['className', 'class', 'style'];
+  attributes.mark = Array.from(new Set([...(attributes.mark || []), ...keepClassAndStyle]));
   attributes.span = Array.from(new Set([...(attributes.span || []), ...keepClassAndStyle]));
   attributes.div = Array.from(new Set([...(attributes.div || []), ...keepClassAndStyle]));
   attributes.code = Array.from(new Set([...(attributes.code || []), ...keepClassAndStyle]));
@@ -37,14 +39,42 @@ const katexSanitizeSchema = (() => {
   };
 })();
 
+function rehypeSearchHighlight(options: { query?: string }) {
+  return (tree: any) => {
+    if (!options.query) return;
+    const queryStr = options.query.trim();
+    if (!queryStr) return;
+    const regex = new RegExp(`(${queryStr.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    visit(tree, 'text', (node, index, parent) => {
+      if (!parent || parent.tagName === 'code' || parent.tagName === 'pre' || parent.tagName === 'math' || parent.tagName === 'script' || parent.tagName === 'style' || parent.tagName === 'mark') {
+        return;
+      }
+      if (typeof node.value !== 'string') return;
+      if (!node.value.match(regex)) return;
+      
+      const parts = node.value.split(regex);
+      const newNodes = parts.map((part: string, i: number) => {
+        if (part.toLowerCase() === queryStr.toLowerCase()) {
+          return { type: 'element', tagName: 'mark', properties: { className: ['search-highlight', 'bg-yellow-300', 'dark:bg-yellow-600/50', 'text-black', 'dark:text-white'] }, children: [{ type: 'text', value: part }] };
+        }
+        return { type: 'text', value: part };
+      }).filter((n: any) => n.value !== '' || n.type === 'element');
+      
+      parent.children.splice(index as number, 1, ...newNodes);
+      return (index as number) + newNodes.length; // skip added nodes
+    });
+  };
+}
+
 interface MarkdownRendererProps {
   content: string;
   className?: string;
   sanitize?: boolean;
   basePath?: string;
+  searchQuery?: string;
 }
 
-export default function MarkdownRenderer({ content, className = '', sanitize = true, basePath }: MarkdownRendererProps) {
+export default function MarkdownRenderer({ content, className = '', sanitize = true, basePath, searchQuery }: MarkdownRendererProps) {
     // We'll dynamically load heavy rehype plugins (katex, highlight) on mount
     const [extraRehypePlugins, setExtraRehypePlugins] = useState<any[]>([]);
 
@@ -71,6 +101,9 @@ export default function MarkdownRenderer({ content, className = '', sanitize = t
     }, []);
 
     const rehypePlugins: any[] = [...extraRehypePlugins];
+    if (searchQuery) {
+      rehypePlugins.push([rehypeSearchHighlight, { query: searchQuery }]);
+    }
     if (sanitize) {
       rehypePlugins.push([rehypeSanitize, katexSanitizeSchema]);
     }

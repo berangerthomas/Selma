@@ -16,7 +16,8 @@ interface TreeContextType {
   setExpandedToPath: (pathIds: string[]) => void;
   collapseAll: () => void;
   expandAll: () => void;
-  handleSearch: (query: string) => void;
+  // mode: 'simple' searches id/name; 'deep' searches markdown content as well
+  handleSearch: (query: string, mode?: 'simple' | 'deep') => void;
   goToNextResult: () => void;
   goToPrevResult: () => void;
   setActiveId: (id: string) => void;
@@ -30,9 +31,16 @@ interface TreeContextType {
   canGoForward: boolean;
   goBack: () => void;
   goForward: () => void;
+
+    searchQuery: string;
+    activeSearchType: 'simple' | 'deep' | null;
 }
 
 const TreeContext = createContext<TreeContextType | undefined>(undefined);
+
+const centeredFullscreenStyle: React.CSSProperties = {
+  display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', fontFamily: 'sans-serif'
+};
 
 export function TreeProvider({ children }: { children: ReactNode }) {
   const { data, loading, error } = useTaxonomyData();
@@ -43,13 +51,39 @@ export function TreeProvider({ children }: { children: ReactNode }) {
 
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [searchResults, setSearchResults] = useState<string[]>([]);
+  // cache for fetched markdown content per language+node
+  const searchContentCacheRef = useRef<Map<string, string>>(new Map());
+  // track whether the current active search comes from simple or deep mode
+  const [activeSearchType, setActiveSearchType] = useState<'simple' | 'deep' | null>(null);
   const [currentResultIndex, setCurrentResultIndex] = useState<number>(-1);
   const [forceCenterOnActive, setForceCenterOnActive] = useState<boolean>(false);
   const [resetViewTrigger, setResetViewTrigger] = useState<number>(0);
 
-  // Custom history state
-  const [historyStack, setHistoryStack] = useState<string[]>([]);
-  const [historyIndex, setHistoryIndex] = useState<number>(-1);
+  // Custom history state via useReducer to prevent stale closures
+  type HistoryState = { stack: string[]; index: number };
+  type HistoryAction = 
+    | { type: 'PUSH'; id: string }
+    | { type: 'GO_BACK' }
+    | { type: 'GO_FORWARD' };
+
+  const [history, dispatchHistory] = React.useReducer((state: HistoryState, action: HistoryAction): HistoryState => {
+    switch (action.type) {
+      case 'PUSH': {
+        if (state.stack[state.index] === action.id) return state;
+        const newStack = state.stack.slice(0, state.index + 1);
+        return { stack: [...newStack, action.id], index: newStack.length };
+      }
+      case 'GO_BACK':
+        return state.index > 0 ? { ...state, index: state.index - 1 } : state;
+      case 'GO_FORWARD':
+        return state.index < state.stack.length - 1 ? { ...state, index: state.index + 1 } : state;
+      default:
+        return state;
+    }
+  }, { stack: [], index: -1 });
+
+  const historyStack = history.stack;
+  const historyIndex = history.index;
   const isNavigatingHistory = useRef(false);
 
   const isFullyExpanded = useMemo(() => {
@@ -116,16 +150,7 @@ export function TreeProvider({ children }: { children: ReactNode }) {
         isNavigatingHistory.current = false;
         return;
       }
-      
-      setHistoryStack(prevStack => {
-        // Drop any future history if we're branching off from a past point
-        const newStack = prevStack.slice(0, historyIndex + 1);
-        if (newStack[newStack.length - 1] === activeId) {
-          return newStack;
-        }
-        return [...newStack, activeId];
-      });
-      setHistoryIndex(prevIndex => prevIndex + 1);
+      dispatchHistory({ type: 'PUSH', id: activeId });
     }
   }, [activeId, data]);
 
@@ -137,7 +162,7 @@ export function TreeProvider({ children }: { children: ReactNode }) {
       const newIndex = historyIndex - 1;
       const prevId = historyStack[newIndex];
       isNavigatingHistory.current = true;
-      setHistoryIndex(newIndex);
+      dispatchHistory({ type: 'GO_BACK' });
       
       const path = findNodePath(data, prevId)?.map(n => n.id);
       if (path) {
@@ -153,7 +178,7 @@ export function TreeProvider({ children }: { children: ReactNode }) {
       const newIndex = historyIndex + 1;
       const nextId = historyStack[newIndex];
       isNavigatingHistory.current = true;
-      setHistoryIndex(newIndex);
+      dispatchHistory({ type: 'GO_FORWARD' });
       
       const path = findNodePath(data, nextId)?.map(n => n.id);
       if (path) {
@@ -229,35 +254,130 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     }
   }, [data]);
 
-  const handleSearch = useCallback((query: string) => {
+  const handleSearch = useCallback((query: string, mode: 'simple' | 'deep' = 'simple') => {
     if (!data) return;
     const trimmed = query.trim();
-    setSearchQuery(trimmed);
-  }, [data]);
+    if (!trimmed) {
+      setSearchQuery('');
+      setSearchResults([]);
+      setCurrentResultIndex(-1);
+      prevSearchStateRef.current = { query: '', type: null };
+      setActiveSearchType(null);
+      return;
+    }
 
-  const prevQueryRef = useRef<string>('');
+    if (mode === 'simple') {
+      setActiveSearchType('simple');
+      setSearchQuery(trimmed);
+      return;
+    }
+
+    // deep search: mark active type then perform runtime fetches
+    setActiveSearchType('deep');
+    setSearchQuery(trimmed);
+    (async () => {
+      const q = trimmed.toLowerCase();
+      const resultsSet = new Set<string>();
+
+      try {
+        const simpleMatches = findAllPathsByQuery(data, trimmed, t, 'simple');
+        simpleMatches.forEach((id) => resultsSet.add(id));
+      } catch (e) {
+        // ignore
+      }
+
+      // gather all node ids
+      const allIds: string[] = [];
+      const collect = (n: TreeNode) => {
+        allIds.push(n.id);
+        if (n.children) n.children.forEach(collect);
+      };
+      collect(data);
+
+      const BATCH_SIZE = 15;
+      for (let i = 0; i < allIds.length; i += BATCH_SIZE) {
+        const batch = allIds.slice(i, i + BATCH_SIZE);
+        await Promise.all(batch.map(async (id) => {
+          try {
+            const cacheKey = `${lang || 'default'}|${id}`;
+            if (searchContentCacheRef.current.has(cacheKey)) {
+              const cached = searchContentCacheRef.current.get(cacheKey) || '';
+              if (cached.toLowerCase().includes(q)) resultsSet.add(id);
+              return;
+            }
+
+            const candidates = [`/details/${lang}/${id}.md`, `/details/${id}.md`];
+            for (const p of candidates) {
+              try {
+                const res = await fetch(p);
+                if (!res.ok) continue;
+                const text = await res.text();
+                searchContentCacheRef.current.set(cacheKey, text);
+                if (text.toLowerCase().includes(q)) resultsSet.add(id);
+                break;
+              } catch (err) {
+                // per-file fetch failed, continue
+              }
+            }
+          } catch (err) {
+            // ignore
+          }
+        }));
+      }
+
+      const results = Array.from(resultsSet);
+      if (results.length === 0) {
+        console.warn('No node matched deep search:', trimmed);
+        setSearchResults([]);
+        setCurrentResultIndex(-1);
+        prevSearchStateRef.current = { query: trimmed, type: 'deep' };
+        return;
+      }
+
+      setSearchResults(results);
+      prevSearchStateRef.current = { query: trimmed, type: 'deep' };
+      setCurrentResultIndex(0);
+      navigateToResult(results[0], true);
+    })();
+  }, [data, lang, t, navigateToResult]);
+
+  const prevSearchStateRef = useRef<{ query: string; type: 'simple' | 'deep' | null }>({ query: '', type: null });
 
   useEffect(() => {
     if (!data) return;
+
+    // If a deep search is active, do not run the simple-search flow
+    if (activeSearchType === 'deep') {
+      // if user cleared the input while in deep mode, clear results and reset type
+      if (!searchQuery) {
+        setSearchResults([]);
+        setCurrentResultIndex(-1);
+        prevSearchStateRef.current = { query: '', type: null };
+        setActiveSearchType(null);
+      }
+      return;
+    }
+
     if (!searchQuery) {
       setSearchResults([]);
       setCurrentResultIndex(-1);
-      prevQueryRef.current = '';
+      prevSearchStateRef.current = { query: '', type: null };
       return;
     }
-    const results = findAllPathsByQuery(data, searchQuery, t);
+
+    const results = findAllPathsByQuery(data, searchQuery, t, 'simple');
     if (results.length === 0) {
       console.warn('No node matched search:', searchQuery);
       setSearchResults([]);
       setCurrentResultIndex(-1);
-      prevQueryRef.current = searchQuery;
+      prevSearchStateRef.current = { query: searchQuery, type: 'simple' };
       return;
     }
 
     setSearchResults(results);
 
-    const isNewQuery = prevQueryRef.current !== searchQuery;
-    prevQueryRef.current = searchQuery;
+    const isNewQuery = prevSearchStateRef.current.query !== searchQuery || prevSearchStateRef.current.type !== activeSearchType;
+    prevSearchStateRef.current = { query: searchQuery, type: 'simple' };
 
     if (!isNewQuery && currentResultIndex >= 0 && searchResults[currentResultIndex]) {
       const activeItem = searchResults[currentResultIndex];
@@ -278,7 +398,7 @@ export function TreeProvider({ children }: { children: ReactNode }) {
 
     setCurrentResultIndex(0);
     navigateToResult(results[0], true);
-  }, [searchQuery, lang, data, t, navigateToResult]);
+  }, [searchQuery, lang, data, t, navigateToResult, activeSearchType]);
 
   const goToNextResult = useCallback(() => {
     if (searchResults.length === 0) return;
@@ -303,11 +423,11 @@ export function TreeProvider({ children }: { children: ReactNode }) {
   }, []);
 
   if (loading) {
-    return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', fontFamily: 'sans-serif' }}>{t('loading', { defaultValue: 'Loading...' })}</div>;
+    return <div style={centeredFullscreenStyle}>{t('loading', { defaultValue: 'Loading...' })}</div>;
   }
 
   if (error) {
-    return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'red', fontFamily: 'sans-serif' }}>{t('error', { defaultValue: 'Error:' })} {error.message}</div>;
+    return <div style={{ ...centeredFullscreenStyle, color: 'red' }}>{t('error', { defaultValue: 'Error:' })} {error.message}</div>;
   }
 
   if (!data) {
@@ -337,7 +457,9 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     canGoBack,
     canGoForward,
     goBack,
-    goForward
+    goForward,
+    searchQuery,
+    activeSearchType
   };
 
   return <TreeContext.Provider value={value}>{children}</TreeContext.Provider>;

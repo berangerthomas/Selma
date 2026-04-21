@@ -2,21 +2,26 @@ import type { TreeNode } from '../types';
 
 /**
  * Perform a Depth-First Search to find all node IDs that match a given query.
- * Matches against either node id or node name.
+ * Matches against node id or node name (localized via `t` when available).
  */
-export function findAllPathsByQuery(root: TreeNode, query: string, t?: (key: string, opts?: any) => string): string[] {
+export function findAllPathsByQuery(
+  root: TreeNode,
+  query: string,
+  t?: (key: string, opts?: any) => string,
+  mode: 'simple' | 'full' = 'full'
+): string[] {
   const q = query.trim().toLowerCase();
   if (!q) return [];
-  
+
   const results: string[] = [];
   function dfs(node: TreeNode): void {
     const idMatch = node.id?.toLowerCase().includes(q);
     const translatedName = t ? t(`nodes.${node.id}.name`, { defaultValue: node.name }) : node.name;
     const nameMatch = translatedName?.toLowerCase().includes(q);
-    const translatedDesc = t ? t(`nodes.${node.id}.description`, { defaultValue: node.description || '' }) : (node.description || '');
-    const descMatch = translatedDesc?.toLowerCase().includes(q);
 
-    if (idMatch || nameMatch || descMatch) {
+    const matched = idMatch || nameMatch;
+
+    if (matched) {
       results.push(node.id);
     }
     if (node.children) {

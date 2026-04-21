@@ -5,8 +5,36 @@ import { useTree } from '../context/TreeContext'
 import type { TreeNode } from '../types'
 import { findNodeById } from '../utils/treeUtils'
 import Sidebar from './Sidebar'
+import { HighlightSVGText } from '../utils/highlightSVG'
 type Props = {
   forwardedSvgRef?: React.RefObject<SVGSVGElement | null>
+}
+
+// Extracted from useMemo to fix typing issues module-wide
+export interface PrunedNode extends Omit<TreeNode, 'children'> {
+  __cluster_for?: string
+  __cluster_count?: number
+  children?: PrunedNode[]
+  image?: string
+  iconChar?: string
+  iconFont?: string
+}
+
+function computeBounds(
+  ids: Iterable<string>,
+  positions: Map<string, { x: number; y: number }>
+): { minX: number; maxX: number; minY: number; maxY: number; count: number } | null {
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, count = 0
+  for (const id of ids) {
+    const p = positions.get(id)
+    if (!p) continue
+    count++
+    if (p.x < minX) minX = p.x
+    if (p.x > maxX) maxX = p.x
+    if (p.y < minY) minY = p.y
+    if (p.y > maxY) maxY = p.y
+  }
+  return count > 0 ? { minX, maxX, minY, maxY, count } : null
 }
 
 const COLLAPSE_DEPTH = 1
@@ -32,10 +60,10 @@ const topOcclusion = 30 // Toolbar on top
   let targetScale = forcedScale || 1
 
   if (subtreeExtents && !forcedScale) {
-    const visualMinY = subtreeExtents.minY - 20
-    const visualMaxY = subtreeExtents.maxY + 350
-    const visualMinX = subtreeExtents.minX - 40
-    const visualMaxX = subtreeExtents.maxX + 40
+    const visualMinY = subtreeExtents.minY - 40 // Adjusts the left margin (space before the root node).
+    const visualMaxY = subtreeExtents.maxY + 350 // Adjusts the right margin (space after the deepest nodes, usually for text).
+    const visualMinX = subtreeExtents.minX - 30 // Adjusts the top margin.
+    const visualMaxX = subtreeExtents.maxX + 140 // Adjusts the bottom margin.
 
     const treeWidth = Math.max(1, visualMaxY - visualMinY)
     const treeHeight = Math.max(1, visualMaxX - visualMinX)
@@ -61,10 +89,11 @@ const topOcclusion = 30 // Toolbar on top
   return d3.zoomIdentity.translate(tx, ty).scale(targetScale)
 }
 
-export default function TreeViz({ forwardedSvgRef }: Props = {}) {
+export default function TreeViz({ forwardedSvgRef }: Props) {
   const defaultSvgRef = useRef<SVGSVGElement | null>(null)
   const svgRef = forwardedSvgRef || defaultSvgRef
-  const zoomRef = useRef<any>(null)
+  const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null)
+  const innerGroupRef = useRef<SVGGElement | null>(null)
   const { 
     data, 
     expanded, 
@@ -75,7 +104,9 @@ export default function TreeViz({ forwardedSvgRef }: Props = {}) {
     setActiveId, 
     clearForceCenter,
     toggleNode,
-    requestForceCenter
+    requestForceCenter,
+    searchQuery,
+    activeSearchType
   } = useTree()
 
   const onToggleNode = (id: string) => {
@@ -88,7 +119,6 @@ export default function TreeViz({ forwardedSvgRef }: Props = {}) {
   };
 
   const lastActiveRef = useRef<string | null>(null)
-  const [transform, setTransform] = useState<d3.ZoomTransform>(d3.zoomIdentity)
   const { t, lang } = useI18n()
   const lastLangRef = useRef<string>(lang)
   const [hovered, setHovered] = useState<string | null>(null)
@@ -97,15 +127,6 @@ export default function TreeViz({ forwardedSvgRef }: Props = {}) {
 
   // Build pruned tree and preserve node metadata (color)
   const layoutRoot = useMemo(() => {
-    interface PrunedNode extends Omit<TreeNode, 'children'> {
-      __cluster_for?: string
-      __cluster_count?: number
-      children?: PrunedNode[]
-      image?: string
-      iconChar?: string
-      iconFont?: string
-    }
-
     function totalCount(n: TreeNode): number {
       if (!n || !n.children || n.children.length === 0) return 0
       // Count only immediate/direct children, not all descendants
@@ -114,9 +135,10 @@ export default function TreeViz({ forwardedSvgRef }: Props = {}) {
 
     function prune(node: TreeNode, depth = 0): PrunedNode | null {
       const hasChildren = Array.isArray(node.children) && node.children.length > 0
-      const base: PrunedNode = { id: node.id, name: node.name, description: node.description }
+      const base: PrunedNode = { id: node.id, name: node.name }
       if (node.color) base.color = node.color
       if (node.image) base.image = node.image
+      if (node.attachments) base.attachments = node.attachments
       if (node.iconChar) {
         base.iconChar = node.iconChar
         base.iconFont = node.iconFont
@@ -126,7 +148,7 @@ export default function TreeViz({ forwardedSvgRef }: Props = {}) {
       
       if (depth >= COLLAPSE_DEPTH && !(expanded && expanded.has(node.id))) {
         const count = totalCount(node)
-        const cluster: PrunedNode = { id: `${node.id}__cluster`, name: '', description: '', __cluster_for: node.id, __cluster_count: count }
+        const cluster: PrunedNode = { id: `${node.id}__cluster`, name: '', __cluster_for: node.id, __cluster_count: count }
         return { ...base, children: [cluster] }
       }
       
@@ -137,7 +159,10 @@ export default function TreeViz({ forwardedSvgRef }: Props = {}) {
 
     const pruned = prune(data as TreeNode, 0)
     const root = d3.hierarchy(pruned as PrunedNode) as d3.HierarchyPointNode<PrunedNode>
-    return d3.tree<PrunedNode>().nodeSize([60, 220])(root)
+    return d3.tree<PrunedNode>()
+      .nodeSize([60, 220])
+      .separation((a, b) => a.parent === b.parent ? 1 : 1.4)
+    (root)
   }, [data, expanded])
 
   const positions = useMemo(() => {
@@ -151,15 +176,15 @@ export default function TreeViz({ forwardedSvgRef }: Props = {}) {
   const visibleNodes = useMemo(() => layoutRoot.descendants(), [layoutRoot])
 
   const links = useMemo(() => {
-    const res: Array<{ source: d3.HierarchyPointNode<TreeNode>; target: d3.HierarchyPointNode<TreeNode> }> = []
+    const res: Array<{ source: d3.HierarchyPointNode<PrunedNode>; target: d3.HierarchyPointNode<PrunedNode> }> = []
     for (const node of visibleNodes) {
-      if (node.parent) res.push({ source: node.parent as d3.HierarchyPointNode<TreeNode>, target: node })
+      if (node.parent) res.push({ source: node.parent as d3.HierarchyPointNode<PrunedNode>, target: node })
     }
     return res
   }, [visibleNodes])
 
   function findD3NodeById(id: string) {
-    return layoutRoot.descendants().find((d) => d.data.id === id) as d3.HierarchyPointNode<any> | undefined
+    return layoutRoot.descendants().find((d) => d.data.id === id) as d3.HierarchyPointNode<PrunedNode> | undefined
   }
 
 
@@ -187,6 +212,10 @@ export default function TreeViz({ forwardedSvgRef }: Props = {}) {
   }
 
   const activeIdRef = useRef<string>(activeId)
+  useLayoutEffect(() => {
+    activeIdRef.current = activeId
+  }, [activeId])
+
   useLayoutEffect(() => {
     const svgEl = svgRef.current
     if (!svgEl) return
@@ -240,7 +269,13 @@ export default function TreeViz({ forwardedSvgRef }: Props = {}) {
   useEffect(() => {
     const svgEl = svgRef.current
     if (!svgEl) return
-    const zoom = d3.zoom<SVGSVGElement, unknown>().scaleExtent([0.05, 4]).on('zoom', (event) => setTransform(event.transform))
+    const zoom = d3.zoom<SVGSVGElement, unknown>()
+      .scaleExtent([0.05, 4])
+      .on('zoom', (event) => {
+        if (innerGroupRef.current) {
+          innerGroupRef.current.setAttribute('transform', event.transform.toString())
+        }
+      })
     zoomRef.current = zoom
     d3.select(svgEl).call(zoom)
     const handleResize = () => { 
@@ -271,19 +306,9 @@ export default function TreeViz({ forwardedSvgRef }: Props = {}) {
     const p = positions.get(activeId)
     if (!p) return
 
-    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
-    let count = 0
-    activeSubtree.forEach((id) => {
-      const pos = positions.get(id)
-      if (!pos) return
-      count++
-      if (pos.x < minX) minX = pos.x
-      if (pos.x > maxX) maxX = pos.x
-      if (pos.y < minY) minY = pos.y
-      if (pos.y > maxY) maxY = pos.y
-    })
+    const bounds = computeBounds(activeSubtree, positions)
 
-    if (count <= 1) {
+    if (!bounds || bounds.count <= 1) {
       if (!isInViewport(activeId) || forceCenterOnActive) {
         const current = d3.zoomTransform(svgEl)
         const targetScale = Math.max(0.9, Math.min(1.6, current.k || 1))
@@ -294,11 +319,12 @@ export default function TreeViz({ forwardedSvgRef }: Props = {}) {
       return
     }
 
+    const { minX, maxX, minY, maxY } = bounds
     const extents = { minX, maxX, minY, maxY }
     const rect = svgEl.getBoundingClientRect()
     const transform = computeTransform(p, extents, rect, sidebarOpen ? sidebarWidth : 0)
 
-    d3.select(svgEl).transition().duration(650).call(zoomRef.current.transform as any, transform)
+    d3.select(svgEl).transition().duration(650).call(zoomRef.current!.transform as any, transform)
     lastActiveRef.current = activeId
     if (forceCenterOnActive) { clearForceCenter(); }
     // Intentional omission of other dependencies (refs and stable functions)
@@ -319,15 +345,14 @@ export default function TreeViz({ forwardedSvgRef }: Props = {}) {
   const fitView = (duration: number = 650) => {
     const svgEl = svgRef.current
     if (!svgEl || !layoutRoot) return
-    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
-    layoutRoot.descendants().forEach(node => {
-      const p = positions.get(node.data.id)
-      if (!p) return
-      if (p.x < minX) minX = p.x
-      if (p.x > maxX) maxX = p.x
-      if (p.y < minY) minY = p.y
-      if (p.y > maxY) maxY = p.y
-    })
+
+    const bounds = computeBounds(
+      layoutRoot.descendants().map(n => n.data.id),
+      positions
+    )
+    if (!bounds) return
+    const { minX, maxX, minY, maxY } = bounds
+
     const rootPos = positions.get(layoutRoot.data.id)
     if (!rootPos) return
     
@@ -335,7 +360,7 @@ export default function TreeViz({ forwardedSvgRef }: Props = {}) {
     const rect = svgEl.getBoundingClientRect()
     const transform = computeTransform(rootPos, extents, rect, sidebarOpen ? sidebarWidth : 0)
 
-    d3.select(svgEl).transition().duration(duration).call(zoomRef.current.transform as any, transform)
+    d3.select(svgEl).transition().duration(duration).call(zoomRef.current!.transform as any, transform)
   }
 
   const lastResetRef = useRef<number>(0)
@@ -358,7 +383,7 @@ export default function TreeViz({ forwardedSvgRef }: Props = {}) {
 
   function centerOn(id: string, scale = 1) {
     const svgEl = svgRef.current
-    if (!svgEl) return
+    if (!svgEl || !zoomRef.current) return
     const p = positions.get(id)
     if (!p) return
     const rect = svgEl.getBoundingClientRect()
@@ -366,8 +391,8 @@ export default function TreeViz({ forwardedSvgRef }: Props = {}) {
     d3.select(svgEl).transition().duration(650).call(zoomRef.current.transform as any, transform)
   }
 
-  function colorFor(node: d3.HierarchyPointNode<TreeNode>) {
-    const clusterFor = (node.data as any).__cluster_for
+  function colorFor(node: d3.HierarchyPointNode<PrunedNode>) {
+    const clusterFor = node.data.__cluster_for
     if (clusterFor) {
       let original = findD3NodeById(clusterFor)
       if (!original) {
@@ -379,10 +404,10 @@ export default function TreeViz({ forwardedSvgRef }: Props = {}) {
         if (original.data && (original.data as any).color) return (original.data as any).color
       }
     }
-    let cur: d3.HierarchyPointNode<TreeNode> | null = node
+    let cur: d3.HierarchyPointNode<PrunedNode> | null = node
     while (cur) {
       if (cur.data.color) return cur.data.color
-      cur = (cur.parent as d3.HierarchyPointNode<TreeNode>) || null
+      cur = (cur.parent as d3.HierarchyPointNode<PrunedNode>) || null
     }
     return '#6b7280'
   }
@@ -393,26 +418,6 @@ export default function TreeViz({ forwardedSvgRef }: Props = {}) {
   }
 
   const activeNode = findD3NodeById(activeId)
-
-  useLayoutEffect(() => {
-    const svgEl = svgRef.current
-    if (!svgEl) return
-    // select text glyphs, image elements we added, and any inline svg/group marked as icon
-    const icons = svgEl.querySelectorAll('text.icon-char, image.icon-img, svg.icon-svg, g.icon-svg') as NodeListOf<SVGElement>
-    icons.forEach((el) => {
-      try {
-        // remove any previous transform then measure the visual bbox
-        el.removeAttribute('transform')
-        const bbox = (el as unknown as SVGGraphicsElement).getBBox()
-        const cx = bbox.x + bbox.width / 2
-        const cy = bbox.y + bbox.height / 2
-        // translate so the visual center (cx,cy) aligns with the local (0,0)
-        el.setAttribute('transform', `translate(${-cx}, ${-cy})`)
-      } catch (e) {
-        // measurement may fail in some environments (fonts not loaded, image not yet available); ignore silently
-      }
-    })
-  }, [visibleNodes, lang])
 
   // Automatically open the sidebar when the active node changes (e.g., from search or history)
   useEffect(() => {
@@ -431,8 +436,8 @@ export default function TreeViz({ forwardedSvgRef }: Props = {}) {
         setActiveId('');
       }}
     >
-      <svg ref={svgRef as React.LegacyRef<SVGSVGElement>} className="viz-svg" viewBox="0 0 1200 800">
-        <g transform={transform.toString()}>
+      <svg ref={svgRef as React.LegacyRef<SVGSVGElement>} className="viz-svg">
+        <g ref={innerGroupRef as React.LegacyRef<SVGGElement>}>
           <g className="links">
             {links.map((l) => {
               const s = positions.get(l.source.data.id)!
@@ -454,9 +459,9 @@ export default function TreeViz({ forwardedSvgRef }: Props = {}) {
             {visibleNodes.map((node) => {
               const p = positions.get(node.data.id)!
               const dim = activeId && !activeSubtree.has(node.data.id) && node.data.id !== activeId
-              const color = colorFor(node)
-              const isCluster = Boolean((node.data as any).__cluster_for)
-              const clusterFor = (node.data as any).__cluster_for
+              const color = colorFor(node as unknown as d3.HierarchyPointNode<PrunedNode>)
+              const isCluster = Boolean(node.data.__cluster_for)
+              const clusterFor = node.data.__cluster_for
               const finalIconChar = t(`nodes.${node.data.id}.iconChar`, { defaultValue: node.data.iconChar || '' })
               const finalIconFont = t(`nodes.${node.data.id}.iconFont`, { defaultValue: node.data.iconFont || 'sans-serif' })
               return (
@@ -482,7 +487,12 @@ export default function TreeViz({ forwardedSvgRef }: Props = {}) {
                       <circle r={12} fill="#fff" stroke={color} strokeWidth={2} strokeDasharray="3 2" />
                       {hovered === node.data.id ? (
                         <text x={18} y={5} fontSize={12} style={{ userSelect: 'none', paintOrder: 'stroke', stroke: 'var(--panel-bg)', fill: 'var(--text-main)', strokeWidth: 4, strokeLinecap: 'round', strokeLinejoin: 'round' }}>
-                          {node.data.__cluster_for ? t('cluster_items', { count: node.data.__cluster_count }) : t(`nodes.${node.data.id}.name`, { defaultValue: node.data.name })}
+                            {node.data.__cluster_for ? t('cluster_items', { count: node.data.__cluster_count }) : (
+                              <HighlightSVGText
+                                text={t(`nodes.${node.data.id}.name`, { defaultValue: node.data.name || '' })}
+                                query={searchQuery}
+                              />
+                            )}
                         </text>
                       ) : null}
                     </>
@@ -507,7 +517,12 @@ export default function TreeViz({ forwardedSvgRef }: Props = {}) {
                         </text>
                       ) : null}
                       <text x={node.children ? 0 : 36} y={node.children ? -34 : 6} fontSize={14} textAnchor={node.children ? 'middle' : 'start'} style={{ userSelect: 'none', paintOrder: 'stroke', stroke: 'var(--panel-bg)', fill: 'var(--text-main)', strokeWidth: 4, strokeLinecap: 'round', strokeLinejoin: 'round' }}>
-                        {node.data.__cluster_for ? t('cluster_items', { count: node.data.__cluster_count }) : t(`nodes.${node.data.id}.name`, { defaultValue: node.data.name })}
+                          {node.data.__cluster_for ? t('cluster_items', { count: node.data.__cluster_count }) : (
+                            <HighlightSVGText
+                              text={t(`nodes.${node.data.id}.name`, { defaultValue: node.data.name || '' })}
+                              query={searchQuery}
+                            />
+                          )}
                       </text>
                     </>
                   )}
