@@ -76,5 +76,6 @@
   "settings_modal_download_attachments_json": "Download synchronized structured_taxonomy.json",
   "settings_modal_copy_attachments_button": "Copy JSON",
   "settings_modal_copy_attachments_title": "Copy synchronized structured_taxonomy.json to clipboard",
-  "built_with_selma": "Built with Selma"
+  "built_with_selma": "Built with Selma",
+  "copy_content": "Copy content"
 }

@@ -7,6 +7,7 @@ import { useTree } from '../context/TreeContext'
 import { HighlightMatch } from '../utils/highlight'
 import AttachmentList from './AttachmentList'
 import { Attachment } from '../types'
+import CopyButton from './CopyButton'
 
 type SidebarProps = {
   open: boolean
@@ -194,6 +195,13 @@ export default function Sidebar({ open, onClose, node, initialWidth = 420, minWi
             {node ? <HighlightMatch text={t(`nodes.${node.id}.name`, { defaultValue: node.name || '' })} query={searchQuery} /> : t('details_default_title', { defaultValue: 'Details' })}
           </div>
           <div className="sidebar-actions">
+            {node?.id && (
+              <CopyButton
+                textToCopy={markdownContent}
+                className="sidebar-open-tab"
+                title={t('copy_content', { defaultValue: 'Copy content' })}
+              />
+            )}
             <button 
               className="sidebar-view-toggle text-sm font-bold" 
               onClick={decreaseSize} 

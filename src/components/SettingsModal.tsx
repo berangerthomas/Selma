@@ -3,6 +3,7 @@ import { supportedLanguages } from '../utils/localization'
 import { useI18n } from '../i18n'
 import type { Attachment } from '../types'
 import CopyIcon from '../assets/icons/copy.svg?react'
+import CopyButton from './CopyButton'
 import DownloadIcon from '../assets/icons/download.svg?react'
 
 type Props = {
@@ -35,7 +36,6 @@ export default function SettingsModal({ onClose }: Props) {
   const [activeTab, setActiveTab] = useState<string>('translations')
   const [attachmentDiscrepancies, setAttachmentDiscrepancies] = useState<AttachmentDiscrepancy[]>([])
   const [taxonomyData, setTaxonomyData] = useState<TaxonomyNode | null>(null)
-  const [copyStatus, setCopyStatus] = useState<Record<string, 'idle' | 'copying' | 'copied' | 'error'>>({})
 
   useEffect(() => {
     let mounted = true
@@ -165,77 +165,42 @@ export default function SettingsModal({ onClose }: Props) {
     return { translatedCount, missing }
   }
 
-  async function writeToClipboard(text: string) {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      return navigator.clipboard.writeText(text)
-    }
-    // fallback for older browsers
-    const ta = document.createElement('textarea')
-    ta.value = text
-    ta.style.position = 'fixed'
-    ta.style.left = '-9999px'
-    document.body.appendChild(ta)
-    ta.select()
-    try {
-      document.execCommand('copy')
-    } finally {
-      ta.remove()
-    }
+  function getScaffoldText(lang: string) {
+    const existing = (localeData[lang] && localeData[lang].nodes) ? { ...localeData[lang].nodes } : {}
+    const merged: Record<string, any> = { ...existing }
+
+    allIds.forEach((id) => {
+      if (!merged[id]) {
+        merged[id] = { name: `[TODO] ${englishNames[id] || id}` }
+      }
+    })
+
+    const out = { nodes: merged }
+    return JSON.stringify(out, null, 2)
   }
 
-  async function copyScaffold(lang: string) {
-    try {
-      const existing = (localeData[lang] && localeData[lang].nodes) ? { ...localeData[lang].nodes } : {}
-      const merged: Record<string, any> = { ...existing }
+  function getAttachmentsScaffoldText() {
+    if (!taxonomyData) return ''
+    const clonedTax = JSON.parse(JSON.stringify(taxonomyData))
 
-      allIds.forEach((id) => {
-        if (!merged[id]) {
-          merged[id] = { name: `[TODO] ${englishNames[id] || id}` }
-        }
-      })
-
-      const out = { nodes: merged }
-      const str = JSON.stringify(out, null, 2)
-      setCopyStatus(s => ({ ...s, [lang]: 'copying' }))
-      await writeToClipboard(str)
-      setCopyStatus(s => ({ ...s, [lang]: 'copied' }))
-      setTimeout(() => setCopyStatus(s => ({ ...s, [lang]: 'idle' })), 2500)
-    } catch (err) {
-      setCopyStatus(s => ({ ...s, [lang]: 'error' }))
-    }
-  }
-
-  async function copyAttachmentsScaffold() {
-    if (!taxonomyData) return
-    try {
-      const clonedTax = JSON.parse(JSON.stringify(taxonomyData))
-
-      function walkAndInject(node: any) {
-        if (node.id) {
-          const discrepancy = attachmentDiscrepancies.find(d => d.nodeId === node.id)
-          if (discrepancy && discrepancy.undeclaredFiles.length > 0) {
-            node.attachments = node.attachments || []
-            discrepancy.undeclaredFiles.forEach(uf => {
-              if (!node.attachments.some((att: any) => att.path === uf.path)) {
-                node.attachments.push(uf)
-              }
-            })
-          }
-        }
-        if (Array.isArray(node.children)) {
-          node.children.forEach(walkAndInject)
+    function walkAndInject(node: any) {
+      if (node.id) {
+        const discrepancy = attachmentDiscrepancies.find(d => d.nodeId === node.id)
+        if (discrepancy && discrepancy.undeclaredFiles.length > 0) {
+          node.attachments = node.attachments || []
+          discrepancy.undeclaredFiles.forEach((uf: any) => {
+            if (!node.attachments.some((att: any) => att.path === uf.path)) {
+              node.attachments.push(uf)
+            }
+          })
         }
       }
-      walkAndInject(clonedTax)
-
-      const str = JSON.stringify(clonedTax, null, 2)
-      setCopyStatus(s => ({ ...s, attachments: 'copying' }))
-      await writeToClipboard(str)
-      setCopyStatus(s => ({ ...s, attachments: 'copied' }))
-      setTimeout(() => setCopyStatus(s => ({ ...s, attachments: 'idle' })), 2500)
-    } catch (err) {
-      setCopyStatus(s => ({ ...s, attachments: 'error' }))
+      if (Array.isArray(node.children)) {
+        node.children.forEach(walkAndInject)
+      }
     }
+    walkAndInject(clonedTax)
+    return JSON.stringify(clonedTax, null, 2)
   }
 
   function downloadScaffold(lang: string) {
@@ -375,24 +340,18 @@ export default function SettingsModal({ onClose }: Props) {
                                     taxonomy.{lang}.json
                                   </span>
                                   <button
-                                    className={`p-1.5 rounded transition-colors ${complete ? 'opacity-50 cursor-not-allowed' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-400 cursor-pointer'}`}
+                                    className="p-1.5 rounded transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-400 cursor-pointer"
                                     onClick={() => downloadScaffold(lang)}
-                                    disabled={complete}
-                                    aria-disabled={complete}
-                                    title={complete ? t('settings_modal_all_translated_title', { defaultValue: 'All nodes translated — nothing to download' }) : t('settings_modal_download_title', { lang, defaultValue: 'Download scaffolded taxonomy.{{lang}}.json' })}
+                                    title={t('settings_modal_download_title', { lang, defaultValue: 'Download scaffolded taxonomy.{{lang}}.json' })}
                                   >
                                     <DownloadIcon className="w-4 h-4" />
                                   </button>
 
-                                  <button
-                                    className={`p-1.5 rounded transition-colors ${complete ? 'opacity-50 cursor-not-allowed' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-400 cursor-pointer'}`}
-                                    onClick={() => copyScaffold(lang)}
-                                    disabled={complete}
-                                    aria-disabled={complete}
-                                    title={complete ? t('settings_modal_all_translated_title', { defaultValue: 'All nodes translated — nothing to copy' }) : t('settings_modal_copy_title', { lang, defaultValue: 'Copy scaffolded taxonomy to clipboard' })}
-                                  >
-                                    {copyStatus[lang] === 'copied' ? <span className="text-green-600 dark:text-green-500 font-bold px-1 select-none">✓</span> : <CopyIcon className="w-4 h-4" />}
-                                  </button>
+                                  <CopyButton
+                                    textToCopy={() => getScaffoldText(lang)}
+                                    className="p-1.5 rounded transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-400 cursor-pointer"
+                                    title={t('settings_modal_copy_title', { lang, defaultValue: 'Copy scaffolded taxonomy to clipboard' })}
+                                  />
                                 </div>
                               </td>
                             </tr>
@@ -497,13 +456,13 @@ export default function SettingsModal({ onClose }: Props) {
                           <DownloadIcon className="w-5 h-5" />
                         </button>
 
-                        <button
+                        <CopyButton
+                          textToCopy={getAttachmentsScaffoldText}
                           className="p-1.5 rounded transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-400 cursor-pointer"
-                          onClick={() => copyAttachmentsScaffold()}
                           title={t('settings_modal_copy_attachments_title', { defaultValue: 'Copy synchronized structured_taxonomy.attachments.json to clipboard' })}
                         >
-                          {copyStatus['attachments'] === 'copied' ? <span className="text-green-600 dark:text-green-500 font-bold px-[3px] select-none text-base leading-none">✓</span> : <CopyIcon className="w-5 h-5" />}
-                        </button>
+                          <CopyIcon className="w-5 h-5" />
+                        </CopyButton>
                       </div>
                     </>
                   )}

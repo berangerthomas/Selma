@@ -10,6 +10,7 @@ import LangMenu from '../components/LangMenu'
 import { useTaxonomyData } from '../hooks/useTaxonomyData'
 import { findNodeById } from '../utils/treeUtils'
 import AttachmentList from '../components/AttachmentList'
+import CopyButton from '../components/CopyButton'
 
 function isHtmlResponse(r: Response): boolean {
   return r?.ok && (r.headers?.get('content-type')?.includes('text/html') ?? false)
@@ -186,6 +187,12 @@ export default function MarkdownViewerPage() {
         >
           A+
         </button>
+        <CopyButton
+          textToCopy={displayMarkdown}
+          title={t('copy_content', { defaultValue: 'Copy content' })}
+          className="p-[6px] cursor-pointer bg-white/80 dark:bg-neutral-800/80 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded transition-colors backdrop-blur-sm border border-neutral-200 dark:border-neutral-700 shadow-sm"
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', color: 'inherit' }}
+        />
       </div>
 
       {/* This controls the global text width of the tab. You can adjust the "800px" value up or down as needed! */}

@@ -76,5 +76,6 @@
   "settings_modal_download_attachments_json": "Télécharger le structured_taxonomy.json mis à jour",
   "settings_modal_copy_attachments_button": "Copier JSON",
   "settings_modal_copy_attachments_title": "Copier le structured_taxonomy.json synchronisé dans le presse-papiers",
-  "built_with_selma": "Construit avec Selma"
+  "built_with_selma": "Construit avec Selma",
+  "copy_content": "Copier le contenu"
 }
