@@ -101,6 +101,7 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
     forceCenterOnActive, 
     isFullyExpanded,
     resetViewTrigger,
+    viewMode,
     setActiveId, 
     clearForceCenter,
     toggleNode,
@@ -159,11 +160,12 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
 
     const pruned = prune(data as TreeNode, 0)
     const root = d3.hierarchy(pruned as PrunedNode) as d3.HierarchyPointNode<PrunedNode>
+    const isCompact = viewMode === 'compact'
     return d3.tree<PrunedNode>()
-      .nodeSize([60, 220])
-      .separation((a, b) => a.parent === b.parent ? 1 : 1.4)
+      .nodeSize(isCompact ? [32, 176] : [60, 220])
+      .separation((a, b) => a.parent === b.parent ? 1 : (isCompact ? 1.1 : 1.4))
     (root)
-  }, [data, expanded])
+  }, [data, expanded, viewMode])
 
   const positions = useMemo(() => {
     const map = new Map<string, { x: number; y: number; depth: number }>()
@@ -197,6 +199,22 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
   }
 
   const activeSubtree = useMemo(() => collectSubtreeIds(activeId), [activeId, layoutRoot])
+
+  const activePathAndSubtree = useMemo(() => {
+    const set = new Set<string>()
+    if (!activeId) return set
+    const node = findD3NodeById(activeId)
+    if (!node) return set
+    
+    let current: d3.HierarchyPointNode<PrunedNode> | null = node
+    while (current) {
+      set.add(current.data.id)
+      current = current.parent
+    }
+    
+    node.descendants().forEach((d) => set.add(d.data.id))
+    return set
+  }, [activeId, layoutRoot])
 
   function isInViewport(id: string, margin = CENTER_MARGIN) {
     const svgEl = svgRef.current
@@ -366,13 +384,19 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
   const lastResetRef = useRef<number>(0)
   const initialFitDone = useRef<boolean>(false)
 
-  // Fit view on initial load
+  // Fit view on initial load and when viewMode changes
   useEffect(() => {
     if (!initialFitDone.current && layoutRoot && positions.size > 0 && zoomRef.current) {
       initialFitDone.current = true
       fitView(0)
     }
   }, [layoutRoot, positions])
+
+  useEffect(() => {
+    if (initialFitDone.current && layoutRoot && positions.size > 0) {
+      fitView(650)
+    }
+  }, [viewMode])
 
   useEffect(() => {
     if (resetViewTrigger > lastResetRef.current && layoutRoot && layoutRoot.descendants().length > 0) {
@@ -413,11 +437,24 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
   }
 
   function linkPath(sx: number, sy: number, tx: number, ty: number) {
-    const dx = (tx - sx) / 2
-    return `M${sx},${sy}C${sx + dx},${sy} ${tx - dx},${ty} ${tx},${ty}`
+    if (viewMode === 'compact') {
+      const midx = sx + (tx - sx) / 2
+      return `M${sx},${sy} L${midx},${sy} L${midx},${ty} L${tx},${ty}`
+    } else {
+      const dx = (tx - sx) / 2
+      return `M${sx},${sy}C${sx + dx},${sy} ${tx - dx},${ty} ${tx},${ty}`
+    }
   }
 
   const activeNode = findD3NodeById(activeId)
+
+  function getDisplayY(node: d3.HierarchyPointNode<PrunedNode>): number {
+    const p = positions.get(node.data.id)!
+    if (viewMode !== 'compact' || !node.parent) return p.y
+    const parentPos = positions.get(node.parent.data.id)
+    if (!parentPos) return p.y
+    return p.y - (p.y - parentPos.y) / 3
+  }
 
   // Automatically open the sidebar when the active node changes (e.g., from search or history)
   useEffect(() => {
@@ -433,7 +470,6 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
       className="viz-container"
       onClick={() => {
         setSidebarOpen(false)
-        setActiveId('');
       }}
     >
       <svg ref={svgRef as React.LegacyRef<SVGSVGElement>} className="viz-svg">
@@ -442,11 +478,11 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
             {links.map((l) => {
               const s = positions.get(l.source.data.id)!
               const t = positions.get(l.target.data.id)!
-              const dim = activeId && !activeSubtree.has(l.source.data.id) && !activeSubtree.has(l.target.data.id)
+              const dim = activeId && !activePathAndSubtree.has(l.source.data.id) && !activePathAndSubtree.has(l.target.data.id)
               return (
                 <path
                   key={`${l.source.data.id}-${l.target.data.id}`}
-                  d={linkPath(s.y, s.x, t.y, t.x)}
+                  d={linkPath(getDisplayY(l.source), s.x, getDisplayY(l.target), t.x)}
                   stroke="#9ca3af"
                   fill="none"
                   strokeWidth={1}
@@ -458,18 +494,19 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
           <g className="nodes">
             {visibleNodes.map((node) => {
               const p = positions.get(node.data.id)!
-              const dim = activeId && !activeSubtree.has(node.data.id) && node.data.id !== activeId
+              const dim = activeId && !activePathAndSubtree.has(node.data.id) && node.data.id !== activeId
               const color = colorFor(node as unknown as d3.HierarchyPointNode<PrunedNode>)
               const isCluster = Boolean(node.data.__cluster_for)
               const clusterFor = node.data.__cluster_for
               const finalIconChar = t(`nodes.${node.data.id}.iconChar`, { defaultValue: node.data.iconChar || '' })
               const finalIconFont = t(`nodes.${node.data.id}.iconFont`, { defaultValue: node.data.iconFont || 'sans-serif' })
+              const displayY = getDisplayY(node)
               return (
                 <g
                   key={node.data.id}
                   className={`node ${isCluster ? 'cluster' : ''}`}
                   style={{
-                    transform: `translate(${p.y}px, ${p.x}px)`,
+                    transform: `translate(${displayY}px, ${p.x}px)`,
                     transition: `${NODE_TRANSITION}, opacity 300ms`,
                     opacity: dim ? 0.25 : 1,
                     cursor: 'pointer'
@@ -484,9 +521,9 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
                 >
                   {isCluster ? (
                     <>
-                      <circle r={12} fill="#fff" stroke={color} strokeWidth={2} strokeDasharray="3 2" />
+                      <circle r={viewMode === 'compact' ? 8 : 12} fill="#fff" stroke={color} strokeWidth={2} strokeDasharray="3 2" />
                       {hovered === node.data.id ? (
-                        <text x={18} y={5} fontSize={12} style={{ userSelect: 'none', paintOrder: 'stroke', stroke: 'var(--panel-bg)', fill: 'var(--text-main)', strokeWidth: 4, strokeLinecap: 'round', strokeLinejoin: 'round' }}>
+                        <text x={viewMode === 'compact' ? 12 : 18} y={5} fontSize={12} style={{ userSelect: 'none', paintOrder: 'stroke', stroke: 'var(--panel-bg)', fill: 'var(--text-main)', strokeWidth: 4, strokeLinecap: 'round', strokeLinejoin: 'round' }}>
                             {node.data.__cluster_for ? t('cluster_items', { count: node.data.__cluster_count }) : (
                               <HighlightSVGText
                                 text={t(`nodes.${node.data.id}.name`, { defaultValue: node.data.name || '' })}
@@ -495,6 +532,35 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
                             )}
                         </text>
                       ) : null}
+                    </>
+                  ) : viewMode === 'compact' ? (
+                    <>
+                      <rect x={-8} y={-10} width={16} height={20} rx={4} fill={color} stroke="#fff" strokeWidth={1.5} />
+                      {node.data.image ? (
+                        <image className="icon-img" href={node.data.image} x={-6} y={-6} width={12} height={12} />
+                      ) : finalIconChar ? (
+                        <text
+                          className="icon-char"
+                          x={0}
+                          y={3.5}
+                          textAnchor="middle"
+                          fill="white"
+                          fontSize={11}
+                          fontFamily={finalIconFont}
+                          style={{ pointerEvents: 'none', userSelect: 'none' }}
+                          aria-hidden="true"
+                        >
+                          {finalIconChar}
+                        </text>
+                      ) : null}
+                      <text x={14} y={4} fontSize={13} textAnchor="start" style={{ userSelect: 'none', paintOrder: 'stroke', stroke: 'var(--panel-bg)', fill: 'var(--text-main)', strokeWidth: 3, strokeLinecap: 'round', strokeLinejoin: 'round' }}>
+                          {node.data.__cluster_for ? t('cluster_items', { count: node.data.__cluster_count }) : (
+                            <HighlightSVGText
+                              text={t(`nodes.${node.data.id}.name`, { defaultValue: node.data.name || '' })}
+                              query={searchQuery}
+                            />
+                          )}
+                      </text>
                     </>
                   ) : (
                     <>
@@ -535,7 +601,6 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
 
       <Sidebar open={sidebarOpen} onClose={() => {
         setSidebarOpen(false);
-        setActiveId(''); // Closing sidebar resets active node to allow full-screen view
       }} node={activeNode?.data} initialWidth={sidebarWidth} onWidthChange={(w) => setSidebarWidth(w)} />
     </div>
   )

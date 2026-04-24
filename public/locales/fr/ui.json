@@ -38,6 +38,7 @@
     "download_svg": "Télécharger SVG",
     "download_png": "Télécharger PNG",
     "download_jpg": "Télécharger JPG",
+    "download_text": "Télécharger en texte",
     "loading": "Génération en cours…"
   }
   ,
@@ -48,7 +49,12 @@
   "settings_tabs": "Sections des paramètres",
   "settings_tab_translations": "Traductions",
   "settings_modal_coverage": "Couverture",
-  "settings_modal_status": "État",
+  "view": "Vue :",
+  "view_organic": "Graphe organique",
+  "view_compact": "Graphe compact",
+  "view_list": "Arbre en liste",
+  "view_columns": "Colonnes de Miller",
+  "settings_modal_status": "Statut",
   "settings_modal_action": "Action",
   "settings_modal_complete": "✅ Complet",
   "settings_modal_missing": "⚠️ {{count}} manquants",

@@ -135,6 +135,16 @@ export default function Sidebar({ open, onClose, node, initialWidth = 420, minWi
       window.removeEventListener('touchend', onMouseUp as any)
       moveListenerRef.current = null
       upListenerRef.current = null
+
+      // Prevent the click event that follows mouseup (when released outside the sidebar)
+      // from bubbling up and closing the sidebar
+      const preventClick = (e: MouseEvent) => {
+        e.stopPropagation()
+        e.preventDefault()
+        window.removeEventListener('click', preventClick, true)
+      }
+      window.addEventListener('click', preventClick, true)
+      setTimeout(() => window.removeEventListener('click', preventClick, true), 50)
     }
 
     moveListenerRef.current = onMouseMove
@@ -171,6 +181,15 @@ export default function Sidebar({ open, onClose, node, initialWidth = 420, minWi
       window.removeEventListener('touchend', onTouchEnd as any)
       moveListenerRef.current = null
       upListenerRef.current = null
+
+      // Prevent the click event that may follow touchend from bubbling up
+      const preventClick = (e: MouseEvent) => {
+        e.stopPropagation()
+        e.preventDefault()
+        window.removeEventListener('click', preventClick, true)
+      }
+      window.addEventListener('click', preventClick, true)
+      setTimeout(() => window.removeEventListener('click', preventClick, true), 50)
     }
 
     moveListenerRef.current = onTouchMove as any

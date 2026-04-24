@@ -38,6 +38,7 @@
     "download_svg": "Descargar SVG",
     "download_png": "Descargar PNG",
     "download_jpg": "Descargar JPG",
+    "download_text": "Descargar como texto",
     "loading": "Generando…"
   }
   ,
@@ -48,6 +49,11 @@
   "settings_tabs": "Secciones de ajustes",
   "settings_tab_translations": "Traducciones",
   "settings_modal_coverage": "Cobertura",
+  "view": "Vista:",
+  "view_organic": "Grafo Organico",
+  "view_compact": "Grafo Compacto",
+  "view_list": "Árbol en Lista",
+  "view_columns": "Columnas de Miller",
   "settings_modal_status": "Estado",
   "settings_modal_action": "Acción",
   "settings_modal_complete": "✅ Completo",

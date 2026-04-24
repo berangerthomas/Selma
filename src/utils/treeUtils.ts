@@ -58,3 +58,41 @@ export function findNodeById(root: TreeNode, id: string): TreeNode | null {
   }
   return null;
 }
+
+/**
+ * Return the inherited color for a node by walking up from the node to the root.
+ * Falls back to '#6b7280' if no ancestor has a color.
+ */
+export function getInheritedColor(nodeId: string, root: TreeNode): string {
+  const path = findNodePath(root, nodeId);
+  if (!path) return '#6b7280';
+  for (let i = path.length - 1; i >= 0; i--) {
+    const color = path[i].color;
+    if (color) return color;
+  }
+  return '#6b7280';
+}
+
+/**
+ * Export a tree as an indented text representation using box-drawing characters.
+ */
+export function exportTreeAsText(
+  node: TreeNode,
+  t?: (key: string, opts?: any) => string,
+  prefix: string = '',
+  isLast: boolean = true
+): string {
+  const displayName = t ? t(`nodes.${node.id}.name`, { defaultValue: node.name }) : (node.name || node.id);
+  const connector = prefix === '' ? '' : (isLast ? '└── ' : '├── ');
+  let result = prefix + connector + displayName + '\n';
+
+  if (node.children && node.children.length > 0) {
+    const childPrefix = prefix + (isLast ? '    ' : '│   ');
+    node.children.forEach((child, index) => {
+      const childIsLast = index === node.children!.length - 1;
+      result += exportTreeAsText(child, t, childPrefix, childIsLast);
+    });
+  }
+
+  return result;
+}

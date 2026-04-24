@@ -1,6 +1,10 @@
-import React, { useState, useRef, useEffect, RefObject } from 'react';
+import React, { useState, useRef, RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePrintSVG } from '../hooks/usePrintSVG';
+import { usePrintHTML } from '../hooks/usePrintHTML';
+import { useTree } from '../context/TreeContext';
+import { useI18n } from '../i18n';
+import { exportTreeAsText } from '../utils/treeUtils';
 import {
   useFloating,
   autoUpdate,
@@ -20,9 +24,21 @@ import DownloadIcon from '../assets/icons/download.svg?react';
 import CodeIcon from '../assets/icons/code.svg?react';
 
 interface PrintAndExportButtonsProps {
-  svgRef: RefObject<SVGSVGElement | null>;
+  svgRef?: RefObject<SVGSVGElement | null>;
+  htmlRef?: RefObject<HTMLDivElement | null>;
   title?: string;
-  className?: string; // Kept for backwards compatibility if needed
+  className?: string;
+}
+
+function triggerDownload(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 function ExportImageButton({
@@ -47,13 +63,20 @@ function ExportImageButton({
   )
 }
 
-export function PrintAndExportButtons({ svgRef, title, className = '' }: PrintAndExportButtonsProps) {
+export function PrintAndExportButtons({ svgRef, htmlRef, title, className = '' }: PrintAndExportButtonsProps) {
   const { t } = useTranslation('ui');
+  const { t: tGlobal } = useI18n();
+  const { data, viewMode } = useTree();
+  const isSVGMode = viewMode === 'organic' || viewMode === 'compact';
+
   const effectiveTitle = title || t('export_default_title', { defaultValue: 'Selma — Taxonomy' });
   const [isOpen, setOpen] = useState(false);
   const [loadingType, setLoadingType] = useState<string | null>(null);
 
-  const { printSVG, downloadSVG, downloadPNG, downloadJPG } = usePrintSVG(svgRef);
+  const svgFallbackRef = useRef<SVGSVGElement | null>(null);
+  const htmlFallbackRef = useRef<HTMLDivElement | null>(null);
+  const svgActions = usePrintSVG(svgRef || svgFallbackRef);
+  const htmlActions = usePrintHTML(htmlRef || htmlFallbackRef, viewMode === 'columns');
 
   const { refs, floatingStyles, context } = useFloating({
     open: isOpen,
@@ -81,7 +104,11 @@ export function PrintAndExportButtons({ svgRef, title, className = '' }: PrintAn
 
   const handlePrint = () => {
     setOpen(false);
-    printSVG(effectiveTitle);
+    if (isSVGMode) {
+      svgActions.printSVG(effectiveTitle);
+    } else {
+      htmlActions.printHTML(effectiveTitle);
+    }
   };
 
   const handleAction = async (type: string, action: () => Promise<void> | void) => {
@@ -95,6 +122,13 @@ export function PrintAndExportButtons({ svgRef, title, className = '' }: PrintAn
       setLoadingType(null);
       setOpen(false);
     }
+  };
+
+  const handleDownloadText = () => {
+    if (!data) return;
+    const text = exportTreeAsText(data, tGlobal);
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    triggerDownload(blob, `${effectiveTitle}.txt`);
   };
 
   return (
@@ -131,30 +165,49 @@ export function PrintAndExportButtons({ svgRef, title, className = '' }: PrintAn
             onMouseDown={(e) => e.stopPropagation()}
           >
             <div className="min-w-[220px] bg-white dark:bg-neutral-800 rounded-xl shadow-xl border border-neutral-200 dark:border-neutral-700 text-sm overflow-hidden py-1">
-              <button
-                onClick={() => handleAction('svg', () => downloadSVG(effectiveTitle ? `${effectiveTitle}.svg` : 'export.svg'))}
-                className={`w-full text-left px-4 py-2.5 flex items-center gap-3 transition-colors ${!!loadingType ? 'cursor-default opacity-50' : 'cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-700'}`}
-                disabled={!!loadingType}
-              >
-              <CodeIcon className="w-4 h-4 shrink-0 text-neutral-500" />
-              <span>{t('print.download_svg', { defaultValue: 'Download SVG' })}</span>
-            </button>
-            <ExportImageButton
-              type="png"
-              label={t('print.download_png', { defaultValue: 'Download PNG' })}
-              loadingType={loadingType}
-              disabled={!!loadingType}
-              onClick={() => handleAction('png', () => downloadPNG(effectiveTitle ? `${effectiveTitle}.png` : 'export.png'))}
-              t={t}
-            />
-            <ExportImageButton
-              type="jpg"
-              label={t('print.download_jpg', { defaultValue: 'Download JPG' })}
-              loadingType={loadingType}
-              disabled={!!loadingType}
-              onClick={() => handleAction('jpg', () => downloadJPG(effectiveTitle ? `${effectiveTitle}.jpg` : 'export.jpg'))}
-              t={t}
-            />
+              {isSVGMode ? (
+                <>
+                  <button
+                    onClick={() => handleAction('svg', () => svgActions.downloadSVG(effectiveTitle ? `${effectiveTitle}.svg` : 'export.svg'))}
+                    className={`w-full text-left px-4 py-2.5 flex items-center gap-3 transition-colors ${!!loadingType ? 'cursor-default opacity-50' : 'cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-700'}`}
+                    disabled={!!loadingType}
+                  >
+                    <CodeIcon className="w-4 h-4 shrink-0 text-neutral-500" />
+                    <span>{t('print.download_svg', { defaultValue: 'Download SVG' })}</span>
+                  </button>
+                  <ExportImageButton
+                    type="png"
+                    label={t('print.download_png', { defaultValue: 'Download PNG' })}
+                    loadingType={loadingType}
+                    disabled={!!loadingType}
+                    onClick={() => handleAction('png', () => svgActions.downloadPNG(effectiveTitle ? `${effectiveTitle}.png` : 'export.png'))}
+                    t={t}
+                  />
+                  <ExportImageButton
+                    type="jpg"
+                    label={t('print.download_jpg', { defaultValue: 'Download JPG' })}
+                    loadingType={loadingType}
+                    disabled={!!loadingType}
+                    onClick={() => handleAction('jpg', () => svgActions.downloadJPG(effectiveTitle ? `${effectiveTitle}.jpg` : 'export.jpg'))}
+                    t={t}
+                  />
+                </>
+              ) : (
+                <button
+                  onClick={() => handleAction('text', handleDownloadText)}
+                  className={`w-full text-left px-4 py-2.5 flex items-center gap-3 transition-colors ${!!loadingType ? 'cursor-default opacity-50' : 'cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-700'}`}
+                  disabled={!!loadingType}
+                >
+                  {loadingType === 'text' ? (
+                    <span className="w-4 h-4 shrink-0 block border-2 border-neutral-500 border-t-transparent rounded-full animate-spin"></span>
+                  ) : (
+                    <CodeIcon className="w-4 h-4 shrink-0 text-neutral-500" />
+                  )}
+                  <span className={loadingType === 'text' ? 'text-neutral-400' : ''}>
+                    {loadingType === 'text' ? t('print.loading') : t('print.download_text', { defaultValue: 'Download as text' })}
+                  </span>
+                </button>
+              )}
             </div>
           </div>
         )}

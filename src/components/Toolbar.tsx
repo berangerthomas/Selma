@@ -14,6 +14,7 @@ import {
 } from '@floating-ui/react';
 import { useI18n } from '../i18n'
 import { useTheme } from '../hooks/useTheme'
+import { useTree } from '../context/TreeContext'
 import { supportedLanguages } from '../utils/localization'
 import { PrintAndExportButtons } from './PrintButton'
 import ThemeIcon from './icons/ThemeIcon'
@@ -25,6 +26,10 @@ import ArrowRightIcon from '../assets/icons/arrow-right.svg?react'
 import ArrowLeftIcon from '../assets/icons/arrow-left.svg?react'
 import FitView from '../assets/icons/fit-view.svg?react'
 import SettingsIcon from '../assets/icons/settings.svg?react'
+import OrganicIcon from '../assets/icons/organic.svg?react'
+import CompactIcon from '../assets/icons/compact.svg?react'
+import FileTreeIcon from '../assets/icons/filetree.svg?react'
+import MillerIcon from '../assets/icons/miller.svg?react'
 
 interface ToolbarIconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   label: string
@@ -59,6 +64,7 @@ type Props = {
   totalResults?: number
   onResetView?: () => void
   svgRef?: RefObject<SVGSVGElement | null>
+  htmlRef?: RefObject<HTMLDivElement | null>
   canGoBack?: boolean
   canGoForward?: boolean
   onGoBack?: () => void
@@ -75,6 +81,7 @@ export default function Toolbar({
   currentResultIndex = -1, 
   totalResults = 0, 
   svgRef,
+  htmlRef,
   canGoBack = false,
   canGoForward = false,
   onGoBack,
@@ -90,6 +97,7 @@ export default function Toolbar({
   const { isDark, toggleTheme } = useTheme()
   const [showLangMenu, setShowLangMenu] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const { viewMode, setViewMode } = useTree()
 
   const { refs: searchMenuRefs, floatingStyles: searchMenuFloatingStyles, context: searchMenuContext } = useFloating({
     open: searchMenuOpen,
@@ -219,7 +227,7 @@ export default function Toolbar({
             >
               <CollapseIcon className="w-[18px] h-[18px] block" />
             </ToolbarIconButton>
-            {svgRef && <PrintAndExportButtons svgRef={svgRef} />}
+            {(svgRef || htmlRef) && <PrintAndExportButtons svgRef={svgRef} htmlRef={htmlRef} />}
             {import.meta.env.DEV && (
               <ToolbarIconButton
                 label={t('settings', { defaultValue: 'Settings' })}
@@ -228,6 +236,37 @@ export default function Toolbar({
                 <SettingsIcon className="w-[18px] h-[18px] block" aria-hidden="true" />
               </ToolbarIconButton>
             )}
+          </div>
+          <div className="toolbar-row" style={{ display: 'flex', gap: '4px', borderTop: '1px solid var(--border-color)', paddingTop: '6px', marginTop: '2px', alignItems: 'center' }}>
+            <div className="toolbar-title" style={{ marginRight: '8px' }}>{t('view', { defaultValue: 'View' })}</div>
+            <ToolbarIconButton 
+              label={t('view_organic', { defaultValue: 'Organic Graph' })} 
+              onClick={() => setViewMode('organic')}
+              className={`p-[6px] rounded transition-colors ${viewMode === 'organic' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'bg-transparent hover:bg-black/5 dark:hover:bg-white/10'}`}
+            >
+              <OrganicIcon className="w-[18px] h-[18px] block" />
+            </ToolbarIconButton>
+            <ToolbarIconButton 
+              label={t('view_compact', { defaultValue: 'Compact Graph' })} 
+              onClick={() => setViewMode('compact')}
+              className={`p-[6px] rounded transition-colors ${viewMode === 'compact' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'bg-transparent hover:bg-black/5 dark:hover:bg-white/10'}`}
+            >
+              <CompactIcon className="w-[18px] h-[18px] block" />
+            </ToolbarIconButton>
+            <ToolbarIconButton 
+              label={t('view_list', { defaultValue: 'List Tree' })} 
+              onClick={() => setViewMode('list')}
+              className={`p-[6px] rounded transition-colors ${viewMode === 'list' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'bg-transparent hover:bg-black/5 dark:hover:bg-white/10'}`}
+            >
+              <FileTreeIcon className="w-[18px] h-[18px] block" />
+            </ToolbarIconButton>
+            <ToolbarIconButton 
+              label={t('view_columns', { defaultValue: 'Miller Columns' })} 
+              onClick={() => setViewMode('columns')}
+              className={`p-[6px] rounded transition-colors ${viewMode === 'columns' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'bg-transparent hover:bg-black/5 dark:hover:bg-white/10'}`}
+            >
+              <MillerIcon className="w-[18px] h-[18px] block" />
+            </ToolbarIconButton>
           </div>
           <div className="toolbar-row">
               <input

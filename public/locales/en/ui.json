@@ -38,6 +38,7 @@
     "download_svg": "Download SVG",
     "download_png": "Download PNG",
     "download_jpg": "Download JPG",
+    "download_text": "Download as text",
     "loading": "Generating…"
   }
   ,
@@ -48,6 +49,11 @@
   "settings_tabs": "Settings sections",
   "settings_tab_translations": "Translations",
   "settings_modal_coverage": "Coverage",
+  "view": "View:",
+  "view_organic": "Organic Graph",
+  "view_compact": "Compact Graph",
+  "view_list": "List Tree",
+  "view_columns": "Miller Columns",
   "settings_modal_status": "Status",
   "settings_modal_action": "Action",
   "settings_modal_complete": "✅ Complete",

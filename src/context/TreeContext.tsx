@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect, useRef, useMemo } from 'react';
-import type { TreeNode } from '../types';
+import type { TreeNode, ViewMode } from '../types';
 import { findAllPathsByQuery, findNodePath } from '../utils/treeUtils';
 import { useTaxonomyData } from '../hooks/useTaxonomyData';
 import { useI18n } from '../i18n';
@@ -12,6 +12,8 @@ interface TreeContextType {
   currentResultIndex: number;
   forceCenterOnActive: boolean;
   isFullyExpanded: boolean;
+  viewMode: ViewMode;
+  setViewMode: (mode: ViewMode) => void;
   toggleNode: (id: string) => void;
   setExpandedToPath: (pathIds: string[]) => void;
   collapseAll: () => void;
@@ -45,6 +47,16 @@ const centeredFullscreenStyle: React.CSSProperties = {
 export function TreeProvider({ children }: { children: ReactNode }) {
   const { data, loading, error } = useTaxonomyData();
   const { t, lang } = useI18n();
+
+  const [viewMode, setViewModeState] = useState<ViewMode>(() => {
+    const saved = localStorage.getItem('selma_viewMode');
+    return (saved as ViewMode) || 'organic';
+  });
+
+  const setViewMode = useCallback((mode: ViewMode) => {
+    setViewModeState(mode);
+    localStorage.setItem('selma_viewMode', mode);
+  }, []);
 
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [activeId, setActiveId] = useState<string>('');
@@ -442,6 +454,8 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     currentResultIndex,
     forceCenterOnActive,
     isFullyExpanded,
+    viewMode,
+    setViewMode,
     toggleNode,
     setExpandedToPath,
     collapseAll,

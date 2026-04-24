@@ -1,3 +1,5 @@
+export type ViewMode = 'organic' | 'compact' | 'list' | 'columns'
+
 export type Attachment = {
   name: string
   path: string

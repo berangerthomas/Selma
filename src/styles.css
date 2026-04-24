@@ -106,7 +106,7 @@ body{color:var(--text-main);background:var(--bg-gradient-start)}
   padding:6px;
   border-radius:8px;
   box-shadow:0 10px 30px var(--toolbar-shadow);
-  width:280px;
+  width:260px;
   user-select:none;
 }
 .toolbar-header{cursor:grab;padding:6px 8px;border-bottom:1px solid var(--border-color);display:flex;align-items:center}
@@ -169,4 +169,19 @@ body{color:var(--text-main);background:var(--bg-gradient-start)}
 }
 .search-mode-item:hover{background:var(--crumb-hover)}
 .search-mode-item.active{font-weight:600}
+
+/* Miller columns smooth collapse animation */
+.miller-col {
+  transition: max-width 250ms ease-in-out, opacity 250ms ease-in-out, padding 250ms ease-in-out, border-right-width 250ms ease-in-out;
+  overflow-x: hidden;
+}
+.miller-col-exit {
+  max-width: 0 !important;
+  opacity: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  border-right-width: 0 !important;
+  min-width: 0 !important;
+  pointer-events: none;
+}
 

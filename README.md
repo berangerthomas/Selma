@@ -41,8 +41,12 @@ npm run preview
 
 ## Overview & key features
 
-- Programmatic graph rendering: transforms a structured JSON payload into an interactive node-link diagram (D3).
-- Modular architecture: decoupled rendering, translation loading and markdown-driven node content.
+- Programmatic rendering modes: transforms a structured JSON payload into interactive data using **four distinct visualization modes**:
+  - `Organic`: Organic node-and-link clustered view.
+  - `Compact`: Denser rectangular view with orthogonal connections.
+  - `List`: Flat, familiar collapsible tree for purely textual navigation.
+  - `Columns`: Miller Columns (like macOS Finder) for deep hierarchies.
+- Modular architecture: decoupled UI components, translation logic and markdown-driven node content.
 - Native localization: asynchronous loading of `taxonomy.json` and `ui.json` per language with safe fallbacks.
 - Export & print: inline fonts/images into exported SVG; produce PNG/JPG via canvas rasterization. Note that PNG and JPG exports have maximum dimension constraints imposed by browser memory limits (e.g., around 16,000 pixels for Chrome). The tool dynamically downscales the image to fit this limit. If the taxonomy tree is extremely large and exceeds this even at minimal scale, an error message is displayed recommending the SVG export, which is vector-based and has no such mathematical graphic limits.
 
@@ -190,8 +194,20 @@ Key interactions:
 
 - Click a node to show details in the Sidebar; the URL is synchronized with `?node=<id>` for deep links.
 - Search by id/name and cycle results with next/previous controls.
-- Use the toolbar for language switching, theme toggle and exporting the current view as SVG/PNG.
+- Use the toolbar for language switching, theme toggle and exporting the current view.
 - Adjust the reading text size dynamically from the Sidebar or the standalone Markdown viewer.
+
+Export & print behavior per view mode:
+
+| View mode | Print | Export formats |
+|-----------|-------|----------------|
+| **Organic / Compact** | Prints the SVG tree | SVG, PNG, JPG |
+| **List / Miller Columns** | Prints the HTML page | Plain text tree (`.txt`) |
+
+Notes on export:
+- **SVG/PNG/JPG** exports are only available in the graph views (Organic and Compact) because they rasterize the D3 SVG canvas.
+- **PNG and JPG** exports have maximum dimension constraints imposed by browser canvas memory limits (e.g., around 16,000 pixels for Chrome). The tool dynamically downscales the image to fit this limit. If the taxonomy tree is extremely large and exceeds this even at minimal scale, an error message is displayed recommending the SVG export, which is vector-based and has no such mathematical graphic limits.
+- **Text export** is available in List and Miller Columns views. It generates an ASCII tree representation using box-drawing characters (e.g., `├── Mammals`) and downloads it as a `.txt` file.
 
 Implementation pointers:
 
