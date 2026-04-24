@@ -561,6 +561,18 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
                             />
                           )}
                       </text>
+                      {node.data.attachments && node.data.attachments.length > 0 && (
+                        <g transform="translate(10, 8)">
+                          <path
+                            d="M-3,-4 H0.75 L3,-1.75 V4 H-3 Z M0.75,-4 V-1.75 H3"
+                            fill="#fff"
+                            stroke={color}
+                            strokeWidth={1.2}
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </g>
+                      )}
                     </>
                   ) : (
                     <>
@@ -590,6 +602,18 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
                             />
                           )}
                       </text>
+                      {node.data.attachments && node.data.attachments.length > 0 && (
+                        <g transform="translate(20, 20)">
+                          <path
+                            d="M-4.5,-6 H1 L4.5,-2.5 V6 H-4.5 Z M1,-6 V-2.5 H4.5"
+                            fill="#fff"
+                            stroke={color}
+                            strokeWidth={1.4}
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </g>
+                      )}
                     </>
                   )}
                 </g>

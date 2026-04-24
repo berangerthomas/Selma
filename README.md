@@ -193,6 +193,7 @@ Main UI areas:
 Key interactions:
 
 - Click a node to show details in the Sidebar; the URL is synchronized with `?node=<id>` for deep links.
+- Nodes that have file attachments show a small document indicator in every view mode, so users can identify downloadable content before opening the sidebar.
 - Search by id/name and cycle results with next/previous controls.
 - Use the toolbar for language switching, theme toggle and exporting the current view.
 - Adjust the reading text size dynamically from the Sidebar or the standalone Markdown viewer.

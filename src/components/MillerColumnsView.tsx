@@ -5,6 +5,7 @@ import type { TreeNode } from '../types';
 import Sidebar from './Sidebar';
 import { HighlightMatch } from '../utils/highlight';
 import { findNodeById, findNodePath, getInheritedColor } from '../utils/treeUtils';
+import AttachmentIcon from './AttachmentIndicator';
 
 const ChevronRight = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -248,6 +249,9 @@ const MillerColumnsView = React.forwardRef<HTMLDivElement>((_props, ref) => {
                     </div>
                     <div className={`text-sm select-none whitespace-nowrap overflow-hidden text-ellipsis ${isSelected || isActive ? 'font-semibold text-blue-700 dark:text-blue-300' : 'text-gray-800 dark:text-gray-200'}`}>
                       <HighlightMatch text={displayName} query={searchQuery} />
+                      {node.attachments && node.attachments.length > 0 && (
+                        <AttachmentIcon size={12} className="ml-1 inline-block opacity-70 text-gray-600 dark:text-gray-300 flex-shrink-0" />
+                      )}
                     </div>
                   </div>
                   {hasChildren ? (
