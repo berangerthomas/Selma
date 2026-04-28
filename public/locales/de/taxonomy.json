@@ -1,0 +1,156 @@
+{
+  "nodes": {
+    "taxonomy_root": {
+      "name": "Tierreich",
+      "description": "Alle Tiere — mehrzellige, heterotrophe eukaryotische Organismen."
+    },
+    "vertebrates": {
+      "name": "Wirbeltiere",
+      "description": "Tiere mit Wirbelsäule und knöchernem oder knorpeligem Schädel."
+    },
+    "mammals": {
+      "name": "Säugetiere",
+      "description": "Warmblütige, haarige Wirbeltiere, die ihre Jungen mit Milch säugen."
+    },
+    "carnivores": {
+      "name": "Raubtiere",
+      "description": "Säugetiere, deren Ernährung hauptsächlich aus tierischem Fleisch besteht."
+    },
+    "lion": {
+      "name": "Löwe",
+      "description": "Große soziale Raubkatze in Subsahara-Afrika, Spitzenprädatoren der Savanne."
+    },
+    "wolf": {
+      "name": "Grauwolf",
+      "description": "Sozialer Hundeartige, in Rudeln lebend, wilder Vorfahre des Haushundes."
+    },
+    "polar_bear": {
+      "name": "Eisbär",
+      "description": "Das größte terrestrische Raubtier, hervorragend an das Leben auf dem arktischen Meereis angepasst."
+    },
+    "primates": {
+      "name": "Primaten",
+      "description": "Säugetierordnung, zu der Affen, Menschenaffen und Menschen gehören."
+    },
+    "chimpanzee": {
+      "name": "Schimpanse",
+      "description": "Afrikanischer Menschenaffe und einer der engsten lebenden Verwandten des Menschen."
+    },
+    "gorilla": {
+      "name": "Gorilla",
+      "description": "Der größte lebende Primate, pflanzenfressender Bewohner der zentralafrikanischen Wälder."
+    },
+    "cetaceans": {
+      "name": "Wale",
+      "description": "Vollständig aquatische Meeressäuger: Wale, Delfine und Schweinswale."
+    },
+    "blue_whale": {
+      "name": "Blauwal",
+      "description": "Das größte auf der Erde bekannte Lebewesen."
+    },
+    "dolphin": {
+      "name": "Großer Tümmler",
+      "description": "Sehr intelligenter, geselliger Wal, der für akrobatische Sprünge bekannt ist."
+    },
+    "birds": {
+      "name": "Vögel",
+      "description": "Gefiederte Wirbeltiere mit hornigem Schnabel und als Flügel entwickelten Vordergliedmaßen."
+    },
+    "raptors": {
+      "name": "Greifvögel",
+      "description": "Tag- oder nachtaktive Raubvögel, ausgestattet mit kräftigen Krallen und hakenförmigem Schnabel."
+    },
+    "golden_eagle": {
+      "name": "Steinadler",
+      "description": "Ikonischer tagaktiver Greifvogel aus den Gebirgsregionen der nördlichen Hemisphäre."
+    },
+    "great_horned_owl": {
+      "name": "Virginia-Uhu",
+      "description": "Großer, nachtaktiver Raubvogel mit markanten Federohren, in ganz Amerika verbreitet."
+    },
+    "passerines": {
+      "name": "Sperlingsvögel",
+      "description": "Die artenreichste Vogelordnung, umfasst mehr als die Hälfte aller Vogelarten."
+    },
+    "sparrow": {
+      "name": "Haussperling",
+      "description": "Kleiner, allgegenwärtiger Sperlingengvogel, eng mit menschlichen Siedlungen weltweit verbunden."
+    },
+    "robin": {
+      "name": "Rotkehlchen",
+      "description": "Bekannter europäischer Sperlingsvogel, an seiner leuchtenden orange-roten Brust sofort zu erkennen."
+    },
+    "reptiles": {
+      "name": "Reptilien",
+      "description": "Ektotherme Wirbeltiere mit schuppiger oder gepanzerter Haut: Eidechsen, Schlangen, Schildkröten, Krokodile."
+    },
+    "crocodilians": {
+      "name": "Krokodilartige",
+      "description": "Große halb-aquatische Reptilien, gehören zu den ältesten überlebenden Wirbeltier-Spitzenprädatoren."
+    },
+    "nile_crocodile": {
+      "name": "Nilkrokodil",
+      "description": "Afrikas größtes Reptil und ein gefürchtetes Raubtier in tropischen Flüssen und Seen."
+    },
+    "alligator": {
+      "name": "Mississippi-Alligator",
+      "description": "Nordamerikanisches Krokodil, ein Symbol für die Feuchtgebiete im Südosten der USA."
+    },
+    "squamata": {
+      "name": "Schuppenkriechtiere",
+      "description": "Eine Ordnung, die alle Eidechsen und Schlangen umfasst — die nach Insekten größte Reptilienordnung."
+    },
+    "reticulated_python": {
+      "name": "Netzpython",
+      "description": "Die längste Schlange der Welt, heimisch in den tropischen Wäldern Südostasiens."
+    },
+    "komodo_dragon": {
+      "name": "Komodowaran",
+      "description": "Die größte lebende Eidechse, die auf einer Handvoll indonesischer Inseln endemisch ist."
+    },
+    "invertebrates": {
+      "name": "Wirbellose",
+      "description": "Tiere ohne Wirbelsäule, machen über 95% aller bekannten Tierarten aus."
+    },
+    "arthropods": {
+      "name": "Gliederfüßer",
+      "description": "Wirbellose mit gelenkigem Außenskelett: Insekten, Spinnentiere, Krebstiere, Tausendfüßer."
+    },
+    "insects": {
+      "name": "Insekten",
+      "description": "Die artenreichste Klasse im Tierreich, gekennzeichnet durch sechs Beine und oft Flügel."
+    },
+    "honeybee": {
+      "name": "Honigbiene",
+      "description": "Wesentlich soziales Insekt, ein Grundpfeiler der Bestäubung und Honigproduktion weltweit."
+    },
+    "monarch_butterfly": {
+      "name": "Monarchfalter",
+      "description": "Berühmt für seine bemerkenswerten jährlichen Migrationen, die tausende Kilometer umspannen."
+    },
+    "arachnids": {
+      "name": "Spinnentiere",
+      "description": "Achtbeinige Gliederfüßer: Spinnen, Skorpione, Milben und Weberknechte."
+    },
+    "wolf_spider": {
+      "name": "Wolfsspinne",
+      "description": "Einzelgängerisch, schnell jagend, baut kein Netz."
+    },
+    "emperor_scorpion": {
+      "name": "Kaiserskorpion",
+      "description": "Einer der weltweit größten Skorpione, beheimatet in westafrikanischen Tropenwäldern."
+    },
+    "mollusks": {
+      "name": "Weichtiere",
+      "description": "Weichkörperwirbellose, oft schalenartig: Schnecken, Muscheln, Kopffüßer."
+    },
+    "giant_pacific_octopus": {
+      "name": "Pazifischer Oktopus",
+      "description": "Der größte lebende Kopffüßer, gefeiert für seine bemerkenswerte Intelligenz."
+    },
+    "garden_snail": {
+      "name": "Gartenschnecke",
+      "description": "Häufige Land schnecke, Zeichen der Langsamkeit und ein kulinarisches Grundnahrungsmittel."
+    }
+  }
+}
