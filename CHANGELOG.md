@@ -1,5 +1,26 @@
 # Changelog
 
+## [v0.5.0] - 2026-04-29
+
+### Added
+- **German Localization**: Added German (`de`) as a dynamically supported language in the taxonomy demo shipped with Selma.
+- **Content copy**: Added a universal "Copy" button (`CopyButton` component) to copy markdown contents directly from the interactive Sidebar or the standalone Markdown Viewer.
+- **Multi-view Support**: Selma now natively supports 4 dynamic visualization modes for exploring your taxonomy, accessible from the main toolbar:
+  - **Organic Graph**: The default organic node-and-link clustered view.
+  - **Compact Graph**: A tighter, box-based version of the graph using orthogonal links.
+  - **List Tree**: A classic vertically cascading collapsible tree.
+  - **Miller Columns**: A cascading column-based workflow ideal for navigating deep hierarchies without overlap.
+- **Indented text export** when in "Miller's columns" or "File tree" mode.
+- **Attachment indicator**: Nodes that have downloadable attachments now show a small document icon directly in all visualization modes.
+- **Improved Toolbox UI**: Added a view-switcher section inside the active toolbox. Visual modes seamlessly adapt to browser size and sidebar presence.
+
+### Modified
+- **Copy component**: Refactored the `SettingsModal` internal copy functions into a globally reusable `CopyButton` component and `clipboard.ts` utility.
+- Removed unnecessary copy and download restrictions from the translation Settings modal.
+
+### Fixed
+- **Sidebar resize**: Fixed a bug where dragging the sidebar resize handle past the maximum width (and releasing the mouse outside the sidebar) would cause the sidebar to close instead of staying open at its maximum width. A transient click-capture handler now prevents the stray click event from propagating to the container.
+
 ## [v0.4.0] - 2026-04-21
 
 ### Added
