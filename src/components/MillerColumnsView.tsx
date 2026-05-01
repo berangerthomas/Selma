@@ -4,34 +4,21 @@ import { useI18n } from '../i18n';
 import type { TreeNode } from '../types';
 import Sidebar from './Sidebar';
 import { HighlightMatch } from '../utils/highlight';
-import { findNodeById, findNodePath, getInheritedColor } from '../utils/treeUtils';
+import { findNodeById, findNodePath } from '../utils/treeUtils';
 import AttachmentIcon from './AttachmentIndicator';
-
-const ChevronRight = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <polyline points="9 18 15 12 9 6" />
-  </svg>
-);
+import { ChevronRight } from './icons/ChevronRight';
+import { NodeIcon } from './NodeIcon';
+import { useSidebar } from '../hooks/useSidebar';
 
 const MillerColumnsView = React.forwardRef<HTMLDivElement>((_props, ref) => {
-  const { data, expanded, activeId, setActiveId, setExpandedToPath, searchQuery } = useTree();
+  const { data, activeId, setActiveId, setExpandedToPath, searchQuery } = useTree();
   const { t } = useI18n();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sidebarWidth, setSidebarWidth] = useState(420);
+  const { open: sidebarOpen, setOpen: setSidebarOpen, width: sidebarWidth, setWidth: setSidebarWidth } = useSidebar(activeId);
   const containerRef = useRef<HTMLDivElement>(null);
   const prevColsRef = useRef<TreeNode[][]>([]);
   const [trailingCols, setTrailingCols] = useState<TreeNode[][]>([]);
   const [animateExit, setAnimateExit] = useState(false);
   const prevActiveIdRef = useRef<string>(activeId);
-
-  // Auto-open sidebar if a node is actively selected
-  useEffect(() => {
-    if (activeId) {
-      setSidebarOpen(true);
-    } else {
-      setSidebarOpen(false);
-    }
-  }, [activeId]);
 
   const activeNode = data ? findNodeById(data, activeId) : null;
 
@@ -49,22 +36,7 @@ const MillerColumnsView = React.forwardRef<HTMLDivElement>((_props, ref) => {
     if (!driverId) return cols;
 
     // Find path to driverId starting from root
-    let path: TreeNode[] = [];
-    const findPath = (node: TreeNode, currentPath: TreeNode[]): boolean => {
-      const newPath = [...currentPath, node];
-      if (node.id === driverId) {
-        path = newPath;
-        return true;
-      }
-      if (node.children) {
-        for (const child of node.children) {
-          if (findPath(child, newPath)) return true;
-        }
-      }
-      return false;
-    };
-    
-    findPath(data, []);
+    const path = findNodePath(data, driverId) || [];
 
     // For each node in path, if it has children, add them as the next column.
     for (let i = 0; i < path.length; i++) {
@@ -75,7 +47,7 @@ const MillerColumnsView = React.forwardRef<HTMLDivElement>((_props, ref) => {
     }
 
     return cols;
-  }, [data, activeId, expanded]);
+  }, [data, activeId]);
 
   // Keep track of the last active id so columns don't collapse when sidebar closes
   useEffect(() => {
@@ -88,20 +60,10 @@ const MillerColumnsView = React.forwardRef<HTMLDivElement>((_props, ref) => {
     const set = new Set<string>();
     if (!data || !activeId) return set;
     
-    const findPath = (node: TreeNode, currentPath: string[]): boolean => {
-      const newPath = [...currentPath, node.id];
-      if (node.id === activeId) {
-        newPath.forEach(id => set.add(id));
-        return true;
-      }
-      if (node.children) {
-        for (const child of node.children) {
-          if (findPath(child, newPath)) return true;
-        }
-      }
-      return false;
-    };
-    findPath(data, []);
+    const path = findNodePath(data, activeId);
+    if (path) {
+      path.forEach(n => set.add(n.id));
+    }
     return set;
   }, [data, activeId]);
 
@@ -124,7 +86,7 @@ const MillerColumnsView = React.forwardRef<HTMLDivElement>((_props, ref) => {
   useEffect(() => {
     if (trailingCols.length > 0 && !animateExit) {
       const raf1 = requestAnimationFrame(() => {
-        const raf2 = requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
           setAnimateExit(true);
         });
       });
@@ -217,8 +179,6 @@ const MillerColumnsView = React.forwardRef<HTMLDivElement>((_props, ref) => {
               const isSelected = activePathIds.has(node.id);
               const isActive = activeId === node.id;
               const hasChildren = !!node.children && node.children.length > 0;
-              const finalIconChar = t(`nodes.${node.id}.iconChar`, { defaultValue: node.iconChar || '' });
-              const finalIconFont = t(`nodes.${node.id}.iconFont`, { defaultValue: node.iconFont || 'sans-serif' });
               const displayName = t(`nodes.${node.id}.name`, { defaultValue: node.name || '' });
 
               return (
@@ -238,15 +198,7 @@ const MillerColumnsView = React.forwardRef<HTMLDivElement>((_props, ref) => {
                   }}
                 >
                   <div className="flex items-center overflow-hidden min-w-0">
-                    <div className="flex-shrink-0 w-5 h-5 flex justify-center items-center mr-2 rounded-sm" style={{ backgroundColor: data ? getInheritedColor(node.id, data) : '#6b7280' }}>
-                      {node.image ? (
-                        <img src={node.image} alt="" className="w-4 h-4 object-contain" />
-                      ) : finalIconChar ? (
-                        <span style={{ fontFamily: finalIconFont, fontSize: '12px', color: '#fff', lineHeight: 1 }} aria-hidden="true">
-                          {finalIconChar}
-                        </span>
-                      ) : null}
-                    </div>
+                    <NodeIcon node={node} data={data} />
                     <div className={`text-sm select-none whitespace-nowrap overflow-hidden text-ellipsis ${isSelected || isActive ? 'font-semibold text-blue-700 dark:text-blue-300' : 'text-gray-800 dark:text-gray-200'}`}>
                       <HighlightMatch text={displayName} query={searchQuery} />
                       {node.attachments && node.attachments.length > 0 && (

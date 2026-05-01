@@ -1,4 +1,3 @@
-import React from 'react'
 import ThemeLightIcon from '../../assets/icons/theme-light.svg?react'
 import ThemeDarkIcon from '../../assets/icons/theme-dark.svg?react'
 

@@ -1,5 +1,4 @@
-import React, { useState, useRef, RefObject } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useState, useRef, RefObject } from 'react';
 import { usePrintSVG } from '../hooks/usePrintSVG';
 import { usePrintHTML } from '../hooks/usePrintHTML';
 import { useTree } from '../context/TreeContext';
@@ -30,16 +29,7 @@ interface PrintAndExportButtonsProps {
   className?: string;
 }
 
-function triggerDownload(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
+import { triggerDownload } from '../utils/download';
 
 function ExportImageButton({
   type, label, loadingType, disabled, onClick, t
@@ -64,7 +54,7 @@ function ExportImageButton({
 }
 
 export function PrintAndExportButtons({ svgRef, htmlRef, title, className = '' }: PrintAndExportButtonsProps) {
-  const { t } = useTranslation('ui');
+  const { t } = useI18n();
   const { t: tGlobal } = useI18n();
   const { data, viewMode } = useTree();
   const isSVGMode = viewMode === 'organic' || viewMode === 'compact';

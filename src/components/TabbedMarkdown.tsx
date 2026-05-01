@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import MarkdownRenderer from './MarkdownRenderer';
 
 type PresentationMode = 'tabs' | 'linear';

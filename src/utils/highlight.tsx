@@ -1,4 +1,4 @@
-import React from 'react'
+// highlight functions
 
 export function HighlightMatch({ text, query }: { text: string; query: string }) {
   if (!query || !text) return <>{text}</>

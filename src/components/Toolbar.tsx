@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, RefObject } from 'react'
+import { useRef, RefObject, useState } from 'react'
 import {
   useFloating,
   autoUpdate,
@@ -95,7 +95,6 @@ export default function Toolbar({
   const [searchMenuOpen, setSearchMenuOpen] = useState(false)
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const { isDark, toggleTheme } = useTheme()
-  const [showLangMenu, setShowLangMenu] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const { viewMode, setViewMode } = useTree()
 

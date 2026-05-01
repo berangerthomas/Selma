@@ -1,5 +1,3 @@
-import React from 'react';
-
 export const AttachmentIcon = ({ size = 12, className = '' }: { size?: number; className?: string }) => (
   <svg
     viewBox="0 0 24 24"

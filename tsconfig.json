@@ -10,6 +10,8 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "isolatedModules": true,
     "noEmit": true,
     "types": ["vite/client", "vite-plugin-svgr/client"]

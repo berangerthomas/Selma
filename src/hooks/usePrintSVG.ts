@@ -266,16 +266,7 @@ function processImage(
   });
 }
 
-function triggerDownload(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
+import { triggerDownload } from '../utils/download';
 
 export function usePrintSVG(svgRef: RefObject<SVGSVGElement | null>) {
   const prepareSVG = async (svgEl: SVGSVGElement) => {

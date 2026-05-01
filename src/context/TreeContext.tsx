@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect, useRef, useMemo } from 'react';
 import type { TreeNode, ViewMode } from '../types';
-import { findAllPathsByQuery, findNodePath } from '../utils/treeUtils';
+import { findAllPathsByQuery, findNodePath, getAllNodeIds } from '../utils/treeUtils';
 import { useTaxonomyData } from '../hooks/useTaxonomyData';
 import { useI18n } from '../i18n';
 
@@ -44,6 +44,12 @@ const centeredFullscreenStyle: React.CSSProperties = {
   display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', fontFamily: 'sans-serif'
 };
 
+type HistoryState = { stack: string[]; index: number };
+type HistoryAction = 
+  | { type: 'PUSH'; id: string }
+  | { type: 'GO_BACK' }
+  | { type: 'GO_FORWARD' };
+
 export function TreeProvider({ children }: { children: ReactNode }) {
   const { data, loading, error } = useTaxonomyData();
   const { t, lang } = useI18n();
@@ -67,16 +73,10 @@ export function TreeProvider({ children }: { children: ReactNode }) {
   const searchContentCacheRef = useRef<Map<string, string>>(new Map());
   // track whether the current active search comes from simple or deep mode
   const [activeSearchType, setActiveSearchType] = useState<'simple' | 'deep' | null>(null);
+  const prevSearchStateRef = useRef<{ query: string; type: 'simple' | 'deep' | null }>({ query: '', type: null });
   const [currentResultIndex, setCurrentResultIndex] = useState<number>(-1);
   const [forceCenterOnActive, setForceCenterOnActive] = useState<boolean>(false);
   const [resetViewTrigger, setResetViewTrigger] = useState<number>(0);
-
-  // Custom history state via useReducer to prevent stale closures
-  type HistoryState = { stack: string[]; index: number };
-  type HistoryAction = 
-    | { type: 'PUSH'; id: string }
-    | { type: 'GO_BACK' }
-    | { type: 'GO_FORWARD' };
 
   const [history, dispatchHistory] = React.useReducer((state: HistoryState, action: HistoryAction): HistoryState => {
     switch (action.type) {
@@ -100,16 +100,7 @@ export function TreeProvider({ children }: { children: ReactNode }) {
 
   const isFullyExpanded = useMemo(() => {
     if (!data) return false;
-
-    const allIds: string[] = [];
-    const traverse = (node: TreeNode) => {
-      allIds.push(node.id);
-      if (node.children) {
-        node.children.forEach(traverse);
-      }
-    };
-
-    traverse(data);
+    const allIds = getAllNodeIds(data);
     return allIds.every((id) => expanded.has(id));
   }, [data, expanded]);
 
@@ -140,7 +131,7 @@ export function TreeProvider({ children }: { children: ReactNode }) {
   }, [activeId]);
 
   useEffect(() => {
-    const handlePopState = (e: PopStateEvent) => {
+    const handlePopState = () => {
       const p = new URLSearchParams(window.location.search);
       const nodeId = p.get('node');
       if (nodeId && data) {
@@ -244,15 +235,7 @@ export function TreeProvider({ children }: { children: ReactNode }) {
 
   const expandAll = useCallback(() => {
     if (!data) return;
-    const allIds = new Set<string>();
-    const traverse = (node: TreeNode) => {
-      allIds.add(node.id);
-      if (node.children) {
-        node.children.forEach(traverse);
-      }
-    };
-    traverse(data);
-    setExpanded(allIds);
+    setExpanded(new Set(getAllNodeIds(data)));
     resetView();
   }, [data, resetView]);
 
@@ -292,19 +275,14 @@ export function TreeProvider({ children }: { children: ReactNode }) {
       const resultsSet = new Set<string>();
 
       try {
-        const simpleMatches = findAllPathsByQuery(data, trimmed, t, 'simple');
+        const simpleMatches = findAllPathsByQuery(data, trimmed, t);
         simpleMatches.forEach((id) => resultsSet.add(id));
       } catch (e) {
         // ignore
       }
 
       // gather all node ids
-      const allIds: string[] = [];
-      const collect = (n: TreeNode) => {
-        allIds.push(n.id);
-        if (n.children) n.children.forEach(collect);
-      };
-      collect(data);
+      const allIds = getAllNodeIds(data);
 
       const BATCH_SIZE = 15;
       for (let i = 0; i < allIds.length; i += BATCH_SIZE) {
@@ -353,8 +331,6 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     })();
   }, [data, lang, t, navigateToResult]);
 
-  const prevSearchStateRef = useRef<{ query: string; type: 'simple' | 'deep' | null }>({ query: '', type: null });
-
   useEffect(() => {
     if (!data) return;
 
@@ -377,7 +353,7 @@ export function TreeProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const results = findAllPathsByQuery(data, searchQuery, t, 'simple');
+    const results = findAllPathsByQuery(data, searchQuery, t);
     if (results.length === 0) {
       console.warn('No node matched search:', searchQuery);
       setSearchResults([]);

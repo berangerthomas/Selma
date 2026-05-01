@@ -89,6 +89,8 @@ const topOcclusion = 30 // Toolbar on top
   return d3.zoomIdentity.translate(tx, ty).scale(targetScale)
 }
 
+import { useSidebar } from '../hooks/useSidebar';
+
 export default function TreeViz({ forwardedSvgRef }: Props) {
   const defaultSvgRef = useRef<SVGSVGElement | null>(null)
   const svgRef = forwardedSvgRef || defaultSvgRef
@@ -106,8 +108,7 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
     clearForceCenter,
     toggleNode,
     requestForceCenter,
-    searchQuery,
-    activeSearchType
+    searchQuery
   } = useTree()
 
   const onToggleNode = (id: string) => {
@@ -123,8 +124,7 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
   const { t, lang } = useI18n()
   const lastLangRef = useRef<string>(lang)
   const [hovered, setHovered] = useState<string | null>(null)
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [sidebarWidth, setSidebarWidth] = useState(420)
+  const { open: sidebarOpen, setOpen: setSidebarOpen, width: sidebarWidth, setWidth: setSidebarWidth } = useSidebar(activeId);
 
   // Build pruned tree and preserve node metadata (color)
   const layoutRoot = useMemo(() => {
@@ -257,9 +257,8 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
     centerIcons()
 
     // Re-run after fonts are available (helps icon fonts)
-    let fontsListener: Promise<void> | null = null
     if ((document as any).fonts && (document as any).fonts.ready) {
-      fontsListener = (document as any).fonts.ready.then(() => {
+      (document as any).fonts.ready.then(() => {
         centerIcons()
       }).catch(() => {})
     }
@@ -455,15 +454,6 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
     if (!parentPos) return p.y
     return p.y - (p.y - parentPos.y) / 3
   }
-
-  // Automatically open the sidebar when the active node changes (e.g., from search or history)
-  useEffect(() => {
-    if (activeId && activeId !== '') {
-      setSidebarOpen(true);
-    } else {
-      setSidebarOpen(false);
-    }
-  }, [activeId]);
 
   return (
     <div

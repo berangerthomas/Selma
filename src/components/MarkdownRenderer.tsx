@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { visit } from 'unist-util-visit';
 import 'react-medium-image-zoom/dist/styles.css';
 import Zoom from 'react-medium-image-zoom';
@@ -53,7 +53,7 @@ function rehypeSearchHighlight(options: { query?: string }) {
       if (!node.value.match(regex)) return;
       
       const parts = node.value.split(regex);
-      const newNodes = parts.map((part: string, i: number) => {
+      const newNodes = parts.map((part: string) => {
         if (part.toLowerCase() === queryStr.toLowerCase()) {
           return { type: 'element', tagName: 'mark', properties: { className: ['search-highlight', 'bg-yellow-300', 'dark:bg-yellow-600/50', 'text-black', 'dark:text-white'] }, children: [{ type: 'text', value: part }] };
         }

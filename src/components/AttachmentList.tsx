@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Attachment } from '../types'
 import { useTextSize } from '../hooks/useTextSize'
 import { useI18n } from '../i18n'

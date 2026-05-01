@@ -15,11 +15,7 @@ export default function App() {
   
   const {
     data,
-    expanded,
     activeId,
-    forceCenterOnActive,
-    toggleNode,
-    requestForceCenter,
     setExpandedToPath,
     collapseAll,
     expandAll,
@@ -28,9 +24,7 @@ export default function App() {
     goToPrevResult,
     searchResults,
     currentResultIndex,
-    setActiveId,
     viewMode,
-    resetViewTrigger,
     resetView,
     canGoBack,
     canGoForward,

@@ -157,6 +157,7 @@ export default function Sidebar({ open, onClose, node, initialWidth = 420, minWi
     window.addEventListener('touchend', onMouseUp as any)
   }
 
+  // @ts-expect-error - used via touch props not directly recognized
   function handleTouchStart(e: React.TouchEvent) {
     const touch = e.touches[0]
     if (!touch) return

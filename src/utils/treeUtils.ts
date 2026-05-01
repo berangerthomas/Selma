@@ -1,5 +1,15 @@
 import type { TreeNode } from '../types';
 
+export function getAllNodeIds(root: TreeNode): string[] {
+  const ids: string[] = [];
+  function walk(node: TreeNode) {
+    ids.push(node.id);
+    node.children?.forEach(walk);
+  }
+  walk(root);
+  return ids;
+}
+
 /**
  * Perform a Depth-First Search to find all node IDs that match a given query.
  * Matches against node id or node name (localized via `t` when available).
@@ -7,8 +17,7 @@ import type { TreeNode } from '../types';
 export function findAllPathsByQuery(
   root: TreeNode,
   query: string,
-  t?: (key: string, opts?: any) => string,
-  mode: 'simple' | 'full' = 'full'
+  t?: (key: string, opts?: any) => string
 ): string[] {
   const q = query.trim().toLowerCase();
   if (!q) return [];

@@ -1,4 +1,4 @@
-import React from 'react'
+// highlight SVG functions
 
 export function HighlightSVGText({ text, query }: { text: string; query: string }) {
   if (!query || !text) return <>{text}</>

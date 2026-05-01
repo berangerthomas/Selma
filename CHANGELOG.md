@@ -1,5 +1,21 @@
 # Changelog
 
+## [v0.5.1] - 2026-05-01
+
+### Added
+- Developer: `src/utils/download.ts` (shared download helper) and `src/components/NodeIcon.tsx` / `src/components/icons/ChevronRight.tsx` extracted for reuse.
+
+### Modified
+- Refactor: Extracted shared components and hooks (`useSidebar`, `NodeIcon`, `ChevronRight`) and centralized several utilities in `src/utils/` to remove duplication.
+- Type system: Enabled `noUnusedLocals` and `noUnusedParameters` and fixed resulting TypeScript issues across the codebase.
+- Data & search helpers: Added `getAllNodeIds` and removed dead parameters from `findAllPathsByQuery` to simplify API surface.
+- i18n: Standardized `useI18n` usage (removed direct `react-i18next` imports from components) and cleaned initialization code.
+
+### Fixed
+- Code quality: removed phantom hook dependencies and dead parameters, hoisted internal types to module scope where appropriate.
+- Build: resolved all TypeScript compiler errors under the new stricter `tsconfig` settings.
+
+
 ## [v0.5.0] - 2026-04-29
 
 ### Added
