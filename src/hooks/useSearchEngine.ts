@@ -2,12 +2,13 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import type { TreeNode, DagData } from '../types';
 import { findMatchingIds } from '../utils/dagUtils';
 import { useDeepSearch } from './useDeepSearch';
+import { type TranslateFn } from '../utils/searchRegex';
 
 export function useSearchEngine(
   dagData: DagData | null,
   data: TreeNode | null,
   lang: string,
-  t: (key: string, opts?: any) => string,
+  t: TranslateFn,
   navigateToResult: (nodeId: string, forceCenter?: boolean) => void
 ) {
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -82,7 +83,7 @@ export function useSearchEngine(
       return;
     }
 
-    const results = findMatchingIds(dagData, searchQuery, (key, opts) => t(key, opts as any) as string);
+    const results = findMatchingIds(dagData, searchQuery, t);
     if (results.length === 0) {
       console.debug('No node matched search:', searchQuery);
       setSearchResults([]);
@@ -136,6 +137,5 @@ export function useSearchEngine(
     handleSearch,
     goToNextResult,
     goToPrevResult,
-    searchContentCacheRef,
   };
 }

@@ -1,14 +1,6 @@
 import { useState, useEffect } from 'react'
 
-function safeLocalStorageGet(key: string): string | null {
-  try { return localStorage.getItem(key); }
-  catch { return null; }
-}
-
-function safeLocalStorageSet(key: string, value: string): void {
-  try { localStorage.setItem(key, value); }
-  catch { /* silently ignore */ }
-}
+import { safeLocalStorageGet, safeLocalStorageSet } from '../utils/storage';
 
 export function useTheme() {
   const [isDark, setIsDark] = useState(() => {

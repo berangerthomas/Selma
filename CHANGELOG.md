@@ -1,5 +1,21 @@
 # Changelog
 
+## [v0.6.2] - 2026-05-09
+
+### Added
+- `src/utils/storage.ts` to share `safeLocalStorageGet`/`safeLocalStorageSet` helpers.
+
+### Modified
+- Removed `as any` related to `t` function by introducing `TranslateFn` type in `src/utils/searchRegex.ts`.
+- Optimized `TreeViz.tsx` by using `d3NodeMap` and `treeNodeMap` (O(1) lookups instead of O(n) searches).
+- Simplified `buildSpanningTree` in `src/utils/dagUtils.ts` using spread/conditional properties.
+- Removed `searchContentCacheRef` from `useSearchEngine` public return (internal ref leak).
+
+### Fixed
+- Fixed duplicated `safeLocalStorageSet` in `useUrlSync.ts`, `TreeContext.tsx`, `useTheme.ts`, and `useTextSize.ts`.
+- Fixed indentation in `TreeContextType`.
+- Removed remaining `as any` and cleaned up D3 layout logic in `TreeViz.tsx`.
+
 ## [v0.6.1] - 2026-05-09
 
 ### Added

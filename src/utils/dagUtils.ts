@@ -1,6 +1,6 @@
 import type { DagData, DagNode, CrossEdge, TreeNode } from '../types';
 import * as d3 from 'd3'
-import { nodeMatchesQuery } from './searchRegex';
+import { nodeMatchesQuery, type TranslateFn } from './searchRegex';
 
 // Prune tree -> produce a D3 hierarchy suitable for layout (adds optional cluster nodes)
 export function buildPrunedHierarchy(root: TreeNode, expanded: Set<string> | null) {
@@ -61,14 +61,16 @@ export function buildSpanningTree(data: DagData): { tree: TreeNode; crossEdges: 
         resolvedChildren.push(resolve(childId));
       }
     }
-    const node: TreeNode = { id: dag.id, name: dag.name };
-    if (dag.color)       node.color       = dag.color;
-    if (dag.image)       node.image       = dag.image;
-    if (dag.iconChar)    node.iconChar    = dag.iconChar;
-    if (dag.iconFont)    node.iconFont    = dag.iconFont;
-    if (dag.attachments) node.attachments = dag.attachments;
-    if (dag.tags)        node.tags        = dag.tags;
-    if (dag.metadata)    node.metadata    = dag.metadata;
+    const node: TreeNode = {
+      id: dag.id,
+      name: dag.name,
+      ...(dag.color       && { color:       dag.color }),
+      ...(dag.image       && { image:       dag.image }),
+      ...(dag.iconChar    && { iconChar:    dag.iconChar, iconFont: dag.iconFont }),
+      ...(dag.attachments && { attachments: dag.attachments }),
+      ...(dag.tags        && { tags:        dag.tags }),
+      ...(dag.metadata    && { metadata:    dag.metadata }),
+    };
     if (resolvedChildren.length > 0) node.children = resolvedChildren;
     return node;
   }
@@ -100,11 +102,11 @@ export function hasMultipleParents(data: DagData, nodeId: string): boolean {
 export function findMatchingIds(
   data: DagData,
   query: string,
-  t?: (key: string, opts?: unknown) => string
+  t?: TranslateFn
 ): string[] {
   if (!query.trim()) return [];
   return Object.values(data.nodes)
-    .filter(node => nodeMatchesQuery(node.id, node.name, query, t as any))
+    .filter(node => nodeMatchesQuery(node.id, node.name, query, t))
     .map(n => n.id);
 }
 

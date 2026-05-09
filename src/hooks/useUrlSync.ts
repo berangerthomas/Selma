@@ -1,11 +1,7 @@
 import { useEffect, useRef } from 'react';
 import type { TreeNode } from '../types';
 import { findNodePath } from '../utils/treeUtils';
-
-function safeLocalStorageSet(key: string, value: string): void {
-  try { localStorage.setItem(key, value); }
-  catch { /* silently ignore */ }
-}
+import { safeLocalStorageSet } from '../utils/storage';
 
 export function useUrlSync(
   activeId: string,

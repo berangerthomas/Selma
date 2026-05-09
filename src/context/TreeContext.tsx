@@ -7,16 +7,7 @@ import { buildSpanningTree, getAllDagNodeIds, hasMultipleParents, getParents } f
 import { useUrlSync } from '../hooks/useUrlSync';
 import { useNavigationHistory } from '../hooks/useNavigationHistory';
 import { useSearchEngine } from '../hooks/useSearchEngine';
-
-function safeLocalStorageGet(key: string): string | null {
-  try { return localStorage.getItem(key); }
-  catch { return null; }
-}
-
-function safeLocalStorageSet(key: string, value: string): void {
-  try { localStorage.setItem(key, value); }
-  catch { /* silently ignore */ }
-}
+import { safeLocalStorageGet, safeLocalStorageSet } from '../utils/storage';
 
 interface TreeContextType {
   data: TreeNode;
@@ -53,8 +44,8 @@ interface TreeContextType {
   setActiveTaxonomyId: (id: string) => void;
   availableTaxonomies: TaxonomyDescription[];
 
-    searchQuery: string;
-    activeSearchType: 'simple' | 'deep' | null;
+  searchQuery: string;
+  activeSearchType: 'simple' | 'deep' | null;
 }
 
 const TreeContext = createContext<TreeContextType | undefined>(undefined);

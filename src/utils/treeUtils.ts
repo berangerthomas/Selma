@@ -1,6 +1,6 @@
 import type { TreeNode, DagData } from '../types';
 import { hasMultipleParents } from './dagUtils';
-import { nodeMatchesQuery } from './searchRegex';
+import { nodeMatchesQuery, type TranslateFn } from './searchRegex';
 
 export function getAllNodeIds(root: TreeNode): string[] {
   const ids: string[] = [];
@@ -19,13 +19,13 @@ export function getAllNodeIds(root: TreeNode): string[] {
 export function findAllPathsByQuery(
   root: TreeNode,
   query: string,
-  t?: (key: string, opts?: any) => string
+  t?: TranslateFn
 ): string[] {
   if (!query.trim()) return [];
 
   const results: string[] = [];
   function dfs(node: TreeNode): void {
-    if (nodeMatchesQuery(node.id, node.name, query, t as any)) {
+    if (nodeMatchesQuery(node.id, node.name, query, t)) {
       results.push(node.id);
     }
     if (node.children) {
@@ -82,7 +82,7 @@ export function getInheritedColor(nodeId: string, root: TreeNode): string {
  */
 export function exportTreeAsText(
   node: TreeNode,
-  t?: (key: string, opts?: any) => string,
+  t?: TranslateFn,
   prefix: string = '',
   isLast: boolean = true,
   dagData?: DagData

@@ -2,11 +2,12 @@ import { useCallback } from 'react'
 import type { TreeNode } from '../types'
 import { findAllPathsByQuery, getAllNodeIds } from '../utils/treeUtils'
 import { fetchMarkdownContent } from '../utils/fetchMarkdown'
+import { type TranslateFn } from '../utils/searchRegex'
 
 export function useDeepSearch(
   data: TreeNode | null,
   lang: string,
-  t: (key: string, opts?: any) => string,
+  t: TranslateFn,
   searchContentCacheRef: React.MutableRefObject<Map<string, string>>
 ) {
   const performDeepSearch = useCallback(async (query: string): Promise<string[]> => {

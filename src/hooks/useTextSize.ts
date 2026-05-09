@@ -1,14 +1,5 @@
 import { useState, useEffect } from 'react';
-
-function safeLocalStorageGet(key: string): string | null {
-  try { return localStorage.getItem(key); }
-  catch { return null; }
-}
-
-function safeLocalStorageSet(key: string, value: string): void {
-  try { localStorage.setItem(key, value); }
-  catch { /* silently ignore */ }
-}
+import { safeLocalStorageGet, safeLocalStorageSet } from '../utils/storage';
 
 const sizes = ['prose-sm', 'prose-base', 'prose-lg', 'prose-xl', 'prose-2xl'];
 const STORAGE_KEY = 'selma-text-size';

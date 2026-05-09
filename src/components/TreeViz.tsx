@@ -3,7 +3,6 @@ import * as d3 from 'd3'
 import { useI18n } from '../i18n'
 import { useTree } from '../context/TreeContext'
 import type { TreeNode } from '../types'
-import { findNodeById } from '../utils/treeUtils'
 import { hasMultipleParents, getParents } from '../utils/dagUtils'
 import Sidebar from './Sidebar'
 import { ClusterNode } from './tree/ClusterNode'
@@ -157,19 +156,21 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
       }
     }
 
-    const root = prunedRoot as d3.HierarchyPointNode<PrunedNode>
-    return d3.tree<PrunedNode>()
+    const treeLayout = d3.tree<PrunedNode>()
       .nodeSize(isCompact ? [32, 176] : [verticalSpacing, 220])
       .separation((a, b) => a.parent === b.parent ? 1 : (isCompact ? 1.1 : 1.4))
-    (root as any)
+
+    return treeLayout(prunedRoot)
   }, [data, expanded, viewMode, t])
 
-  const positions = useMemo(() => {
-    const map = new Map<string, { x: number; y: number; depth: number }>()
+  const { positions, d3NodeMap } = useMemo(() => {
+    const positions = new Map<string, { x: number; y: number; depth: number }>()
+    const d3NodeMap = new Map<string, d3.HierarchyPointNode<PrunedNode>>()
     layoutRoot.descendants().forEach((d) => {
-      map.set(d.data.id, { x: d.x ?? 0, y: d.y ?? 0, depth: d.depth })
+      positions.set(d.data.id, { x: d.x ?? 0, y: d.y ?? 0, depth: d.depth })
+      d3NodeMap.set(d.data.id, d as d3.HierarchyPointNode<PrunedNode>)
     })
-    return map
+    return { positions, d3NodeMap }
   }, [layoutRoot])
 
   const visibleNodes = useMemo(() => layoutRoot.descendants(), [layoutRoot])
@@ -180,25 +181,30 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
     return layoutRoot.links() as Array<d3.HierarchyLink<PrunedNode>>
   }, [visibleNodes])
 
-  function findD3NodeById(id: string) {
-    return layoutRoot.descendants().find((d) => d.data.id === id) as d3.HierarchyPointNode<PrunedNode> | undefined
-  }
-
   // Find either the visible node, its cluster surrogate, or the cluster node representing it.
   function findVisibleOrClusterNode(id: string) {
-    const direct = findD3NodeById(id)
+    const direct = d3NodeMap.get(id)
     if (direct) return direct
-    const cluster = findD3NodeById(`${id}__cluster`)
+    const cluster = d3NodeMap.get(`${id}__cluster`)
     if (cluster) return cluster
     // fallback: find any node whose __cluster_for equals id
-    return layoutRoot.descendants().find((d) => (d.data as any).__cluster_for === id) as d3.HierarchyPointNode<PrunedNode> | undefined
+    return layoutRoot.descendants().find((d) => d.data.__cluster_for === id)
   }
 
+  const treeNodeMap = useMemo(() => {
+    const map = new Map<string, TreeNode>()
+    function walk(node: TreeNode) {
+      map.set(node.id, node)
+      node.children?.forEach(walk)
+    }
+    walk(data)
+    return map
+  }, [data])
 
   const activePathAndSubtree = useMemo(() => {
     const set = new Set<string>()
     if (!activeId) return set
-    const node = findD3NodeById(activeId)
+    const node = d3NodeMap.get(activeId)
     if (!node) return set
     
     let current: d3.HierarchyPointNode<PrunedNode> | null = node
@@ -209,13 +215,13 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
     
     node.descendants().forEach((d) => set.add(d.data.id))
     return set
-  }, [activeId, layoutRoot])
+  }, [activeId, d3NodeMap])
 
   // All DAG ancestors (all parent chains) of the active node — used to highlight secondary paths
   const activeDagAncestors = useMemo(() => {
     const set = new Set<string>()
     if (!activeId || !dagData) return set
-    const dd = dagData as any
+    const dd = dagData
     function dfsUp(id: string) {
       if (set.has(id)) return
       set.add(id)
@@ -414,15 +420,13 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
   function colorFor(node: d3.HierarchyPointNode<PrunedNode>) {
     const clusterFor = node.data.__cluster_for
     if (clusterFor) {
-      let original = findD3NodeById(clusterFor)
-      if (!original) {
-        // try searching the original data source
-        const src = findNodeById(data, clusterFor as string)
-        if (src) original = { data: src } as any
-      }
+      const original = d3NodeMap.get(clusterFor)
       if (original) {
-        if (original.data && (original.data as any).color) return (original.data as any).color
+        if (original.data && original.data.color) return original.data.color
       }
+      // fallback: try searching the original data source
+      const src = treeNodeMap.get(clusterFor)
+      if (src?.color) return src.color
     }
     let cur: d3.HierarchyPointNode<PrunedNode> | null = node
     while (cur) {
@@ -448,7 +452,7 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
     return `M${sourceX},${sourceY}C${sourceX + dx},${sourceY} ${targetX - dx},${targetY} ${targetX},${targetY}`
   }
 
-  const activeNode = findD3NodeById(activeId)
+  const activeNode = d3NodeMap.get(activeId)
 
   function getDisplayY(node: d3.HierarchyPointNode<PrunedNode>): number {
     const p = positions.get(node.data.id)!
@@ -478,8 +482,8 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
                   activeDagAncestors.has(edge.parentId) || activeDagAncestors.has(edge.childId);
 
                 // Prefer D3-generated path when both d3 nodes are available and not compact
-                const srcD3 = findD3NodeById(edge.parentId)
-                const tgtD3 = findD3NodeById(edge.childId)
+                const srcD3 = d3NodeMap.get(edge.parentId)
+                const tgtD3 = d3NodeMap.get(edge.childId)
                 if (viewMode !== 'compact' && srcD3 && tgtD3) {
                   const path = linkGenerator({ source: srcD3, target: tgtD3 })
                   return (
@@ -523,8 +527,8 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
               const dim = activeId && !activePathAndSubtree.has(l.source.data.id) && !activePathAndSubtree.has(l.target.data.id) && !activeDagAncestors.has(l.source.data.id) && !activeDagAncestors.has(l.target.data.id)
 
               // Try to find the D3 node so we can compute displayY; fallback to raw positions.
-              const srcD3 = findD3NodeById(l.source.data.id)
-              const tgtD3 = findD3NodeById(l.target.data.id)
+              const srcD3 = d3NodeMap.get(l.source.data.id)
+              const tgtD3 = d3NodeMap.get(l.target.data.id)
 
               if (viewMode !== 'compact' && srcD3 && tgtD3) {
                 const path = linkGenerator({ source: srcD3, target: tgtD3 })
