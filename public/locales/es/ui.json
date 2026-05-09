@@ -8,6 +8,9 @@
   "search_placeholder": "Ir a un nodo (id o nombre)...",
   "search_deep": "Búsqueda profunda",
   "search_mode_menu": "Modo de búsqueda",
+  "taxonomy": "Taxonomía",
+  "taxonomy_genealogical": "Genealógico",
+  "taxonomy_chronological": "Cronológico",
   "change_language": "Idioma",
   "toolbar_title": "Herramientas",
   "toggle_theme": "Cambiar tema",
@@ -27,6 +30,7 @@
   "increase_text_size": "Aumentar el texto",
   "go_back": "Anterior",
   "go_forward": "Siguiente",
+  "help": "Ayuda",
   "no_path_specified": "Ninguna ruta especificada.",
   "file_not_found": "Archivo no encontrado:",
   "document": "Documento",
@@ -83,5 +87,6 @@
   "settings_modal_copy_attachments_button": "Copiar JSON",
   "settings_modal_copy_attachments_title": "Copiar structured_taxonomy.json sincronizado al portapapeles",
   "built_with_selma": "Creado con Selma",
-  "copy_content": "Copiar contenido"
+  "copy_content": "Copiar contenido",
+  "belongs_to": "Pertenece a:"
 }

@@ -1,0 +1,274 @@
+{
+  "writing_systems_root": {
+    "iconChar": "WS",
+    "iconFont": "\"AsapCondensed-Bold\"",
+    "attachments": [
+      {
+        "path": "/attachments/writing_systems/overview.md",
+        "format": "md",
+        "name": "Writing Systems — Overview"
+      }
+    ]
+  },
+  "egyptian_hieroglyphs": {
+    "color": "#f59e0b",
+    "image": "/assets/nodes/egyptian_hieroglyphs.svg",
+    "attachments": [
+      {
+        "path": "/attachments/egyptian_hieroglyphs/guide_en.md",
+        "format": "md",
+        "name": "Guide to Egyptian Hieroglyphs",
+        "lang": "en"
+      },
+      {
+        "path": "/attachments/egyptian_hieroglyphs/guide_fr.md",
+        "format": "md",
+        "name": "Guide des hiéroglyphes égyptiens",
+        "lang": "fr"
+      }
+    ]
+  },
+  "hieratic": {
+    "color": "#fbbf24",
+    "iconChar": "HI",
+    "iconFont": "\"AsapCondensed-Bold\""
+  },
+  "demotic": {
+    "color": "#d97706",
+    "iconChar": "DM",
+    "iconFont": "\"AsapCondensed-Bold\""
+  },
+  "proto_sinaitic": {
+    "color": "#b45309",
+    "iconChar": "PS",
+    "iconFont": "\"AsapCondensed-Bold\""
+  },
+  "sumerian_cuneiform": {
+    "color": "#92400e",
+    "iconChar": "📜",
+    "iconFont": "\"NotoEmoji\""
+  },
+  "akkadian": {
+    "color": "#78350f",
+    "iconChar": "AK",
+    "iconFont": "\"AsapCondensed-Bold\""
+  },
+  "ugaritic": {
+    "color": "#a16207",
+    "iconChar": "UG",
+    "iconFont": "\"AsapCondensed-Bold\""
+  },
+  "phoenician": {
+    "color": "#ef4444",
+    "iconChar": "⚓",
+    "iconFont": "\"NotoEmoji\"",
+    "attachments": [
+      {
+        "path": "/attachments/phoenician/alphabet_article.md",
+        "format": "md",
+        "name": "The Phoenician Alphabet and Its Descendants",
+        "lang": "en"
+      }
+    ]
+  },
+  "aramaic": {
+    "color": "#dc2626",
+    "iconChar": "AR",
+    "iconFont": "\"AsapCondensed-Bold\""
+  },
+  "hebrew": {
+    "color": "#b91c1c",
+    "iconChar": "✡️",
+    "iconFont": "\"NotoEmoji\""
+  },
+  "nabataean": {
+    "color": "#c2410c",
+    "iconChar": "NB",
+    "iconFont": "\"AsapCondensed-Bold\""
+  },
+  "syriac": {
+    "color": "#9a3412",
+    "iconChar": "SY",
+    "iconFont": "\"AsapCondensed-Bold\""
+  },
+  "arabic": {
+    "color": "#7c2d12",
+    "image": "/assets/nodes/arabic.svg",
+    "attachments": [
+      {
+        "path": "/attachments/arabic/arabic_alphabet.svg",
+        "format": "svg",
+        "name": "Arabic Alphabet Chart"
+      }
+    ]
+  },
+  "sogdian": {
+    "color": "#a16207",
+    "iconChar": "SG",
+    "iconFont": "\"AsapCondensed-Bold\""
+  },
+  "uyghur": {
+    "color": "#854d0e",
+    "iconChar": "UY",
+    "iconFont": "\"AsapCondensed-Bold\""
+  },
+  "mongolian": {
+    "color": "#713f12",
+    "iconChar": "🐎",
+    "iconFont": "\"NotoEmoji\""
+  },
+  "south_arabian": {
+    "color": "#f97316",
+    "iconChar": "SA",
+    "iconFont": "\"AsapCondensed-Bold\""
+  },
+  "geez": {
+    "color": "#ea580c",
+    "iconChar": "✝️",
+    "iconFont": "\"NotoEmoji\""
+  },
+  "brahmi": {
+    "color": "#14b8a6",
+    "image": "/assets/nodes/brahmi.svg"
+  },
+  "devanagari": {
+    "color": "#0d9488",
+    "iconChar": "DE",
+    "iconFont": "\"AsapCondensed-Bold\""
+  },
+  "tibetan": {
+    "color": "#0f766e",
+    "iconChar": "🏔️",
+    "iconFont": "\"NotoEmoji\""
+  },
+  "phags_pa": {
+    "color": "#115e59",
+    "iconChar": "PP",
+    "iconFont": "\"AsapCondensed-Bold\""
+  },
+  "greek": {
+    "color": "#3b82f6",
+    "image": "/assets/nodes/greek.svg",
+    "attachments": [
+      {
+        "path": "/attachments/greek/greek_alphabet_presentation.pptx",
+        "format": "pptx",
+        "name": "The Greek Alphabet — Presentation",
+        "lang": "en"
+      },
+      {
+        "path": "/attachments/greek/alphabet_grec.md",
+        "format": "md",
+        "name": "L'alphabet grec",
+        "lang": "fr"
+      }
+    ]
+  },
+  "coptic": {
+    "color": "#0891b2",
+    "iconChar": "CO",
+    "iconFont": "\"AsapCondensed-Bold\""
+  },
+  "etruscan": {
+    "color": "#6366f1",
+    "iconChar": "ET",
+    "iconFont": "\"AsapCondensed-Bold\""
+  },
+  "latin": {
+    "color": "#4f46e5",
+    "iconChar": "history_edu",
+    "iconFont": "\"Material Symbols Outlined\"",
+    "attachments": [
+      {
+        "path": "/attachments/latin/romance_languages.md",
+        "format": "md",
+        "name": "From Latin to Romance Languages",
+        "lang": "en"
+      }
+    ]
+  },
+  "modern_roman": {
+    "color": "#3730a3",
+    "iconChar": "translate",
+    "iconFont": "\"Material Symbols Outlined\""
+  },
+  "glagolitic": {
+    "color": "#0ea5e9",
+    "iconChar": "GL",
+    "iconFont": "\"AsapCondensed-Bold\""
+  },
+  "cyrillic": {
+    "color": "#0369a1",
+    "iconChar": "language",
+    "iconFont": "\"Material Symbols Outlined\""
+  },
+  "armenian": {
+    "color": "#8b5cf6",
+    "iconChar": "menu_book",
+    "iconFont": "\"Material Symbols Outlined\""
+  },
+  "georgian": {
+    "color": "#7c3aed",
+    "iconChar": "🍷",
+    "iconFont": "\"NotoEmoji\""
+  },
+  "oracle_bones": {
+    "color": "#10b981",
+    "image": "/assets/nodes/oracle_bones.svg"
+  },
+  "classical_chinese": {
+    "color": "#059669",
+    "iconChar": "🐉",
+    "iconFont": "\"NotoEmoji\""
+  },
+  "kanji": {
+    "color": "#047857",
+    "iconChar": "🌸",
+    "iconFont": "\"NotoEmoji\""
+  },
+  "hiragana_katakana": {
+    "color": "#065f46",
+    "iconChar": "HK",
+    "iconFont": "\"AsapCondensed-Bold\""
+  },
+  "hanja": {
+    "color": "#166534",
+    "iconChar": "HJ",
+    "iconFont": "\"AsapCondensed-Bold\""
+  },
+  "hangul": {
+    "color": "#14532d",
+    "iconChar": "ㅎ",
+    "iconFont": "\"NotoEmoji\""
+  },
+  "era_3000bc": {
+    "color": "#6b7280",
+    "iconChar": "⏳",
+    "iconFont": "sans-serif"
+  },
+  "era_2000bc": {
+    "color": "#6b7280",
+    "iconChar": "⏳",
+    "iconFont": "sans-serif"
+  },
+  "era_1000bc": {
+    "color": "#6b7280",
+    "iconChar": "⏳",
+    "iconFont": "sans-serif"
+  },
+  "era_0bc": {
+    "color": "#6b7280",
+    "iconChar": "⏳",
+    "iconFont": "sans-serif"
+  },
+  "era_500ad": {
+    "color": "#6b7280",
+    "iconChar": "⏳",
+    "iconFont": "sans-serif"
+  },
+  "era_1000ad": {
+    "color": "#6b7280",
+    "iconChar": "⏳",
+    "iconFont": "sans-serif"
+  }
+}

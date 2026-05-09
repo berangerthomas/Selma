@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <style>
+            .bg { fill: #f8f9fa; }
+            .title { font-family: 'Segoe UI', Helvetica, sans-serif; font-size: 28px; font-weight: bold; fill: #2c3e50; text-anchor: middle; }
+            .subtitle { font-family: 'Segoe UI', Helvetica, sans-serif; font-size: 14px; fill: #7f8c8d; text-anchor: middle; }
+            .box { fill: #ffffff; stroke: #e0e6ed; stroke-width: 2; rx: 12; transition: all 0.3s; }
+            .arabic { font-family: 'Amiri', 'Traditional Arabic', 'Times New Roman', serif; font-size: 42px; fill: #2980b9; text-anchor: middle; dominant-baseline: central; }
+            .latin { font-family: 'Segoe UI', Helvetica, sans-serif; font-size: 14px; fill: #95a5a6; text-anchor: middle; }
+        </style>
+        <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+            <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000000" flood-opacity="0.04" />
+        </filter>
+    </defs>
+
+    <!-- Background -->
+    <rect class="bg" width="800" height="600" />
+
+    <!-- Header -->
+    <text x="400" y="60" class="title">Arabic Alphabet Chart</text>
+    <text x="400" y="85" class="subtitle">Read from right to left ( ← )</text>
+
+    <!-- ROW 1 -->
+    <g transform="translate(655, 120)">
+        <rect width="90" height="100" class="box" filter="url(#shadow)" />
+        <text x="45" y="45" class="arabic">ا</text>
+        <text x="45" y="80" class="latin">alif</text>
+    </g>
+    <g transform="translate(555, 120)">
+        <rect width="90" height="100" class="box" filter="url(#shadow)" />
+        <text x="45" y="45" class="arabic">ب</text>
+        <text x="45" y="80" class="latin">ba</text>
+    </g>
+    <g transform="translate(455, 120)">
+        <rect width="90" height="100" class="box" filter="url(#shadow)" />
+        <text x="45" y="45" class="arabic">ت</text>
+        <text x="45" y="80" class="latin">ta</text>
+    </g>
+    <g transform="translate(355, 120)">
+        <rect width="90" height="100" class="box" filter="url(#shadow)" />
+        <text x="45" y="45" class="arabic">ث</text>
+        <text x="45" y="80" class="latin">tha</text>
+    </g>
+    <g transform="translate(255, 120)">
+        <rect width="90" height="100" class="box" filter="url(#shadow)" />
+        <text x="45" y="35" class="arabic">ج</text>
+        <text x="45" y="80" class="latin">jim</text>
+    </g>
+    <g transform="translate(155, 120)">
+        <rect width="90" height="100" class="box" filter="url(#shadow)" />
+        <text x="45" y="35" class="arabic">ح</text>
+        <text x="45" y="80" class="latin">ḥa</text>
+    </g>
+    <g transform="translate(55, 120)">
+        <rect width="90" height="100" class="box" filter="url(#shadow)" />
+        <text x="45" y="35" class="arabic">خ</text>
+        <text x="45" y="80" class="latin">kha</text>
+    </g>
+
+    <!-- ROW 2 -->
+    <g transform="translate(655, 230)">
+        <rect width="90" height="100" class="box" filter="url(#shadow)" />
+        <text x="45" y="45" class="arabic">د</text>
+        <text x="45" y="80" class="latin">dal</text>
+    </g>
+    <g transform="translate(555, 230)">
+        <rect width="90" height="100" class="box" filter="url(#shadow)" />
+        <text x="45" y="45" class="arabic">ذ</text>
+        <text x="45" y="80" class="latin">dhal</text>
+    </g>
+    <g transform="translate(455, 230)">
+        <rect width="90" height="100" class="box" filter="url(#shadow)" />
+        <text x="45" y="45" class="arabic">ر</text>
+        <text x="45" y="80" class="latin">ra</text>
+    </g>
+    <g transform="translate(355, 230)">
+        <rect width="90" height="100" class="box" filter="url(#shadow)" />
+        <text x="45" y="45" class="arabic">ز</text>
+        <text x="45" y="80" class="latin">zay</text>
+    </g>
+    <g transform="translate(255, 230)">
+        <rect width="90" height="100" class="box" filter="url(#shadow)" />
+        <text x="45" y="45" class="arabic">س</text>
+        <text x="45" y="80" class="latin">sin</text>
+    </g>
+    <g transform="translate(155, 230)">
+        <rect width="90" height="100" class="box" filter="url(#shadow)" />
+        <text x="45" y="45" class="arabic">ش</text>
+        <text x="45" y="80" class="latin">shin</text>
+    </g>
+    <g transform="translate(55, 230)">
+        <rect width="90" height="100" class="box" filter="url(#shadow)" />
+        <text x="45" y="45" class="arabic">ص</text>
+        <text x="45" y="80" class="latin">ṣad</text>
+    </g>
+
+    <!-- ROW 3 -->
+    <g transform="translate(655, 340)">
+        <rect width="90" height="100" class="box" filter="url(#shadow)" />
+        <text x="45" y="45" class="arabic">ض</text>
+        <text x="45" y="80" class="latin">ḍad</text>
+    </g>
+    <g transform="translate(555, 340)">
+        <rect width="90" height="100" class="box" filter="url(#shadow)" />
+        <text x="45" y="45" class="arabic">ط</text>
+        <text x="45" y="80" class="latin">ṭa</text>
+    </g>
+    <g transform="translate(455, 340)">
+        <rect width="90" height="100" class="box" filter="url(#shadow)" />
+        <text x="45" y="45" class="arabic">ظ</text>
+        <text x="45" y="80" class="latin">ẓa</text>
+    </g>
+    <g transform="translate(355, 340)">
+        <rect width="90" height="100" class="box" filter="url(#shadow)" />
+        <text x="45" y="35" class="arabic">ع</text>
+        <text x="45" y="80" class="latin">‘ayn</text>
+    </g>
+    <g transform="translate(255, 340)">
+        <rect width="90" height="100" class="box" filter="url(#shadow)" />
+        <text x="45" y="35" class="arabic">غ</text>
+        <text x="45" y="80" class="latin">ghayn</text>
+    </g>
+    <g transform="translate(155, 340)">
+        <rect width="90" height="100" class="box" filter="url(#shadow)" />
+        <text x="45" y="45" class="arabic">ف</text>
+        <text x="45" y="80" class="latin">fa</text>
+    </g>
+    <g transform="translate(55, 340)">
+        <rect width="90" height="100" class="box" filter="url(#shadow)" />
+        <text x="45" y="45" class="arabic">ق</text>
+        <text x="45" y="80" class="latin">qaf</text>
+    </g>
+
+    <!-- ROW 4 -->
+    <g transform="translate(655, 450)">
+        <rect width="90" height="100" class="box" filter="url(#shadow)" />
+        <text x="45" y="45" class="arabic">ك</text>
+        <text x="45" y="80" class="latin">kaf</text>
+    </g>
+    <g transform="translate(555, 450)">
+        <rect width="90" height="100" class="box" filter="url(#shadow)" />
+        <text x="45" y="45" class="arabic">ل</text>
+        <text x="45" y="80" class="latin">lam</text>
+    </g>
+    <g transform="translate(455, 450)">
+        <rect width="90" height="100" class="box" filter="url(#shadow)" />
+        <text x="45" y="35" class="arabic">م</text>
+        <text x="45" y="80" class="latin">mim</text>
+    </g>
+    <g transform="translate(355, 450)">
+        <rect width="90" height="100" class="box" filter="url(#shadow)" />
+        <text x="45" y="45" class="arabic">ن</text>
+        <text x="45" y="80" class="latin">nun</text>
+    </g>
+    <g transform="translate(255, 450)">
+        <rect width="90" height="100" class="box" filter="url(#shadow)" />
+        <text x="45" y="45" class="arabic">ه</text>
+        <text x="45" y="80" class="latin">ha</text>
+    </g>
+    <g transform="translate(155, 450)">
+        <rect width="90" height="100" class="box" filter="url(#shadow)" />
+        <text x="45" y="45" class="arabic">و</text>
+        <text x="45" y="80" class="latin">waw</text>
+    </g>
+    <g transform="translate(55, 450)">
+        <rect width="90" height="100" class="box" filter="url(#shadow)" />
+        <text x="45" y="35" class="arabic">ي</text>
+        <text x="45" y="80" class="latin">ya</text>
+    </g>
+</svg>

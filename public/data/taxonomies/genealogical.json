@@ -1,0 +1,190 @@
+{
+  "id": "genealogical",
+  "name": "Généalogique",
+  "root": "writing_systems_root",
+  "nodes": {
+    "writing_systems_root": {
+      "children": [
+        "egyptian_hieroglyphs",
+        "sumerian_cuneiform",
+        "oracle_bones"
+      ]
+    },
+    "egyptian_hieroglyphs": {
+      "children": [
+        "hieratic",
+        "proto_sinaitic"
+      ]
+    },
+    "hieratic": {
+      "children": [
+        "demotic"
+      ]
+    },
+    "demotic": {
+      "children": [
+        "coptic"
+      ]
+    },
+    "proto_sinaitic": {
+      "children": [
+        "phoenician",
+        "ugaritic"
+      ]
+    },
+    "sumerian_cuneiform": {
+      "children": [
+        "akkadian",
+        "ugaritic"
+      ]
+    },
+    "akkadian": {
+      "children": []
+    },
+    "ugaritic": {
+      "children": []
+    },
+    "phoenician": {
+      "children": [
+        "aramaic",
+        "greek",
+        "hebrew",
+        "south_arabian"
+      ]
+    },
+    "aramaic": {
+      "children": [
+        "hebrew",
+        "nabataean",
+        "syriac",
+        "brahmi",
+        "sogdian"
+      ]
+    },
+    "hebrew": {
+      "children": []
+    },
+    "nabataean": {
+      "children": [
+        "arabic"
+      ]
+    },
+    "syriac": {
+      "children": [
+        "arabic",
+        "armenian"
+      ]
+    },
+    "arabic": {
+      "children": []
+    },
+    "sogdian": {
+      "children": [
+        "uyghur"
+      ]
+    },
+    "uyghur": {
+      "children": [
+        "mongolian"
+      ]
+    },
+    "mongolian": {
+      "children": []
+    },
+    "south_arabian": {
+      "children": [
+        "geez"
+      ]
+    },
+    "geez": {
+      "children": []
+    },
+    "brahmi": {
+      "children": [
+        "devanagari",
+        "tibetan"
+      ]
+    },
+    "devanagari": {
+      "children": []
+    },
+    "tibetan": {
+      "children": [
+        "phags_pa"
+      ]
+    },
+    "phags_pa": {
+      "children": [
+        "hangul"
+      ]
+    },
+    "greek": {
+      "children": [
+        "etruscan",
+        "glagolitic",
+        "cyrillic",
+        "coptic",
+        "armenian"
+      ]
+    },
+    "coptic": {
+      "children": []
+    },
+    "etruscan": {
+      "children": [
+        "latin"
+      ]
+    },
+    "latin": {
+      "children": [
+        "modern_roman"
+      ]
+    },
+    "modern_roman": {
+      "children": []
+    },
+    "glagolitic": {
+      "children": [
+        "cyrillic"
+      ]
+    },
+    "cyrillic": {
+      "children": []
+    },
+    "armenian": {
+      "children": [
+        "georgian"
+      ]
+    },
+    "georgian": {
+      "children": []
+    },
+    "oracle_bones": {
+      "children": [
+        "classical_chinese"
+      ]
+    },
+    "classical_chinese": {
+      "children": [
+        "kanji",
+        "hanja"
+      ]
+    },
+    "kanji": {
+      "children": [
+        "hiragana_katakana"
+      ]
+    },
+    "hiragana_katakana": {
+      "children": []
+    },
+    "hanja": {
+      "children": [
+        "hangul"
+      ]
+    },
+    "hangul": {
+      "children": []
+    }
+  }
+}

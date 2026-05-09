@@ -1,158 +1,164 @@
 {
+  "project_title": "Selma — Taxonomie",
+  "project_help": "Selma est un outil interactif pour visualiser et explorer des taxonomies hiérarchiques. Utilisez la barre d'outils pour changer de mode de vue, rechercher des nœuds spécifiques ou exporter le diagramme.",
   "nodes": {
-    "taxonomy_root": {
-      "name": "Règne Animal",
-      "description": "L'ensemble des animaux, organismes eucaryotes hétérotrophes multicellulaires."
+    "era_3000bc": { "name": "3000 av. J.-C.", "description": "L'aube de l'écriture en Mésopotamie et en Égypte." },
+    "era_2000bc": { "name": "2000 av. J.-C.", "description": "Les premiers alphabets et syllabaires cursifs." },
+    "era_1000bc": { "name": "1000 av. J.-C.", "description": "L'âge du fer et l'explosion des écritures alphabétiques." },
+    "era_0bc": { "name": "Antiquité tardive", "description": "Autour du changement d'ère." },
+    "era_500ad": { "name": "Moyen Âge (Haut)", "description": "Émergence des écritures liées aux grandes religions." },
+    "era_1000ad": { "name": "2nd Millénaire", "description": "Écritures nationales et standardisation." },
+    "writing_systems_root": {
+      "name": "Systèmes d'écriture",
+      "description": "Les principaux systèmes d'écriture du monde et leurs relations généalogiques."
     },
-    "vertebrates": {
-      "name": "Vertébrés",
-      "description": "Animaux possédant une colonne vertébrale et un crâne osseux ou cartilagineux."
+    "egyptian_hieroglyphs": {
+      "name": "Hiéroglyphes égyptiens",
+      "description": "L'un des plus anciens systèmes d'écriture, combinant logogrammes, syllabes et éléments alphabétiques. Utilisé de v. 3200 av. J.-C. à 394 apr. J.-C."
     },
-    "mammals": {
-      "name": "Mammifères",
-      "description": "Vertébrés à sang chaud, à poils, qui allaitent leurs petits."
+    "hieratic": {
+      "name": "Hiératique",
+      "description": "Écriture sacerdotale cursive dérivée des hiéroglyphes, utilisée sur papyrus dès v. 2600 av. J.-C."
     },
-    "carnivores": {
-      "name": "Carnivores",
-      "description": "Mammifères dont l'alimentation repose principalement sur la chair animale."
+    "demotic": {
+      "name": "Démotique",
+      "description": "Écriture administrative simplifiée de l'Égypte ancienne, v. 650 av. J.-C. – Ve siècle apr. J.-C."
     },
-    "lion": {
-      "name": "Lion",
-      "description": "Grand félin social d'Afrique subsaharienne, chasseur au sommet de la chaîne alimentaire."
+    "proto_sinaitic": {
+      "name": "Proto-sinaïtique",
+      "description": "Premier alphabet connu, v. 1850–1400 av. J.-C. ; ancêtre de presque tous les alphabets modernes."
     },
-    "wolf": {
-      "name": "Loup gris",
-      "description": "Canidé social vivant en meutes, ancêtre sauvage du chien domestique."
+    "sumerian_cuneiform": {
+      "name": "Cunéiforme sumérien",
+      "description": "Le plus ancien système d'écriture attesté au monde, v. 3100 av. J.-C. ; logo-syllabique, gravé sur tablettes d'argile."
     },
-    "polar_bear": {
-      "name": "Ours polaire",
-      "description": "Plus grand carnivore terrestre, adapté aux glaces de l'Arctique."
+    "akkadian": {
+      "name": "Cunéiforme akkadien",
+      "description": "Adaptation sémitique du cunéiforme sumérien ; lingua franca du Proche-Orient ancien v. 1500–600 av. J.-C. Éteint."
     },
-    "primates": {
-      "name": "Primates",
-      "description": "Ordre de mammifères incluant les singes, les grands singes et l'Homme."
+    "ugaritic": {
+      "name": "Ougaritique",
+      "description": "Nœud DAG unique : un alphabet cunéiforme combinant le principe alphabétique sémitique et le medium cunéiforme. v. 1400–1185 av. J.-C."
     },
-    "chimpanzee": {
-      "name": "Chimpanzé commun",
-      "description": "Grand singe d'Afrique, l'un des plus proches parents vivants de l'Homme."
+    "phoenician": {
+      "name": "Phénicien",
+      "description": "Abjad de 22 lettres, v. 1050 av. J.-C. ; l'alphabet le plus influent de l'histoire, ancêtre du grec, de l'arabe, de l'hébreu et bien d'autres."
     },
-    "gorilla": {
-      "name": "Gorille",
-      "description": "Plus grand primate vivant, herbivore des forêts d'Afrique centrale."
+    "aramaic": {
+      "name": "Araméen",
+      "description": "Langue administrative de l'Empire perse ; parent des écritures hébraïque, nabatéenne, syriaque, sogdienne et brahmi."
     },
-    "cetaceans": {
-      "name": "Cétacés",
-      "description": "Mammifères marins entièrement aquatiques : baleines, dauphins et marsouins."
+    "hebrew": {
+      "name": "Hébreu",
+      "description": "Abjad de 22 lettres, nœud DAG (phénicien + araméen) ; écriture sacrée du judaïsme, ressuscitée comme langue parlée au XXe siècle."
     },
-    "blue_whale": {
-      "name": "Baleine bleue",
-      "description": "Plus grand animal ayant jamais existé sur Terre."
+    "nabataean": {
+      "name": "Nabatéen",
+      "description": "Écriture du royaume nabatéen (Pétra) ; ancêtre direct de l'arabe. V. 200 av. J.-C. – IVe siècle apr. J.-C."
     },
-    "dolphin": {
-      "name": "Grand dauphin",
-      "description": "Cétacé intelligent, très sociable, réputé pour ses sauts acrobatiques."
+    "syriac": {
+      "name": "Syriaque",
+      "description": "Langue littéraire du christianisme oriental ; a contribué aux écritures arabe et arménienne. Toujours utilisé liturgiquement."
     },
-    "birds": {
-      "name": "Oiseaux",
-      "description": "Vertébrés à plumes, bec corné, membres antérieurs transformés en ailes."
+    "arabic": {
+      "name": "Arabe",
+      "description": "Nœud DAG (nabatéen + syriaque) ; abjad cursif de 28 lettres ; deuxième système d'écriture le plus utilisé avec ~1,8 milliard d'usagers."
     },
-    "raptors": {
-      "name": "Rapaces",
-      "description": "Oiseaux de proie diurnes ou nocturnes, dotés de serres puissantes et d'un bec crochu."
+    "sogdian": {
+      "name": "Sogdien",
+      "description": "Écriture des marchands de la Route de la Soie ; intermédiaire qui transmit la tradition araméenne vers l'Asie centrale et orientale."
     },
-    "golden_eagle": {
-      "name": "Aigle royal",
-      "description": "Emblématique rapace diurne des montagnes de l'hémisphère nord."
+    "uyghur": {
+      "name": "Vieux ouïghour",
+      "description": "Écriture verticale du khaganat ouïghour, VIIIe siècle ; modèle direct de l'écriture mongole."
     },
-    "great_horned_owl": {
-      "name": "Grand-duc d'Amérique",
-      "description": "Grand rapace nocturne aux oreilles en touffes, répandu en Amérique."
+    "mongolian": {
+      "name": "Mongol",
+      "description": "Écriture verticale de haut en bas, créée v. 1204 apr. J.-C. ; toujours officielle en Mongolie-Intérieure (Chine)."
     },
-    "passerines": {
-      "name": "Passereaux",
-      "description": "Ordre le plus diversifié d'oiseaux, regroupant plus de la moitié des espèces aviaires."
+    "south_arabian": {
+      "name": "Sud-arabique",
+      "description": "Écriture des anciens royaumes d'Arabie (Saba, Qataban, Himyar) ; ancêtre du ge'ez. V. 900 av. J.-C. – 600 apr. J.-C."
     },
-    "sparrow": {
-      "name": "Moineau domestique",
-      "description": "Petit passereau commun, étroitement associé aux habitats humains."
+    "geez": {
+      "name": "Ge'ez (éthiopique)",
+      "description": "Premier alphasyllabaire de l'histoire ; issu du sud-arabique. Utilisé aujourd'hui pour l'amharique, le tigrigna et d'autres langues."
     },
-    "robin": {
-      "name": "Rouge-gorge familier",
-      "description": "Passereau européen reconnaissable à sa poitrine orange vif."
+    "brahmi": {
+      "name": "Brahmi",
+      "description": "Écriture fondatrice de l'Asie du Sud, IIIe s. av. J.-C. ; ancêtre de plus de 100 écritures modernes dont le devanagari, le tibétain et le thaï."
     },
-    "reptiles": {
-      "name": "Reptiles",
-      "description": "Vertébrés ectothermes à peau écailleuse ou plaquée : lézards, serpents, tortues, crocodiliens."
+    "devanagari": {
+      "name": "Devanagari",
+      "description": "Alphasyllabaire à barre supérieure caractéristique ; utilisé pour le hindi, le sanskrit, le marathi et le népalais. ~600 millions d'usagers."
     },
-    "crocodilians": {
-      "name": "Crocodiliens",
-      "description": "Grands reptiles semi-aquatiques, parmi les plus anciens prédateurs vertébrés vivants.",
-      "iconChar": "CR",
-      "iconFont": "\"AsapCondensed-Bold\""
+    "tibetan": {
+      "name": "Tibétain",
+      "description": "Écriture créée au VIIe siècle pour traduire les textes bouddhistes ; parent du Phags-pa. Utilisé pour le tibétain et le dzongkha."
     },
-    "nile_crocodile": {
-      "name": "Crocodile du Nil",
-      "description": "Plus grand reptile d'Afrique, redoutable prédateur des fleuves et lacs tropicaux."
+    "phags_pa": {
+      "name": "Phags-pa",
+      "description": "Écriture universelle de l'Empire mongol, 1269 apr. J.-C. ; dérivée du tibétain, écrite verticalement. Possible influence sur le hangeul."
     },
-    "alligator": {
-      "name": "Alligator américain",
-      "description": "Crocodilien d'Amérique du Nord, symbole des zones humides du Sud-Est des États-Unis."
+    "greek": {
+      "name": "Grec",
+      "description": "Premier vrai alphabet avec consonnes et voyelles, v. 800 av. J.-C. ; ancêtre du latin, du cyrillique, du copte, de l'arménien et du glagolitique."
     },
-    "squamata": {
-      "name": "Squamates",
-      "description": "Ordre comprenant les serpents et les lézards — le plus vaste ordre de reptiles."
+    "coptic": {
+      "name": "Copte",
+      "description": "Nœud DAG (grec + démotique) ; stade final de la langue égyptienne ; écriture liturgique de l'Église copte orthodoxe."
     },
-    "reticulated_python": {
-      "name": "Python réticulé",
-      "description": "Plus long serpent du monde, natif des forêts tropicales d'Asie du Sud-Est."
+    "etruscan": {
+      "name": "Étrusque",
+      "description": "Écriture de la civilisation étrusque, v. 700 av. J.-C. ; modèle structurel direct de l'alphabet latin."
     },
-    "komodo_dragon": {
-      "name": "Dragon de Komodo",
-      "description": "Plus grand lézard vivant, endémique de quelques îles d'Indonésie."
+    "latin": {
+      "name": "Latin",
+      "description": "Nœud DAG (étrusque + grec) ; v. 700 av. J.-C. ; parent de l'alphabet romain moderne et des systèmes d'écriture de toutes les langues romanes."
     },
-    "invertebrates": {
-      "name": "Invertébrés",
-      "description": "Animaux sans colonne vertébrale, représentant plus de 95 % des espèces animales connues."
+    "modern_roman": {
+      "name": "Alphabet romain moderne",
+      "description": "Le système d'écriture le plus utilisé au monde, employé par ~3 milliards de personnes dans plus de 100 langues."
     },
-    "arthropods": {
-      "name": "Arthropodes",
-      "description": "Invertébrés à exosquelette articulé : insectes, arachnides, crustacés, myriapodes."
+    "glagolitic": {
+      "name": "Glagolitique",
+      "description": "Plus ancienne écriture slave, créée en 862–863 par les saints Cyrille et Méthode ; parent du cyrillique. Survécu en Croatie jusqu'au XIXe siècle."
     },
-    "insects": {
-      "name": "Insectes",
-      "description": "Classe la plus diversifiée du règne animal, avec six pattes et souvent des ailes."
+    "cyrillic": {
+      "name": "Cyrillique",
+      "description": "Nœud DAG (grec + glagolitique) ; IXe–Xe siècle ; utilisé par le russe, le bulgare, le serbe et ~250 millions de personnes."
     },
-    "honeybee": {
-      "name": "Abeille mellifère",
-      "description": "Insecte social essentiel à la pollinisation et à la production de miel."
+    "armenian": {
+      "name": "Arménien",
+      "description": "Nœud DAG (grec + syriaque) ; créé en 405 par Mesrop Mashtots ; inchangé depuis 1 600 ans."
     },
-    "monarch_butterfly": {
-      "name": "Papillon monarque",
-      "description": "Papillon célèbre pour ses migrations annuelles de plusieurs milliers de kilomètres."
+    "georgian": {
+      "name": "Géorgien",
+      "description": "Écriture distinctive avec trois formes historiques ; écriture officielle de la Géorgie."
     },
-    "arachnids": {
-      "name": "Arachnides",
-      "description": "Arthropodes à huit pattes : araignées, scorpions, acariens et opilions."
+    "oracle_bones": {
+      "name": "Écriture sur os oraculaires",
+      "description": "La plus ancienne écriture chinoise, v. 1200 av. J.-C. (dynastie Shang) ; gravée sur carapaces de tortues à des fins divinatoires."
     },
-    "wolf_spider": {
-      "name": "Araignée-loup",
-      "description": "Araignée chasseuse solitaire, agile et active, qui ne tisse pas de toile-piège."
+    "classical_chinese": {
+      "name": "Chinois classique",
+      "description": "Système logographique issu de l'écriture oraculaire ; lingua franca littéraire de l'Asie orientale pendant 2 000 ans."
     },
-    "emperor_scorpion": {
-      "name": "Scorpion impérial",
-      "description": "L'un des plus grands scorpions au monde, originaire des forêts tropicales d'Afrique de l'Ouest."
+    "kanji": {
+      "name": "Kanji (japonais)",
+      "description": "Caractères chinois adoptés au Japon aux IVe–Ve siècles ; l'un des trois systèmes utilisés simultanément dans l'écriture japonaise moderne."
     },
-    "mollusks": {
-      "name": "Mollusques",
-      "description": "Invertébrés au corps mou, souvent protégé par une coquille : gastéropodes, bivalves, céphalopodes."
+    "hiragana_katakana": {
+      "name": "Hiragana / Katakana",
+      "description": "Deux systèmes syllabiques dérivés du kanji au IXe siècle ; forment avec le kanji et le rōmaji le système d'écriture japonais."
     },
-    "giant_pacific_octopus": {
-      "name": "Pieuvre géante du Pacifique",
-      "description": "Plus grand céphalopode vivant, d'une intelligence remarquable."
+    "hanja": {
+      "name": "Hanja (coréen)",
+      "description": "Caractères chinois utilisés en coréen depuis v. IIe siècle ; parent du hangeul. Encore utilisé ponctuellement en Corée du Sud."
     },
-    "garden_snail": {
-      "name": "Escargot des jardins",
-      "description": "Gastéropode terrestre commun, emblème de lenteur et sujet de gastronomie."
+    "hangul": {
+      "name": "Hangeul (coréen)",
+      "description": "Nœud DAG (hanja + Phags-pa) ; créé en 1443 ; considéré comme l'un des alphabets les plus scientifiquement conçus jamais inventés."
     }
   }
 }

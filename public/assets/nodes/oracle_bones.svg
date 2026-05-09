@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+  <!-- Oracle Bone Script character for 日 (sun/day) -->
+  <!-- Outer rectangle with rounded corners (bone-style) -->
+  <rect x="160" y="100" width="320" height="440" rx="30" ry="30"
+        fill="none" stroke="#ffffff" stroke-width="42"/>
+  <!-- Central horizontal bar (the dot/line inside the sun) -->
+  <rect x="160" y="290" width="320" height="42" rx="8" fill="#ffffff"/>
+  <!-- Crack lines typical of oracle bones -->
+  <path fill="none" stroke="#ffffff" stroke-width="14" stroke-linecap="round" opacity="0.6"
+        d="M480 180 L540 130"/>
+  <path fill="none" stroke="#ffffff" stroke-width="14" stroke-linecap="round" opacity="0.6"
+        d="M490 250 L570 260"/>
+  <path fill="none" stroke="#ffffff" stroke-width="14" stroke-linecap="round" opacity="0.6"
+        d="M110 380 L60 420"/>
+</svg>

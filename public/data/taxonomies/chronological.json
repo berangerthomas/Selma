@@ -1,0 +1,189 @@
+{
+  "id": "chronological",
+  "name": "Chronologique",
+  "root": "writing_systems_root",
+  "nodes": {
+    "writing_systems_root": {
+      "children": [
+        "era_3000bc",
+        "era_2000bc",
+        "era_1000bc",
+        "era_0bc",
+        "era_500ad",
+        "era_1000ad"
+      ]
+    },
+    "era_3000bc": {
+      "children": [
+        "sumerian_cuneiform",
+        "egyptian_hieroglyphs"
+      ]
+    },
+    "era_2000bc": {
+      "children": [
+        "hieratic",
+        "akkadian",
+        "proto_sinaitic",
+        "ugaritic"
+      ]
+    },
+    "era_1000bc": {
+      "children": [
+        "phoenician",
+        "aramaic",
+        "hebrew",
+        "greek",
+        "etruscan",
+        "latin",
+        "oracle_bones",
+        "south_arabian"
+      ]
+    },
+    "era_0bc": {
+      "children": [
+        "demotic",
+        "nabataean",
+        "brahmi",
+        "classical_chinese"
+      ]
+    },
+    "era_500ad": {
+      "children": [
+        "syriac",
+        "arabic",
+        "geez",
+        "coptic",
+        "armenian",
+        "georgian",
+        "sogdian",
+        "kanji"
+      ]
+    },
+    "era_1000ad": {
+      "children": [
+        "uyghur",
+        "mongolian",
+        "devanagari",
+        "tibetan",
+        "phags_pa",
+        "glagolitic",
+        "cyrillic",
+        "hiragana_katakana",
+        "hangul",
+        "hanja",
+        "modern_roman"
+      ]
+    },
+    "sumerian_cuneiform": {
+      "children": []
+    },
+    "egyptian_hieroglyphs": {
+      "children": []
+    },
+    "hieratic": {
+      "children": []
+    },
+    "akkadian": {
+      "children": []
+    },
+    "proto_sinaitic": {
+      "children": []
+    },
+    "ugaritic": {
+      "children": []
+    },
+    "phoenician": {
+      "children": []
+    },
+    "aramaic": {
+      "children": []
+    },
+    "hebrew": {
+      "children": []
+    },
+    "greek": {
+      "children": []
+    },
+    "etruscan": {
+      "children": []
+    },
+    "latin": {
+      "children": []
+    },
+    "oracle_bones": {
+      "children": []
+    },
+    "south_arabian": {
+      "children": []
+    },
+    "demotic": {
+      "children": []
+    },
+    "nabataean": {
+      "children": []
+    },
+    "brahmi": {
+      "children": []
+    },
+    "classical_chinese": {
+      "children": []
+    },
+    "syriac": {
+      "children": []
+    },
+    "arabic": {
+      "children": []
+    },
+    "geez": {
+      "children": []
+    },
+    "coptic": {
+      "children": []
+    },
+    "armenian": {
+      "children": []
+    },
+    "georgian": {
+      "children": []
+    },
+    "sogdian": {
+      "children": []
+    },
+    "kanji": {
+      "children": []
+    },
+    "uyghur": {
+      "children": []
+    },
+    "mongolian": {
+      "children": []
+    },
+    "devanagari": {
+      "children": []
+    },
+    "tibetan": {
+      "children": []
+    },
+    "phags_pa": {
+      "children": []
+    },
+    "glagolitic": {
+      "children": []
+    },
+    "cyrillic": {
+      "children": []
+    },
+    "hiragana_katakana": {
+      "children": []
+    },
+    "hangul": {
+      "children": []
+    },
+    "hanja": {
+      "children": []
+    },
+    "modern_roman": {
+      "children": []
+    }
+  }
+}

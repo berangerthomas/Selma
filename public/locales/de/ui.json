@@ -8,6 +8,9 @@
   "search_placeholder": "Gehe zu einem Knoten (ID oder Name)...",
   "search_deep": "Tiefensuche",
   "search_mode_menu": "Suchmodus",
+  "taxonomy": "Taxonomie",
+  "taxonomy_genealogical": "Genealogisch",
+  "taxonomy_chronological": "Chronologisch",
   "change_language": "Sprache",
   "toolbar_title": "Werkzeuge",
   "toggle_theme": "Thema umschalten",
@@ -27,6 +30,7 @@
   "increase_text_size": "Text vergrößern",
   "go_back": "Zurück",
   "go_forward": "Vorwärts",
+  "help": "Hilfe",
   "no_path_specified": "Kein Pfad angegeben.",
   "file_not_found": "Datei nicht gefunden:",
   "document": "Dokument",
@@ -82,5 +86,6 @@
   "settings_modal_copy_attachments_button": "JSON kopieren",
   "settings_modal_copy_attachments_title": "Synchronisierte structured_taxonomy.json in Zwischenablage kopieren",
   "built_with_selma": "Erstellt mit Selma",
-  "copy_content": "Inhalt kopieren"
+  "copy_content": "Inhalt kopieren",
+  "belongs_to": "Gehört zu:"
 }

@@ -8,6 +8,10 @@
   "search_placeholder": "Go to a node (id or name)...",
   "search_deep": "Deep search",
   "search_mode_menu": "Search mode",
+  "taxonomy": "Taxonomy",
+  "taxonomy_family": "Family",
+  "taxonomy_genealogical": "Genealogical",
+  "taxonomy_chronological": "Chronological",
   "change_language": "Language",
   "toolbar_title": "Tools",
   "toggle_theme": "Toggle Theme",
@@ -27,6 +31,7 @@
   "increase_text_size": "Increase text",
   "go_back": "Previous",
   "go_forward": "Next",
+  "help": "Help",
   "no_path_specified": "No path specified.",
   "file_not_found": "File not found:",
   "document": "Document",
@@ -83,5 +88,6 @@
   "settings_modal_copy_attachments_button": "Copy JSON",
   "settings_modal_copy_attachments_title": "Copy synchronized structured_taxonomy.json to clipboard",
   "built_with_selma": "Built with Selma",
-  "copy_content": "Copy content"
+  "copy_content": "Copy content",
+  "belongs_to": "Belongs to:"
 }

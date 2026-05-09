@@ -8,6 +8,10 @@
   "search_placeholder": "Aller à un nœud (id ou nom)...",
   "search_deep": "Recherche approfondie",
   "search_mode_menu": "Mode de recherche",
+  "taxonomy": "Taxonomie",
+  "taxonomy_family": "Famille",
+  "taxonomy_genealogical": "Généalogique",
+  "taxonomy_chronological": "Chronologique",
   "change_language": "Langue",
   "toolbar_title": "Outils",
   "toggle_theme": "Changer de thème",
@@ -27,6 +31,7 @@
   "increase_text_size": "Agrandir le texte",
   "go_back": "Précédent",
   "go_forward": "Suivant",
+  "help": "Aide",
   "no_path_specified": "Aucun chemin spécifié.",
   "file_not_found": "Fichier introuvable:",
   "document": "Document",
@@ -83,5 +88,6 @@
   "settings_modal_copy_attachments_button": "Copier JSON",
   "settings_modal_copy_attachments_title": "Copier le structured_taxonomy.json synchronisé dans le presse-papiers",
   "built_with_selma": "Construit avec Selma",
-  "copy_content": "Copier le contenu"
+  "copy_content": "Copier le contenu",
+  "belongs_to": "Appartient à :"
 }

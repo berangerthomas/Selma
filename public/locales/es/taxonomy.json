@@ -1,4 +1,6 @@
 {
+  "project_title": "Selma — Taxonomía",
+  "project_help": "Selma es una herramienta interactiva para visualizar y explorar taxonomías jerárquicas. Utilice la barra de herramientas para cambiar los modos de vista, buscar nodos específicos o exportar el diagrama.",
   "nodes": {
     "taxonomy_root": {
       "name": "Reino Animal",

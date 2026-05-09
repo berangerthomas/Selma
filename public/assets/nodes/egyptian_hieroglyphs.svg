@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+  <!-- Eye of Horus (Wedjat) - stylized -->
+  <!-- Eyebrow arc -->
+  <path fill="#ffffff" d="M100 200 Q320 120 540 200 Q520 180 320 140 Q120 180 100 200Z"/>
+  <!-- Eye white (almond shape) -->
+  <path fill="#ffffff" d="M80 310 Q200 210 320 200 Q440 210 560 310 Q440 410 320 420 Q200 410 80 310Z"/>
+  <!-- Iris -->
+  <circle fill="#f59e0b" cx="320" cy="310" r="80"/>
+  <!-- Pupil -->
+  <circle fill="#ffffff" cx="320" cy="310" r="40"/>
+  <!-- Inner pupil -->
+  <circle fill="#92400e" cx="320" cy="310" r="18"/>
+  <!-- Lower decorative line (kohl) -->
+  <path fill="none" stroke="#ffffff" stroke-width="18" stroke-linecap="round"
+        d="M310 420 L260 490 L230 550"/>
+  <!-- Spiral tail (distinctive Horus mark) -->
+  <path fill="none" stroke="#ffffff" stroke-width="18" stroke-linecap="round"
+        d="M330 420 Q420 480 430 540 Q435 570 410 575 Q385 578 375 555 Q365 530 390 520"/>
+  <!-- Left cheek line -->
+  <path fill="none" stroke="#ffffff" stroke-width="14" stroke-linecap="round"
+        d="M190 370 L130 430"/>
+</svg>

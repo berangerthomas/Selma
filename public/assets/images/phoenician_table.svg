@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 500" font-family="Georgia, serif">
+  <rect width="860" height="500" rx="14" fill="#1e1b2e"/>
+
+  <!-- Title -->
+  <text x="430" y="34" text-anchor="middle" fill="#e2e8f0" font-size="17" font-weight="bold" letter-spacing="1">PHOENICIAN ALPHABET — MAJOR DESCENDANTS</text>
+  <line x1="40" y1="44" x2="820" y2="44" stroke="#4b5563" stroke-width="1"/>
+
+  <!-- Column headers -->
+  <rect x="40" y="52" width="120" height="28" rx="6" fill="#ef4444"/>
+  <text x="100" y="70" text-anchor="middle" fill="#fff" font-size="12" font-weight="bold">⚓ Phoenician</text>
+  <rect x="175" y="52" width="90" height="28" rx="6" fill="#3b82f6"/>
+  <text x="220" y="70" text-anchor="middle" fill="#fff" font-size="12" font-weight="bold">Ω Greek</text>
+  <rect x="280" y="52" width="90" height="28" rx="6" fill="#4f46e5"/>
+  <text x="325" y="70" text-anchor="middle" fill="#fff" font-size="12" font-weight="bold">A Latin</text>
+  <rect x="385" y="52" width="90" height="28" rx="6" fill="#b91c1c"/>
+  <text x="430" y="70" text-anchor="middle" fill="#fff" font-size="12" font-weight="bold">✡ Hebrew</text>
+  <rect x="490" y="52" width="90" height="28" rx="6" fill="#7c2d12"/>
+  <text x="535" y="70" text-anchor="middle" fill="#fff" font-size="12" font-weight="bold">ع Arabic</text>
+  <rect x="595" y="52" width="210" height="28" rx="6" fill="#374151"/>
+  <text x="700" y="70" text-anchor="middle" fill="#d1d5db" font-size="12" font-weight="bold">Meaning of name</text>
+
+  <!-- Data rows -->
+  <!-- Row background alternation -->
+  <rect x="40" y="82" width="775" height="24" rx="0" fill="#2d2b3d" opacity="0.5"/>
+  <rect x="40" y="130" width="775" height="24" rx="0" fill="#2d2b3d" opacity="0.5"/>
+  <rect x="40" y="178" width="775" height="24" rx="0" fill="#2d2b3d" opacity="0.5"/>
+  <rect x="40" y="226" width="775" height="24" rx="0" fill="#2d2b3d" opacity="0.5"/>
+  <rect x="40" y="274" width="775" height="24" rx="0" fill="#2d2b3d" opacity="0.5"/>
+  <rect x="40" y="322" width="775" height="24" rx="0" fill="#2d2b3d" opacity="0.5"/>
+  <rect x="40" y="370" width="775" height="24" rx="0" fill="#2d2b3d" opacity="0.5"/>
+  <rect x="40" y="418" width="775" height="24" rx="0" fill="#2d2b3d" opacity="0.5"/>
+
+  <!-- Rows: Phoen | Greek | Latin | Hebrew | Arabic | Meaning -->
+  <!-- ʾAleph -->
+  <text x="100" y="99" text-anchor="middle" fill="#fca5a5" font-size="15">𐤀  ʾAleph</text>
+  <text x="220" y="99" text-anchor="middle" fill="#93c5fd" font-size="15">Α α</text>
+  <text x="325" y="99" text-anchor="middle" fill="#a5b4fc" font-size="15">A</text>
+  <text x="430" y="99" text-anchor="middle" fill="#fca5a5" font-size="15">א</text>
+  <text x="535" y="99" text-anchor="middle" fill="#fdba74" font-size="15">ا</text>
+  <text x="700" y="99" text-anchor="middle" fill="#9ca3af" font-size="12">Ox</text>
+
+  <!-- Beth -->
+  <text x="100" y="147" text-anchor="middle" fill="#fca5a5" font-size="15">𐤁  Bēth</text>
+  <text x="220" y="147" text-anchor="middle" fill="#93c5fd" font-size="15">Β β</text>
+  <text x="325" y="147" text-anchor="middle" fill="#a5b4fc" font-size="15">B</text>
+  <text x="430" y="147" text-anchor="middle" fill="#fca5a5" font-size="15">ב</text>
+  <text x="535" y="147" text-anchor="middle" fill="#fdba74" font-size="15">ب</text>
+  <text x="700" y="147" text-anchor="middle" fill="#9ca3af" font-size="12">House</text>
+
+  <!-- Gimel -->
+  <text x="100" y="195" text-anchor="middle" fill="#fca5a5" font-size="15">𐤂  Gīmel</text>
+  <text x="220" y="195" text-anchor="middle" fill="#93c5fd" font-size="15">Γ γ</text>
+  <text x="325" y="195" text-anchor="middle" fill="#a5b4fc" font-size="15">C / G</text>
+  <text x="430" y="195" text-anchor="middle" fill="#fca5a5" font-size="15">ג</text>
+  <text x="535" y="195" text-anchor="middle" fill="#fdba74" font-size="15">ج</text>
+  <text x="700" y="195" text-anchor="middle" fill="#9ca3af" font-size="12">Camel</text>
+
+  <!-- Daleth -->
+  <text x="100" y="243" text-anchor="middle" fill="#fca5a5" font-size="15">𐤃  Dāleth</text>
+  <text x="220" y="243" text-anchor="middle" fill="#93c5fd" font-size="15">Δ δ</text>
+  <text x="325" y="243" text-anchor="middle" fill="#a5b4fc" font-size="15">D</text>
+  <text x="430" y="243" text-anchor="middle" fill="#fca5a5" font-size="15">ד</text>
+  <text x="535" y="243" text-anchor="middle" fill="#fdba74" font-size="15">د</text>
+  <text x="700" y="243" text-anchor="middle" fill="#9ca3af" font-size="12">Door</text>
+
+  <!-- Mem -->
+  <text x="100" y="291" text-anchor="middle" fill="#fca5a5" font-size="15">𐤌  Mēm</text>
+  <text x="220" y="291" text-anchor="middle" fill="#93c5fd" font-size="15">Μ μ</text>
+  <text x="325" y="291" text-anchor="middle" fill="#a5b4fc" font-size="15">M</text>
+  <text x="430" y="291" text-anchor="middle" fill="#fca5a5" font-size="15">מ</text>
+  <text x="535" y="291" text-anchor="middle" fill="#fdba74" font-size="15">م</text>
+  <text x="700" y="291" text-anchor="middle" fill="#9ca3af" font-size="12">Water</text>
+
+  <!-- Nun -->
+  <text x="100" y="339" text-anchor="middle" fill="#fca5a5" font-size="15">𐤍  Nūn</text>
+  <text x="220" y="339" text-anchor="middle" fill="#93c5fd" font-size="15">Ν ν</text>
+  <text x="325" y="339" text-anchor="middle" fill="#a5b4fc" font-size="15">N</text>
+  <text x="430" y="339" text-anchor="middle" fill="#fca5a5" font-size="15">נ</text>
+  <text x="535" y="339" text-anchor="middle" fill="#fdba74" font-size="15">ن</text>
+  <text x="700" y="339" text-anchor="middle" fill="#9ca3af" font-size="12">Fish</text>
+
+  <!-- Resh -->
+  <text x="100" y="387" text-anchor="middle" fill="#fca5a5" font-size="15">𐤓  Rēsh</text>
+  <text x="220" y="387" text-anchor="middle" fill="#93c5fd" font-size="15">Ρ ρ</text>
+  <text x="325" y="387" text-anchor="middle" fill="#a5b4fc" font-size="15">R</text>
+  <text x="430" y="387" text-anchor="middle" fill="#fca5a5" font-size="15">ר</text>
+  <text x="535" y="387" text-anchor="middle" fill="#fdba74" font-size="15">ر</text>
+  <text x="700" y="387" text-anchor="middle" fill="#9ca3af" font-size="12">Head</text>
+
+  <!-- Shin/Sin -->
+  <text x="100" y="435" text-anchor="middle" fill="#fca5a5" font-size="15">𐤔  Shin</text>
+  <text x="220" y="435" text-anchor="middle" fill="#93c5fd" font-size="15">Σ σ</text>
+  <text x="325" y="435" text-anchor="middle" fill="#a5b4fc" font-size="15">S</text>
+  <text x="430" y="435" text-anchor="middle" fill="#fca5a5" font-size="15">ש</text>
+  <text x="535" y="435" text-anchor="middle" fill="#fdba74" font-size="15">ش / س</text>
+  <text x="700" y="435" text-anchor="middle" fill="#9ca3af" font-size="12">Tooth</text>
+
+  <!-- Footer note -->
+  <text x="430" y="482" text-anchor="middle" fill="#6b7280" font-size="10">
+    All five scripts share a common ancestor in Phoenician via Proto-Sinaitic. Reading directions: Hebrew/Arabic → right to left · Greek/Latin → left to right.
+  </text>
+</svg>

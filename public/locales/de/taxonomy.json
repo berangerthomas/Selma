@@ -1,4 +1,6 @@
 {
+  "project_title": "Selma — Taxonomie",
+  "project_help": "Selma ist ein interaktives Werkzeug zur Visualisierung und Exploration hierarchischer Taxonomien. Nutzen Sie die Toolbox, um die Ansichtsmodi zu ändern, nach bestimmten Knoten zu suchen oder das Diagramm zu exportieren.",
   "nodes": {
     "taxonomy_root": {
       "name": "Tierreich",
