@@ -15,7 +15,7 @@ export const supportedLanguages = Array.from(
 
 export type SupportedLanguage = string
 
-// S'il n'y a aucune langue détectée, on utilise 'en' par défaut
+// If no language is detected, fall back to 'en'
 export const defaultLanguage: SupportedLanguage = supportedLanguages.includes('en')
   ? 'en'
   : (supportedLanguages.length > 0 ? supportedLanguages[0] : 'en')

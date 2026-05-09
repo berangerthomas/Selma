@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import type { DagData, TreeNode } from '../types'
+import type { DagData } from '../types'
 import { hasCycle } from '../utils/dagUtils'
 
 export function useTaxonomyData(taxonomyId: string) {

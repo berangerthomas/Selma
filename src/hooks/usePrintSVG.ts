@@ -1,4 +1,5 @@
 import { RefObject } from 'react';
+import { useToast } from '../context/ToastContext';
 
 async function embedFontInSVG(svgString: string): Promise<string> {
   try {
@@ -269,6 +270,7 @@ function processImage(
 import { triggerDownload } from '../utils/download';
 
 export function usePrintSVG(svgRef: RefObject<SVGSVGElement | null>) {
+  const { showToast } = useToast();
   const prepareSVG = async (svgEl: SVGSVGElement) => {
     const { svgString, width, height } = serializeSVG(svgEl);
     let embedded = await embedFontInSVG(svgString);
@@ -282,7 +284,7 @@ export function usePrintSVG(svgRef: RefObject<SVGSVGElement | null>) {
     // Open window synchronously to avoid popup blockers
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
-      alert("Pop-up blocked. Please allow pop-ups to print.");
+      showToast("Pop-up blocked. Please allow pop-ups to print.");
       return;
     }
 
@@ -328,27 +330,26 @@ export function usePrintSVG(svgRef: RefObject<SVGSVGElement | null>) {
     return customScale || Math.max(4, (window.devicePixelRatio || 1) * 2);
   };
 
-  const downloadPNG = async (filename: string = 'export.png', scale?: number) => {
+  const downloadRasterImage = async (
+    format: 'image/png' | 'image/jpeg',
+    filename: string,
+    scale?: number
+  ) => {
     if (!svgRef.current) return;
     try {
       const { svgString: embeddedSvgString, width, height } = await prepareSVG(svgRef.current);
-      const blob = await processImage(embeddedSvgString, width, height, 'image/png', getScale(scale));
+      const blob = await processImage(embeddedSvgString, width, height, format, getScale(scale));
       triggerDownload(blob, filename);
     } catch (error) {
-      alert(error instanceof Error ? error.message : "Failed to export image.");
+      showToast(error instanceof Error ? error.message : "Failed to export image.");
     }
   };
 
-  const downloadJPG = async (filename: string = 'export.jpg', scale?: number) => {
-    if (!svgRef.current) return;
-    try {
-      const { svgString: embeddedSvgString, width, height } = await prepareSVG(svgRef.current);
-      const blob = await processImage(embeddedSvgString, width, height, 'image/jpeg', getScale(scale));
-      triggerDownload(blob, filename);
-    } catch (error) {
-      alert(error instanceof Error ? error.message : "Failed to export image.");
-    }
-  };
+  const downloadPNG = (filename = 'export.png', scale?: number) =>
+    downloadRasterImage('image/png', filename, scale);
+
+  const downloadJPG = (filename = 'export.jpg', scale?: number) =>
+    downloadRasterImage('image/jpeg', filename, scale);
 
   return { printSVG, downloadSVG, downloadPNG, downloadJPG };
 }

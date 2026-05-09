@@ -1,5 +1,54 @@
 # Changelog
 
+## [v0.6.1] - 2026-05-09
+
+### Added
+- `ToastContext`/`ToastProvider` notification system in `src/context/ToastContext.tsx` (replaces `alert()` calls in print hooks)
+- `useUrlSync` hook in `src/hooks/useUrlSync.ts` (extracted URL ↔ state synchronization from TreeContext)
+- `useNavigationHistory` hook in `src/hooks/useNavigationHistory.ts` (extracted back/forward history stack from TreeContext)
+- `useSearchEngine` hook in `src/hooks/useSearchEngine.ts` (extracted search logic from TreeContext)
+- `useDeepSearch` hook in `src/hooks/useDeepSearch.ts` (extracted deep search fetch logic from `useSearchEngine`)
+- `ClusterNode`, `CompactNode`, `OrganicNode` subcomponents in `src/components/tree/` (extracted from `TreeViz.tsx` node rendering)
+- `AbortController` for taxonomy fetch in TreeContext.tsx (cancellable fetch on unmount)
+- Shared `buildHighlightRegex` utility in `src/utils/searchRegex.ts` (extracted from duplicated regex in highlight.tsx, highlightSVG.tsx, MarkdownRenderer.tsx)
+- Shared `nodeMatchesQuery` predicate in `src/utils/searchRegex.ts` (extracted from duplicated matching in treeUtils.ts, dagUtils.ts)
+- Shared `fetchMarkdownContent` utility in `src/utils/fetchMarkdown.ts` (extracted from duplicated fetch+fallback pattern in Sidebar.tsx, TreeContext.tsx)
+- Shared `downloadRasterImage` helper in `usePrintSVG.ts` (factorized `downloadPNG`/`downloadJPG`)
+- Shared `navigateHistory` helper in `TreeContext.tsx` (factorized `goBack`/`goForward`)
+- `ViewModeButton` sub-component in `Toolbar.tsx` (factorized 4 view mode buttons)
+- `ViewMode` type export used by `ViewModeButton`
+
+### Modified
+- Extracted inline style objects to module-level constants in `Toolbar.tsx` (avoids recreation on each render)
+- Wrapped `centerOn` and `fitView` in `useCallback` in TreeViz.tsx (stabilizes deps for useEffect)
+- Replaced `React.useReducer` with destructured `useReducer` in TreeContext.tsx (consistent with other imports)
+- Removed unnecessary `as React.LegacyRef` cast on SVG refs in TreeViz.tsx
+- Translated French comments to English in TreeViz.tsx and localization.ts
+- Refactored TreeContext.tsx to compose extracted hooks (`useUrlSync`, `useNavigationHistory`, `useSearchEngine`)
+- Replaced `alert()` with `showToast()` in usePrintSVG.ts, usePrintHTML.ts, usePrintMarkdown.ts
+- Removed unused `lastLangRef` from TreeViz.tsx
+- Removed dead `handleTouchStart` handler from Sidebar.tsx
+- Removed unused `activeSubtree` and `collectSubtreeIds` from TreeViz.tsx
+- Replaced inline regex in highlight.tsx, highlightSVG.tsx, MarkdownRenderer.tsx with shared `buildHighlightRegex`
+- Replaced inline node matching in treeUtils.ts, dagUtils.ts with shared `nodeMatchesQuery`
+- Replaced inline downloadPNG/downloadJPG in usePrintSVG.ts with shared `downloadRasterImage`
+- Replaced inline goBack/goForward in TreeContext.tsx with shared `navigateHistory`
+- Replaced inline view buttons in Toolbar.tsx with `ViewModeButton` sub-component
+- Refactored Sidebar.tsx fetch logic to use shared `fetchMarkdownContent` (removed `isHtmlResponse` helper)
+- Refactored TreeContext.tsx deep search fetch loop to use shared `fetchMarkdownContent`
+- Extracted node rendering into `ClusterNode`, `CompactNode`, `OrganicNode` subcomponents in `TreeViz.tsx`
+- Renamed `tx`/`ty` parameters in `linkPath` to `targetX`/`targetY`/`sourceX`/`sourceY` in `TreeViz.tsx`
+- Removed superfluous `collapseDepth` parameter from `buildPrunedHierarchy` (was always called with `1`)
+- Refactored `useSearchEngine` to delegate deep search to `useDeepSearch.performDeepSearch` (replaced inline IIFE)
+
+### Fixed
+- Removed duplicate `if (!data) return null` guard in TreeContext.tsx
+- Removed unused `TreeNode` import in useTaxonomyData.ts
+- Fixed missing `taxonomyId` argument in `useTaxonomyData()` call in MarkdownViewerPage.tsx
+- Cleared Markdown search cache (`searchContentCacheRef`) on taxonomy switch in TreeContext.tsx
+- Replaced noisy `console.warn` with `console.debug` for empty search results in TreeContext.tsx
+- Wrapped all `localStorage` accesses in try/catch via `safeLocalStorageGet`/`safeLocalStorageSet` helpers (TreeContext.tsx, useTheme.ts, useTextSize.ts)
+
 ## [v0.6.0] - 2026-05-09
 
 ### Added

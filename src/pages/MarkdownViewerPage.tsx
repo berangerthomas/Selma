@@ -35,8 +35,19 @@ export default function MarkdownViewerPage() {
   const { isDark, toggleTheme } = useTheme()
   const { textSizeClass, increaseSize, decreaseSize, canIncrease, canDecrease } = useTextSize()
   const contentRef = useRef<HTMLDivElement>(null)
+  const [taxonomyId, setTaxonomyId] = useState<string>(params.get('taxonomy') || '')
 
-  const { data: dagData } = useTaxonomyData()
+  useEffect(() => {
+    if (taxonomyId) return;
+    fetch('/data/taxonomies.json')
+      .then(res => res.json())
+      .then((data: Array<{id: string}>) => {
+        if (data.length > 0) setTaxonomyId(data[0].id);
+      })
+      .catch(() => {});
+  }, [taxonomyId]);
+
+  const { data: dagData } = useTaxonomyData(taxonomyId)
   const { tree: treeData } = useMemo(() => {
     if (!dagData) return { tree: null as unknown as TreeNode };
     return buildSpanningTree(dagData);

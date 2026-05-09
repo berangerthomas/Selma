@@ -1,8 +1,9 @@
 import type { DagData, DagNode, CrossEdge, TreeNode } from '../types';
 import * as d3 from 'd3'
+import { nodeMatchesQuery } from './searchRegex';
 
 // Prune tree -> produce a D3 hierarchy suitable for layout (adds optional cluster nodes)
-export function buildPrunedHierarchy(root: TreeNode, expanded: Set<string> | null, collapseDepth = 1) {
+export function buildPrunedHierarchy(root: TreeNode, expanded: Set<string> | null) {
   type PrunedNode = Omit<TreeNode, 'children'> & { __cluster_for?: string; __cluster_count?: number; children?: PrunedNode[] }
 
   function totalCount(n: TreeNode): number {
@@ -23,7 +24,7 @@ export function buildPrunedHierarchy(root: TreeNode, expanded: Set<string> | nul
 
     if (!hasChildren) return base
 
-    if (depth >= collapseDepth && !(expanded && expanded.has(node.id))) {
+    if (depth >= 1 && !(expanded && expanded.has(node.id))) {
       const count = totalCount(node)
       const cluster: PrunedNode = { id: `${node.id}__cluster`, name: '', __cluster_for: node.id, __cluster_count: count }
       return { ...base, children: [cluster] }
@@ -101,14 +102,10 @@ export function findMatchingIds(
   query: string,
   t?: (key: string, opts?: unknown) => string
 ): string[] {
-  const q = query.trim().toLowerCase();
-  if (!q) return [];
-  return Object.values(data.nodes).filter(node => {
-    const displayName = t
-      ? t(`nodes.${node.id}.name`, { defaultValue: node.name })
-      : node.name;
-    return node.id.toLowerCase().includes(q) || displayName?.toLowerCase().includes(q);
-  }).map(n => n.id);
+  if (!query.trim()) return [];
+  return Object.values(data.nodes)
+    .filter(node => nodeMatchesQuery(node.id, node.name, query, t as any))
+    .map(n => n.id);
 }
 
 /** Climb toward root via first available parent path to resolve inherited color. */

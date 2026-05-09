@@ -1,12 +1,22 @@
 import { useState, useEffect } from 'react';
 
+function safeLocalStorageGet(key: string): string | null {
+  try { return localStorage.getItem(key); }
+  catch { return null; }
+}
+
+function safeLocalStorageSet(key: string, value: string): void {
+  try { localStorage.setItem(key, value); }
+  catch { /* silently ignore */ }
+}
+
 const sizes = ['prose-sm', 'prose-base', 'prose-lg', 'prose-xl', 'prose-2xl'];
 const STORAGE_KEY = 'selma-text-size';
 const EVENT_NAME = 'selma:text-size'
 
 export function useTextSize() {
   const [sizeIndex, setSizeIndex] = useState<number>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
+    const saved = safeLocalStorageGet(STORAGE_KEY);
     if (saved) {
       const idx = sizes.indexOf(saved);
       if (idx !== -1) return idx;
@@ -22,11 +32,7 @@ export function useTextSize() {
 
   // Persist and broadcast changes so other hook instances sync immediately
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, sizes[sizeIndex]);
-    } catch (err) {
-      // ignore
-    }
+    safeLocalStorageSet(STORAGE_KEY, sizes[sizeIndex]);
     try {
       const ev = new CustomEvent(EVENT_NAME, { detail: sizes[sizeIndex] })
       window.dispatchEvent(ev)

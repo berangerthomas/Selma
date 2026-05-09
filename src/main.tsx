@@ -6,6 +6,7 @@ import './i18n' // Init i18n
 import './styles.css'
 // Tailwind utilities are included via src/styles.css @tailwind directives
 import { TreeProvider } from './context/TreeContext'
+import { ToastProvider } from './context/ToastContext'
 
 const rootEl = document.getElementById('root')!
 const root = createRoot(rootEl)
@@ -51,9 +52,11 @@ try {
     root.render(
       <React.StrictMode>
         <React.Suspense fallback={<div>Loading...</div>}>
-          <TreeProvider>
-            <App />
-          </TreeProvider>
+          <ToastProvider>
+            <TreeProvider>
+              <App />
+            </TreeProvider>
+          </ToastProvider>
         </React.Suspense>
       </React.StrictMode>
     )

@@ -1,8 +1,9 @@
 // highlight functions
+import { buildHighlightRegex } from './searchRegex';
 
 export function HighlightMatch({ text, query }: { text: string; query: string }) {
   if (!query || !text) return <>{text}</>
-  const parts = text.split(new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'))
+  const parts = text.split(buildHighlightRegex(query))
   return (
     <>
       {parts.map((part, i) =>

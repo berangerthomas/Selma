@@ -9,6 +9,7 @@ import AttachmentList from './AttachmentList'
 import { Attachment } from '../types'
 import CopyButton from './CopyButton'
 import { getParents, hasMultipleParents } from '../utils/dagUtils'
+import { fetchMarkdownContent } from '../utils/fetchMarkdown'
 
 type SidebarProps = {
   open: boolean
@@ -21,10 +22,6 @@ type SidebarProps = {
 }
 
 const mdCache = new Map<string, string>()
-
-function isHtmlResponse(r: Response): boolean {
-  return r?.ok && (r.headers?.get('content-type')?.includes('text/html') ?? false)
-}
 
 export default function Sidebar({ open, onClose, node, initialWidth = 420, minWidth = 220, maxWidth = 720, onWidthChange }: SidebarProps) {
   const { searchQuery, activeSearchType, dagData, setActiveId, activeId } = useTree()
@@ -60,29 +57,19 @@ export default function Sidebar({ open, onClose, node, initialWidth = 420, minWi
       setMarkdownContent(`*${t('loading', { defaultValue: 'Loading...' })}*`)
 
       try {
-        const preferredPath = `/details/${lang}/${node.id}.md`
-        let res = await fetch(preferredPath)
+        const text = await fetchMarkdownContent(lang, node.id)
         if (!mounted) return
-
-        if (!res || !res.ok || isHtmlResponse(res)) {
-          setCurrentPath(`/details/${node.id}.md`)
-          res = await fetch(`/details/${node.id}.md`)
-        } else {
-          setCurrentPath(preferredPath)
-        }
-        if (!mounted) return
-        if (res && res.ok && !isHtmlResponse(res)) {
-          const text = await res.text()
-          if (mounted) {
-            mdCache.set(cacheKey, text)
-            setMarkdownContent(text)
-          }
+        if (text !== null) {
+          mdCache.set(cacheKey, text)
+          setMarkdownContent(text)
+          setCurrentPath(`/details/${lang}/${node.id}.md`)
         } else {
           const title = t(`nodes.${node.id}.name`, { defaultValue: node.name })
           const mdFallback = `# ${title}\n\n*${t('description_not_provided', { defaultValue: 'No description provided.' })}*`
           if (mounted) {
             mdCache.set(cacheKey, mdFallback)
             setMarkdownContent(mdFallback)
+            setCurrentPath(`/details/${node.id}.md`)
           }
         }
       } catch (err) {
@@ -156,49 +143,6 @@ export default function Sidebar({ open, onClose, node, initialWidth = 420, minWi
     // touch support
     window.addEventListener('touchmove', onMouseMove as any)
     window.addEventListener('touchend', onMouseUp as any)
-  }
-
-  // @ts-expect-error - used via touch props not directly recognized
-  function handleTouchStart(e: React.TouchEvent) {
-    const touch = e.touches[0]
-    if (!touch) return
-    dragging.current = true
-    startX.current = touch.clientX
-    startWidth.current = width
-    document.body.style.userSelect = 'none'
-
-    const onTouchMove = (ev: TouchEvent) => {
-      const tt = ev.touches[0]
-      if (!tt) return
-      const dx = startX.current - tt.clientX
-      const newWidth = Math.min(maxWidth, Math.max(minWidth, startWidth.current + dx))
-      setWidth(newWidth)
-      if (typeof onWidthChange === 'function') onWidthChange(newWidth)
-    }
-
-    const onTouchEnd = () => {
-      dragging.current = false
-      document.body.style.userSelect = ''
-      window.removeEventListener('touchmove', onTouchMove as any)
-      window.removeEventListener('touchend', onTouchEnd as any)
-      moveListenerRef.current = null
-      upListenerRef.current = null
-
-      // Prevent the click event that may follow touchend from bubbling up
-      const preventClick = (e: MouseEvent) => {
-        e.stopPropagation()
-        e.preventDefault()
-        window.removeEventListener('click', preventClick, true)
-      }
-      window.addEventListener('click', preventClick, true)
-      setTimeout(() => window.removeEventListener('click', preventClick, true), 50)
-    }
-
-    moveListenerRef.current = onTouchMove as any
-    upListenerRef.current = onTouchEnd as any
-
-    window.addEventListener('touchmove', onTouchMove as any)
-    window.addEventListener('touchend', onTouchEnd as any)
   }
 
   return (

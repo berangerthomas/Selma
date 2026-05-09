@@ -1,13 +1,15 @@
 import { RefObject } from 'react';
+import { useToast } from '../context/ToastContext';
 
 export function usePrintMarkdown(contentRef: RefObject<HTMLElement | null>) {
+  const { showToast } = useToast();
   const printContent = (title: string = 'Document') => {
     if (!contentRef.current) return;
     const htmlContent = contentRef.current.innerHTML;
 
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
-      alert("Pop-up blocked. Please allow pop-ups to print.");
+      showToast("Pop-up blocked. Please allow pop-ups to print.");
       return;
     }
 

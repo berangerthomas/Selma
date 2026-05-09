@@ -17,6 +17,7 @@ import { useTheme } from '../hooks/useTheme'
 import { useTree } from '../context/TreeContext'
 import { supportedLanguages } from '../utils/localization'
 import { PrintAndExportButtons } from './PrintButton'
+import type { ViewMode } from '../types'
 import ThemeIcon from './icons/ThemeIcon'
 import LangMenu from './LangMenu'
 import SettingsModal from './SettingsModal'
@@ -31,8 +32,86 @@ import CompactIcon from '../assets/icons/compact.svg?react'
 import FileTreeIcon from '../assets/icons/filetree.svg?react'
 import MillerIcon from '../assets/icons/miller.svg?react'
 
+const BUTTON_STYLE: React.CSSProperties = {
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+  width: '30px', height: '30px', color: 'inherit', border: 'none',
+};
+
+const TOOLBAR_ROW_STYLE: React.CSSProperties = {
+  borderBottom: '1px solid var(--border-color)',
+  padding: '6px 8px', display: 'flex', alignItems: 'center', gap: '8px',
+};
+
+const HELP_CONTENT_STYLE: React.CSSProperties = {
+  padding: '8px 12px', fontSize: '12px',
+  borderBottom: '1px solid var(--border-color)',
+  backgroundColor: 'rgba(0,0,0,0.02)',
+  color: 'var(--text-muted)', lineHeight: '1.4',
+};
+
+const HEADER_STYLE: React.CSSProperties = { display: 'flex', justifyContent: 'space-between' };
+
+const FLEX_ROW_STYLE: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: '2px' };
+
+const HISTORY_ROW_STYLE: React.CSSProperties = {
+  display: 'flex', alignItems: 'center', gap: '2px',
+  marginRight: '6px', borderRight: '1px solid var(--border-color)',
+  paddingRight: '6px',
+};
+
+const PROJECT_TITLE_STYLE: React.CSSProperties = { fontWeight: 700, fontSize: '14px', flex: 1 };
+
+const TOOLBAR_ROW_FLEX: React.CSSProperties = { display: 'flex', gap: '4px' };
+
+const VIEW_ROW_STYLE: React.CSSProperties = {
+  display: 'flex', gap: '4px',
+  borderTop: '1px solid var(--border-color)',
+  paddingTop: '6px', marginTop: '2px', alignItems: 'center',
+};
+
+const TITLE_MARGIN_STYLE: React.CSSProperties = { marginRight: '8px' };
+
+const SELECT_STYLE: React.CSSProperties = { padding: '4px', fontSize: '12px', height: '24px', flex: 1 };
+
+const RELATIVE_INLINE_STYLE: React.CSSProperties = { position: 'relative', display: 'inline-block' };
+
+const INLINE_BLOCK_STYLE: React.CSSProperties = { display: 'inline-block' };
+
+const WHITE_SPACE_NOWRAP: React.CSSProperties = { whiteSpace: 'nowrap' };
+
+const HELP_TOGGLE_BASE_STYLE: React.CSSProperties = {
+  background: 'none', border: 'none', cursor: 'pointer',
+  padding: '4px', display: 'flex', alignItems: 'center',
+  justifyContent: 'center', transition: 'transform 0.2s',
+  color: 'var(--text-muted)',
+};
+
+const TEN_PX_FONT: React.CSSProperties = { fontSize: '10px' };
+
 interface ToolbarIconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   label: string
+}
+
+function ViewModeButton({
+  mode, current, label, icon: Icon, onClick
+}: {
+  mode: ViewMode; current: ViewMode; label: string;
+  icon: React.ComponentType<{ className?: string }>; onClick: () => void;
+}) {
+  const active = mode === current;
+  return (
+    <ToolbarIconButton
+      label={label}
+      onClick={onClick}
+      className={`p-[6px] rounded transition-colors ${
+        active
+          ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+          : 'bg-transparent hover:bg-black/5 dark:hover:bg-white/10'
+      }`}
+    >
+      <Icon className="w-[18px] h-[18px] block" />
+    </ToolbarIconButton>
+  );
 }
 
 function ToolbarIconButton({ label, children, onClick, disabled, className, ...rest }: ToolbarIconButtonProps) {
@@ -41,7 +120,7 @@ function ToolbarIconButton({ label, children, onClick, disabled, className, ...r
   return (
     <button
       className={finalClass}
-      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', color: 'inherit', border: 'none' }}
+      style={BUTTON_STYLE}
       title={label}
       aria-label={label}
       disabled={disabled}
@@ -170,39 +249,28 @@ export default function Toolbar({
         role="region"
         aria-label={t('project_title', { defaultValue: 'Selma' })}
       >
-        <div className="toolbar-row" style={{ borderBottom: '1px solid var(--border-color)', padding: '6px 8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div className="toolbar-row" style={TOOLBAR_ROW_STYLE}>
           <button 
             onClick={() => setHelpOpen(!helpOpen)}
             className="help-toggle-btn"
-            style={{ 
-              background: 'none', 
-              border: 'none', 
-              cursor: 'pointer', 
-              padding: '4px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'transform 0.2s',
-              transform: helpOpen ? 'rotate(90deg)' : 'rotate(0deg)',
-              color: 'var(--text-muted)'
-            }}
+            style={{ ...HELP_TOGGLE_BASE_STYLE, transform: helpOpen ? 'rotate(90deg)' : 'rotate(0deg)' }}
             title={t('help', { defaultValue: 'Help' })}
           >
-            <span style={{ fontSize: '10px' }}>▶</span>
+            <span style={TEN_PX_FONT}>▶</span>
           </button>
-          <div className="project-main-title" style={{ fontWeight: 700, fontSize: '14px', flex: 1 }}>
+          <div className="project-main-title" style={PROJECT_TITLE_STYLE}>
             {t('project_title', { defaultValue: 'Selma' })}
           </div>
         </div>
         {helpOpen && (
-          <div className="toolbar-help-content" style={{ padding: '8px 12px', fontSize: '12px', borderBottom: '1px solid var(--border-color)', backgroundColor: 'rgba(0,0,0,0.02)', color: 'var(--text-muted)', lineHeight: '1.4' }}>
+          <div className="toolbar-help-content" style={HELP_CONTENT_STYLE}>
             {t('project_help', { defaultValue: '' })}
           </div>
         )}
-        <div className="toolbar-header" onMouseDown={onHeaderPointerDown} style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <div className="toolbar-header" onMouseDown={onHeaderPointerDown} style={HEADER_STYLE}>
           <div className="toolbar-title">{t('toolbar_title', { defaultValue: 'Tools' })}</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '2px', marginRight: '6px', borderRight: '1px solid var(--border-color)', paddingRight: '6px' }}>
+          <div style={FLEX_ROW_STYLE}>
+            <div style={HISTORY_ROW_STYLE}>
               <ToolbarIconButton
                 label={t('go_back', { defaultValue: 'Previous' })}
                 onClick={canGoBack ? onGoBack : undefined}
@@ -235,7 +303,7 @@ export default function Toolbar({
           </div>
         </div>
         <div className="toolbar-body">
-          <div className="toolbar-row" style={{ display: 'flex', gap: '4px' }}>
+          <div className="toolbar-row" style={TOOLBAR_ROW_FLEX}>
             <ToolbarIconButton 
               label={t('fit_view', { defaultValue: 'Fit view' })} 
               onClick={onResetView}
@@ -266,45 +334,21 @@ export default function Toolbar({
               </ToolbarIconButton>
             )}
           </div>
-          <div className="toolbar-row" style={{ display: 'flex', gap: '4px', borderTop: '1px solid var(--border-color)', paddingTop: '6px', marginTop: '2px', alignItems: 'center' }}>
-            <div className="toolbar-title" style={{ marginRight: '8px' }}>{t('view', { defaultValue: 'View' })}</div>
-            <ToolbarIconButton 
-              label={t('view_organic', { defaultValue: 'Organic Graph' })} 
-              onClick={() => setViewMode('organic')}
-              className={`p-[6px] rounded transition-colors ${viewMode === 'organic' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'bg-transparent hover:bg-black/5 dark:hover:bg-white/10'}`}
-            >
-              <OrganicIcon className="w-[18px] h-[18px] block" />
-            </ToolbarIconButton>
-            <ToolbarIconButton 
-              label={t('view_compact', { defaultValue: 'Compact Graph' })} 
-              onClick={() => setViewMode('compact')}
-              className={`p-[6px] rounded transition-colors ${viewMode === 'compact' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'bg-transparent hover:bg-black/5 dark:hover:bg-white/10'}`}
-            >
-              <CompactIcon className="w-[18px] h-[18px] block" />
-            </ToolbarIconButton>
-            <ToolbarIconButton 
-              label={t('view_list', { defaultValue: 'List Tree' })} 
-              onClick={() => setViewMode('list')}
-              className={`p-[6px] rounded transition-colors ${viewMode === 'list' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'bg-transparent hover:bg-black/5 dark:hover:bg-white/10'}`}
-            >
-              <FileTreeIcon className="w-[18px] h-[18px] block" />
-            </ToolbarIconButton>
-            <ToolbarIconButton 
-              label={t('view_columns', { defaultValue: 'Miller Columns' })} 
-              onClick={() => setViewMode('columns')}
-              className={`p-[6px] rounded transition-colors ${viewMode === 'columns' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'bg-transparent hover:bg-black/5 dark:hover:bg-white/10'}`}
-            >
-              <MillerIcon className="w-[18px] h-[18px] block" />
-            </ToolbarIconButton>
+          <div className="toolbar-row" style={VIEW_ROW_STYLE}>
+            <div className="toolbar-title" style={TITLE_MARGIN_STYLE}>{t('view', { defaultValue: 'View' })}</div>
+            <ViewModeButton mode="organic" current={viewMode} label={t('view_organic', { defaultValue: 'Organic Graph' })} icon={OrganicIcon} onClick={() => setViewMode('organic')} />
+            <ViewModeButton mode="compact" current={viewMode} label={t('view_compact', { defaultValue: 'Compact Graph' })} icon={CompactIcon} onClick={() => setViewMode('compact')} />
+            <ViewModeButton mode="list" current={viewMode} label={t('view_list', { defaultValue: 'List Tree' })} icon={FileTreeIcon} onClick={() => setViewMode('list')} />
+            <ViewModeButton mode="columns" current={viewMode} label={t('view_columns', { defaultValue: 'Miller Columns' })} icon={MillerIcon} onClick={() => setViewMode('columns')} />
           </div>
           
-          <div className="toolbar-row" style={{ display: 'flex', gap: '4px', borderTop: '1px solid var(--border-color)', paddingTop: '6px', marginTop: '2px', alignItems: 'center' }}>
-            <div className="toolbar-title" style={{ marginRight: '8px' }}>{t('taxonomy', { defaultValue: 'Taxonomy' })}</div>
+          <div className="toolbar-row" style={VIEW_ROW_STYLE}>
+            <div className="toolbar-title" style={TITLE_MARGIN_STYLE}>{t('taxonomy', { defaultValue: 'Taxonomy' })}</div>
             <select
               value={activeTaxonomyId}
               onChange={(e) => setActiveTaxonomyId(e.target.value)}
               className="toolbar-search"
-              style={{ padding: '4px', fontSize: '12px', height: '24px', flex: 1 }}
+              style={SELECT_STYLE}
               aria-label={t('taxonomy', { defaultValue: 'Taxonomy' })}
             >
               {availableTaxonomies.map((taxo) => (
@@ -326,8 +370,8 @@ export default function Toolbar({
               }}
               aria-label={t('search_placeholder', { defaultValue: 'Go to a node (id or name)...' })}
             />
-            <div style={{ position: 'relative', display: 'inline-block' }}>
-              <div ref={searchMenuRefs.setReference} {...getSearchMenuReferenceProps()} style={{ display: 'inline-block' }}>
+            <div style={RELATIVE_INLINE_STYLE}>
+              <div ref={searchMenuRefs.setReference} {...getSearchMenuReferenceProps()} style={INLINE_BLOCK_STYLE}>
                 <ToolbarIconButton
                   label={t('go', { defaultValue: 'Go' })}
                   onClick={() => handleSearch()}
@@ -346,7 +390,7 @@ export default function Toolbar({
                 >
                   <button
                     className="search-mode-item w-full text-left px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 whitespace-nowrap transition-colors"
-                    style={{ whiteSpace: 'nowrap' }}
+                    style={WHITE_SPACE_NOWRAP}
                     onClick={() => { handleSearch('deep'); }}
                   >
                     {t('search_deep', { defaultValue: 'Recherche approfondie' })}

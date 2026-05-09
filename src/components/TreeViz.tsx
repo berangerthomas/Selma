@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useCallback } from 'react'
 import * as d3 from 'd3'
 import { useI18n } from '../i18n'
 import { useTree } from '../context/TreeContext'
@@ -6,7 +6,9 @@ import type { TreeNode } from '../types'
 import { findNodeById } from '../utils/treeUtils'
 import { hasMultipleParents, getParents } from '../utils/dagUtils'
 import Sidebar from './Sidebar'
-import { HighlightSVGText } from '../utils/highlightSVG'
+import { ClusterNode } from './tree/ClusterNode'
+import { CompactNode } from './tree/CompactNode'
+import { OrganicNode } from './tree/OrganicNode'
 type Props = {
   forwardedSvgRef?: React.RefObject<SVGSVGElement | null>
 }
@@ -38,14 +40,13 @@ function computeBounds(
   return count > 0 ? { minX, maxX, minY, maxY, count } : null
 }
 
-const COLLAPSE_DEPTH = 1
 const CENTER_MARGIN = 120
 // Centralized animation durations (ms)
 const ANIMATION_MS = 1000 // Duration for all animations; except individual CSS transitions can use fractions of this via CSS variables
 const OPACITY_MS = Math.round(ANIMATION_MS / 2)
 const NODE_TRANSITION = `transform ${ANIMATION_MS}ms cubic-bezier(.2,.8,.2,1)`
 
-// Définissez ici le ratio de centrage horizontal pour l'écran (0 = à gauche, 0.5 = au milieu, 1 = à droite)
+// Horizontal centering ratio (0 = left, 0.5 = center, 1 = right)
 const NODE_CENTER_RATIO = 0.5
 
 function computeTransform(
@@ -89,7 +90,7 @@ function computeTransform(
     return d3.zoomIdentity.translate(tx, ty).scale(targetScale)
   }
 
-  // Centre horizontal : utilisation de NODE_CENTER_RATIO (ex: 0.5 pour le centre)
+  // Horizontal centering: use NODE_CENTER_RATIO (e.g. 0.5 for center)
   const tx = leftOcclusion + effectiveWidth * NODE_CENTER_RATIO - nodePos.y * targetScale
   const ty = topOcclusion + availableHeight / 2 - nodePos.x * targetScale
   
@@ -130,8 +131,6 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
 
   const lastActiveRef = useRef<string | null>(null)
   const { t, lang } = useI18n()
-  const lastLangRef = useRef<string>(lang)
-  const [hovered, setHovered] = useState<string | null>(null)
   const { open: sidebarOpen, setOpen: setSidebarOpen, width: sidebarWidth, setWidth: setSidebarWidth } = useSidebar(activeId);
 
   const clearSelection = () => {
@@ -142,7 +141,7 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
   // Build pruned tree and preserve node metadata (color)
   const layoutRoot = useMemo(() => {
     // Build pruned hierarchy first
-    const prunedRoot = buildPrunedHierarchy(data as TreeNode, expanded, COLLAPSE_DEPTH) as d3.HierarchyNode<PrunedNode>
+    const prunedRoot = buildPrunedHierarchy(data as TreeNode, expanded) as d3.HierarchyNode<PrunedNode>
 
     // Compute dynamic vertical spacing based on longest visible label (approximate)
     const isCompact = viewMode === 'compact'
@@ -195,16 +194,6 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
     return layoutRoot.descendants().find((d) => (d.data as any).__cluster_for === id) as d3.HierarchyPointNode<PrunedNode> | undefined
   }
 
-
-  function collectSubtreeIds(id: string) {
-    const node = findD3NodeById(id)
-    const set = new Set<string>()
-    if (!node) return set
-    node.descendants().forEach((d) => set.add(d.data.id))
-    return set
-  }
-
-  const activeSubtree = useMemo(() => collectSubtreeIds(activeId), [activeId, layoutRoot])
 
   const activePathAndSubtree = useMemo(() => {
     const set = new Set<string>()
@@ -337,10 +326,6 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
   }, [])
 
   useEffect(() => {
-    lastLangRef.current = lang
-  }, [lang])
-
-  useEffect(() => {
     // recompute centering only when active changes or when forced
     const svgEl = svgRef.current
     if (!svgEl) return
@@ -371,7 +356,7 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sidebarOpen, sidebarWidth])
 
-  const fitView = (duration: number = ANIMATION_MS) => {
+  const fitView = useCallback((duration: number = ANIMATION_MS) => {
     const svgEl = svgRef.current
     if (!svgEl || !layoutRoot) return
 
@@ -390,7 +375,7 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
     const transform = computeTransform(rootPos, extents, rect, sidebarOpen ? sidebarWidth : 0)
 
     d3.select(svgEl).transition().duration(duration).call(zoomRef.current!.transform as any, transform)
-  }
+  }, [layoutRoot, positions, sidebarOpen, sidebarWidth])
 
   const lastResetRef = useRef<number>(0)
   const initialFitDone = useRef<boolean>(false)
@@ -416,7 +401,7 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
     }
   }, [resetViewTrigger, layoutRoot, positions, sidebarOpen, sidebarWidth])
 
-  function centerOn(id: string, scale = 1) {
+  const centerOn = useCallback((id: string, scale = 1) => {
     const svgEl = svgRef.current
     if (!svgEl || !zoomRef.current) return
     const p = positions.get(id)
@@ -424,7 +409,7 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
     const rect = svgEl.getBoundingClientRect()
     const transform = computeTransform(p, null, rect, sidebarOpen ? sidebarWidth : 0, scale)
     d3.select(svgEl).transition().duration(ANIMATION_MS).call(zoomRef.current.transform as any, transform)
-  }
+  }, [positions, sidebarOpen, sidebarWidth])
 
   function colorFor(node: d3.HierarchyPointNode<PrunedNode>) {
     const clusterFor = node.data.__cluster_for
@@ -452,15 +437,15 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
     return d3.linkHorizontal<any, any>().x((d: any) => d.y).y((d: any) => d.x)
   }, [])
 
-  function linkPath(sx: number, sy: number, tx: number, ty: number) {
+  function linkPath(sourceX: number, sourceY: number, targetX: number, targetY: number) {
     // Keep compact elbow path behaviour for compact mode
     if (viewMode === 'compact') {
-      const midx = sx + (tx - sx) / 2
-      return `M${sx},${sy} L${midx},${sy} L${midx},${ty} L${tx},${ty}`
+      const midx = sourceX + (targetX - sourceX) / 2
+      return `M${sourceX},${sourceY} L${midx},${sourceY} L${midx},${targetY} L${targetX},${targetY}`
     }
     // Fallback cubic for non-compact (should be covered by linkGenerator when using nodes)
-    const dx = (tx - sx) / 2
-    return `M${sx},${sy}C${sx + dx},${sy} ${tx - dx},${ty} ${tx},${ty}`
+    const dx = (targetX - sourceX) / 2
+    return `M${sourceX},${sourceY}C${sourceX + dx},${sourceY} ${targetX - dx},${targetY} ${targetX},${targetY}`
   }
 
   const activeNode = findD3NodeById(activeId)
@@ -478,8 +463,8 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
       className="viz-container"
       onClick={clearSelection}
     >
-      <svg ref={svgRef as React.LegacyRef<SVGSVGElement>} className="viz-svg">
-        <g ref={innerGroupRef as React.LegacyRef<SVGGElement>}>
+      <svg ref={svgRef} className="viz-svg">
+        <g ref={innerGroupRef}>
           {/* Cross-edges group - rendered first so primary edges are drawn on top */}
           {dagData && crossEdges && (
             <g className="cross-edges">
@@ -579,14 +564,12 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
               const color = colorFor(node as unknown as d3.HierarchyPointNode<PrunedNode>)
               const isCluster = Boolean(node.data.__cluster_for)
               const clusterFor = node.data.__cluster_for
-              const finalIconChar = t(`nodes.${node.data.id}.iconChar`, { defaultValue: node.data.iconChar || '' })
-              const finalIconFont = t(`nodes.${node.data.id}.iconFont`, { defaultValue: node.data.iconFont || 'sans-serif' })
               const displayY = getDisplayY(node)
               return (
                 <g
                   key={node.data.id}
                   className={`node ${isCluster ? 'cluster' : ''}`}
-                    style={{
+                  style={{
                     transform: `translate(${displayY}px, ${p.x}px)`,
                     transition: `${NODE_TRANSITION}, opacity ${OPACITY_MS}ms`,
                     opacity: dim ? 0.25 : 1,
@@ -597,109 +580,36 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
                     const targetId = clusterFor || node.data.id
                     onToggleNode(targetId)
                   }}
-                  onMouseEnter={isCluster ? () => setHovered(node.data.id) : undefined}
-                  onMouseLeave={isCluster ? () => setHovered(null) : undefined}
                 >
                   {isCluster ? (
-                    <>
-                      <circle r={viewMode === 'compact' ? 8 : 12} fill="#fff" stroke={color} strokeWidth={2} strokeDasharray="3 2" />
-                      {hovered === node.data.id ? (
-                        <text x={viewMode === 'compact' ? 12 : 18} y={5} fontSize={12} style={{ userSelect: 'none', paintOrder: 'stroke', stroke: 'var(--panel-bg)', fill: 'var(--text-main)', strokeWidth: 4, strokeLinecap: 'round', strokeLinejoin: 'round' }}>
-                            {node.data.__cluster_for ? t('cluster_items', { count: node.data.__cluster_count }) : (
-                              <HighlightSVGText
-                                text={t(`nodes.${node.data.id}.name`, { defaultValue: node.data.name || '' })}
-                                query={searchQuery}
-                              />
-                            )}
-                        </text>
-                      ) : null}
-                    </>
+                    <ClusterNode
+                      node={{ ...node.data, x: p.x, y: displayY }}
+                      color={color}
+                      viewMode={viewMode}
+                      searchQuery={searchQuery}
+                      t={t}
+                      onToggle={onToggleNode}
+                      displayY={displayY}
+                    />
                   ) : viewMode === 'compact' ? (
-                    <>
-                      {/* Multi-parent indicator - amber ring for nodes with multiple parents */}
-                      {dagData && hasMultipleParents(dagData, node.data.id) && (
-                        <circle r={8} fill="none" stroke="#f59e0b" strokeWidth={1.5} strokeDasharray="2 1.5" opacity={0.7} />
-                      )}
-                      <rect x={-8} y={-10} width={16} height={20} rx={4} fill={color} stroke="#fff" strokeWidth={1.5} />
-                      {node.data.image ? (
-                        <image className="icon-img" href={node.data.image} x={-6} y={-6} width={12} height={12} />
-                      ) : finalIconChar ? (
-                        <text
-                          className="icon-char"
-                          x={0}
-                          y={3.5}
-                          textAnchor="middle"
-                          fill="white"
-                          fontSize={11}
-                          fontFamily={finalIconFont}
-                          style={{ pointerEvents: 'none', userSelect: 'none' }}
-                          aria-hidden="true"
-                        >
-                          {finalIconChar}
-                        </text>
-                      ) : null}
-                      <text x={14} y={4} fontSize={13} textAnchor="start" style={{ userSelect: 'none', paintOrder: 'stroke', stroke: 'var(--panel-bg)', fill: 'var(--text-main)', strokeWidth: 3, strokeLinecap: 'round', strokeLinejoin: 'round' }}>
-                          {node.data.__cluster_for ? t('cluster_items', { count: node.data.__cluster_count }) : (
-                            <HighlightSVGText
-                              text={t(`nodes.${node.data.id}.name`, { defaultValue: node.data.name || '' })}
-                              query={searchQuery}
-                            />
-                          )}
-                      </text>
-                      {node.data.attachments && node.data.attachments.length > 0 && (
-                        <g transform="translate(10, 8)">
-                          <path
-                            d="M-3,-4 H0.75 L3,-1.75 V4 H-3 Z M0.75,-4 V-1.75 H3"
-                            fill="#fff"
-                            stroke={color}
-                            strokeWidth={1.2}
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </g>
-                      )}
-                    </>
+                    <CompactNode
+                      node={{ ...node.data, x: p.x, y: displayY }}
+                      color={color}
+                      dagData={dagData}
+                      searchQuery={searchQuery}
+                      t={t}
+                      hasMultipleParentsFn={hasMultipleParents}
+                      displayY={displayY}
+                    />
                   ) : (
-                    <>
-                      <circle r={26} fill={color} stroke="#fff" strokeWidth={2} />
-                      {node.data.image ? (
-                        <image className="icon-img" href={node.data.image} x={0} y={0} width={32} height={32} />
-                      ) : finalIconChar ? (
-                        <text
-                          className="icon-char"
-                          x={0}
-                          y={0}
-                          textAnchor="start"
-                          fill="white"
-                          fontSize={28}
-                          fontFamily={finalIconFont}
-                          style={{ pointerEvents: 'none', userSelect: 'none' }}
-                          aria-hidden="true"
-                        >
-                          {finalIconChar}
-                        </text>
-                      ) : null}
-                      <text x={node.children ? 0 : 36} y={node.children ? -34 : 6} fontSize={14} textAnchor={node.children ? 'middle' : 'start'} style={{ userSelect: 'none', paintOrder: 'stroke', stroke: 'var(--panel-bg)', fill: 'var(--text-main)', strokeWidth: 4, strokeLinecap: 'round', strokeLinejoin: 'round' }}>
-                          {node.data.__cluster_for ? t('cluster_items', { count: node.data.__cluster_count }) : (
-                            <HighlightSVGText
-                              text={t(`nodes.${node.data.id}.name`, { defaultValue: node.data.name || '' })}
-                              query={searchQuery}
-                            />
-                          )}
-                      </text>
-                      {node.data.attachments && node.data.attachments.length > 0 && (
-                        <g transform="translate(20, 20)">
-                          <path
-                            d="M-4.5,-6 H1 L4.5,-2.5 V6 H-4.5 Z M1,-6 V-2.5 H4.5"
-                            fill="#fff"
-                            stroke={color}
-                            strokeWidth={1.4}
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </g>
-                      )}
-                    </>
+                    <OrganicNode
+                      node={{ ...node.data, x: p.x, y: displayY }}
+                      color={color}
+                      searchQuery={searchQuery}
+                      t={t}
+                      hasChildren={!!node.children}
+                      displayY={displayY}
+                    />
                   )}
                 </g>
               )

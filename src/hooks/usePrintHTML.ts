@@ -1,12 +1,14 @@
 import { RefObject } from 'react';
+import { useToast } from '../context/ToastContext';
 
 export function usePrintHTML(htmlRef: RefObject<HTMLDivElement | null>, landscape: boolean = false) {
+  const { showToast } = useToast();
   const printHTML = (title: string = 'Document') => {
     if (!htmlRef.current) return;
 
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
-      alert("Pop-up blocked. Please allow pop-ups to print.");
+      showToast("Pop-up blocked. Please allow pop-ups to print.");
       return;
     }
 

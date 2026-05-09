@@ -39,12 +39,14 @@ const katexSanitizeSchema = (() => {
   };
 })();
 
+import { buildHighlightRegex } from '../utils/searchRegex';
+
 function rehypeSearchHighlight(options: { query?: string }) {
   return (tree: any) => {
     if (!options.query) return;
     const queryStr = options.query.trim();
     if (!queryStr) return;
-    const regex = new RegExp(`(${queryStr.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    const regex = buildHighlightRegex(queryStr);
     visit(tree, 'text', (node, index, parent) => {
       if (!parent || parent.tagName === 'code' || parent.tagName === 'pre' || parent.tagName === 'math' || parent.tagName === 'script' || parent.tagName === 'style' || parent.tagName === 'mark') {
         return;

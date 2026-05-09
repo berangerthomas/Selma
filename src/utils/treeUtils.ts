@@ -1,5 +1,6 @@
 import type { TreeNode, DagData } from '../types';
 import { hasMultipleParents } from './dagUtils';
+import { nodeMatchesQuery } from './searchRegex';
 
 export function getAllNodeIds(root: TreeNode): string[] {
   const ids: string[] = [];
@@ -20,18 +21,11 @@ export function findAllPathsByQuery(
   query: string,
   t?: (key: string, opts?: any) => string
 ): string[] {
-  const q = query.trim().toLowerCase();
-  if (!q) return [];
+  if (!query.trim()) return [];
 
   const results: string[] = [];
   function dfs(node: TreeNode): void {
-    const idMatch = node.id?.toLowerCase().includes(q);
-    const translatedName = t ? t(`nodes.${node.id}.name`, { defaultValue: node.name }) : node.name;
-    const nameMatch = translatedName?.toLowerCase().includes(q);
-
-    const matched = idMatch || nameMatch;
-
-    if (matched) {
+    if (nodeMatchesQuery(node.id, node.name, query, t as any)) {
       results.push(node.id);
     }
     if (node.children) {
