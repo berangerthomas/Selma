@@ -25,7 +25,6 @@ function historyReducer(state: HistoryState, action: HistoryAction): HistoryStat
 }
 
 export function useNavigationHistory(
-  _activeId: string,
   data: TreeNode | null,
   setExpanded: (setter: React.SetStateAction<Set<string>>) => void,
   setActiveId: (id: string) => void,

@@ -128,7 +128,6 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
     if (willOpen || isFullyExpanded) requestForceCenter();
   };
 
-  const lastActiveRef = useRef<string | null>(null)
   const { t, lang } = useI18n()
   const { open: sidebarOpen, setOpen: setSidebarOpen, width: sidebarWidth, setWidth: setSidebarWidth } = useSidebar(activeId);
 
@@ -179,7 +178,7 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
     // Use D3's native links() produced from the hierarchy to avoid manual construction.
     // layoutRoot.links() returns objects with .source and .target nodes.
     return layoutRoot.links() as Array<d3.HierarchyLink<PrunedNode>>
-  }, [visibleNodes])
+  }, [layoutRoot])
 
   // Find either the visible node, its cluster surrogate, or the cluster node representing it.
   function findVisibleOrClusterNode(id: string) {
@@ -273,10 +272,8 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
     centerIcons()
 
     // Re-run after fonts are available (helps icon fonts)
-    if ((document as any).fonts && (document as any).fonts.ready) {
-      (document as any).fonts.ready.then(() => {
-        centerIcons()
-      }).catch(() => {})
+    if (document.fonts?.ready) {
+      document.fonts.ready.then(() => centerIcons()).catch(() => {})
     }
 
     // Re-run when SVG <image> elements load
@@ -336,7 +333,7 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
     const svgEl = svgRef.current
     if (!svgEl) return
     
-    if (!activeId) { lastActiveRef.current = activeId; return }
+    if (!activeId) return
 
     const p = positions.get(activeId)
     if (!p) return
@@ -345,7 +342,6 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
     const targetScale = Math.max(0.9, Math.min(1.6, current.k || 1))
     
     centerOn(activeId, targetScale)
-    lastActiveRef.current = activeId
     if (forceCenterOnActive) { clearForceCenter(); }
     // Intentional omission of other dependencies (refs and stable functions)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -398,7 +394,7 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
     if (initialFitDone.current && layoutRoot && positions.size > 0) {
       fitView(ANIMATION_MS)
     }
-  }, [viewMode])
+  }, [viewMode, fitView])
 
   useEffect(() => {
     if (resetViewTrigger > lastResetRef.current && layoutRoot && layoutRoot.descendants().length > 0) {
@@ -524,7 +520,7 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
             {links.map((l) => {
               const s = positions.get(l.source.data.id)!
               const t = positions.get(l.target.data.id)!
-              const dim = activeId && !activePathAndSubtree.has(l.source.data.id) && !activePathAndSubtree.has(l.target.data.id) && !activeDagAncestors.has(l.source.data.id) && !activeDagAncestors.has(l.target.data.id)
+              const dim = !!activeId && !activePathAndSubtree.has(l.source.data.id) && !activePathAndSubtree.has(l.target.data.id) && !activeDagAncestors.has(l.source.data.id) && !activeDagAncestors.has(l.target.data.id)
 
               // Try to find the D3 node so we can compute displayY; fallback to raw positions.
               const srcD3 = d3NodeMap.get(l.source.data.id)
@@ -564,7 +560,7 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
           <g className="nodes">
             {visibleNodes.map((node) => {
               const p = positions.get(node.data.id)!
-              const dim = activeId && !activePathAndSubtree.has(node.data.id) && !activeDagAncestors.has(node.data.id) && node.data.id !== activeId
+              const dim = !!activeId && !activePathAndSubtree.has(node.data.id) && !activeDagAncestors.has(node.data.id) && node.data.id !== activeId
               const color = colorFor(node as unknown as d3.HierarchyPointNode<PrunedNode>)
               const isCluster = Boolean(node.data.__cluster_for)
               const clusterFor = node.data.__cluster_for

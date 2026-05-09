@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { safeLocalStorageGet, safeLocalStorageSet } from '../utils/storage';
+import type { ProseSize } from '../components/TabbedMarkdown';
 
-const sizes = ['prose-sm', 'prose-base', 'prose-lg', 'prose-xl', 'prose-2xl'];
+const sizes = ['prose-sm', 'prose-base', 'prose-lg', 'prose-xl', 'prose-2xl'] as const satisfies ProseSize[];
 const STORAGE_KEY = 'selma-text-size';
 const EVENT_NAME = 'selma:text-size'
 
@@ -9,7 +10,7 @@ export function useTextSize() {
   const [sizeIndex, setSizeIndex] = useState<number>(() => {
     const saved = safeLocalStorageGet(STORAGE_KEY);
     if (saved) {
-      const idx = sizes.indexOf(saved);
+      const idx = sizes.indexOf(saved as ProseSize);
       if (idx !== -1) return idx;
     }
     // Default adaptive size when no preference is saved:
@@ -37,14 +38,14 @@ export function useTextSize() {
     const handleEvent = (e: Event) => {
       const detail = (e as CustomEvent).detail as string | undefined
       if (detail) {
-        const idx = sizes.indexOf(detail)
+        const idx = sizes.indexOf(detail as ProseSize)
         if (idx !== -1) setSizeIndex(idx)
       }
     }
 
     const handleStorage = (e: StorageEvent) => {
       if (e.key === STORAGE_KEY && typeof e.newValue === 'string') {
-        const idx = sizes.indexOf(e.newValue)
+        const idx = sizes.indexOf(e.newValue as ProseSize)
         if (idx !== -1) setSizeIndex(idx)
       }
     }

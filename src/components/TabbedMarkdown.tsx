@@ -3,6 +3,8 @@ import MarkdownRenderer from './MarkdownRenderer';
 
 type PresentationMode = 'tabs' | 'linear';
 
+export type ProseSize = 'prose-sm' | 'prose-base' | 'prose-lg' | 'prose-xl' | 'prose-2xl';
+
 interface TabbedMarkdownProps {
   content: string;
   className?: string;
@@ -11,7 +13,7 @@ interface TabbedMarkdownProps {
   introClassName?: string;
   tabsWrapperClassName?: string;
   basePath?: string;
-  proseSize?: 'prose-sm' | 'prose-base' | 'prose-lg' | 'prose-xl' | 'prose-2xl';
+  proseSize?: ProseSize;
   searchQuery?: string;
 }
 

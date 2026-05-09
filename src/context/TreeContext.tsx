@@ -116,7 +116,7 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     canGoForward,
     goBack,
     goForward,
-  } = useNavigationHistory(activeId, data, setExpanded, setActiveId, setForceCenterOnActive);
+  } = useNavigationHistory(data, setExpanded, setActiveId, setForceCenterOnActive);
 
   // Push to history when activeId changes (excluding navigation restores)
   useEffect(() => {

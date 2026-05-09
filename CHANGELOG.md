@@ -1,5 +1,19 @@
 # Changelog
 
+## [v0.6.3] - 2026-05-09
+
+### Fixed
+- Fixed missing `fitView` dependency in `TreeViz.tsx`.
+- Fixed `dim` calculation to be boolean in `TreeViz.tsx`.
+
+### Changed
+- Removed unused `lastActiveRef` in `TreeViz.tsx`.
+- Removed unused `_activeId` parameter in `useNavigationHistory`.
+- Cleaned up `document.fonts` usage in `TreeViz.tsx`.
+- Improved typing for `proseSize` to remove `as any` in `Sidebar.tsx`.
+- Improved typing for `structNode` in `useTaxonomyData.ts`.
+- Simplified `links` useMemo dependency in `TreeViz.tsx`.
+
 ## [v0.6.2] - 2026-05-09
 
 ### Added

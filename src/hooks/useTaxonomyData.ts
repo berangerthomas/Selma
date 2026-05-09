@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react'
 import type { DagData } from '../types'
 import { hasCycle } from '../utils/dagUtils'
 
+interface TaxoStructNode {
+  children?: string[];
+}
+
 export function useTaxonomyData(taxonomyId: string) {
   const [data, setData] = useState<DagData | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
@@ -33,9 +37,10 @@ export function useTaxonomyData(taxonomyId: string) {
 
         for (const [id, structNode] of Object.entries(taxoFile.nodes)) {
           const detailNode = nodesDict[id] || {};
+          const struct = structNode as TaxoStructNode;
           dagData.nodes[id] = {
             id,
-            children: (structNode as any).children || [],
+            children: struct.children ?? [],
             ...detailNode
           };
         }

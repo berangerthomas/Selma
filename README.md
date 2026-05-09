@@ -13,7 +13,7 @@ Selma is a React + Vite application for visualizing and navigating hierarchical 
 - [Quick start](#quick-start)
 - [Overview & key features](#overview--key-features)
 - [Project layout & architecture](#project-layout--architecture)
-- [Data schema (`structured_taxonomy.json`)](#data-schema-structured_taxonomyjson)
+- [Data schema (`nodes.json` & taxonomies)](#data-schema-nodesjson--taxonomies)
 - [Content authoring & localization](#content-authoring--localization)
 - [Screens & controls (UI)](#screens--controls-ui)
 - [Deployment & CI](#deployment--ci)
@@ -67,16 +67,29 @@ Selma v0.6.0 introduces full support for DAG (Directed Acyclic Graph) data struc
 - **Visual indicators**: Amber rings around nodes, badges in list view, and sidebar navigation to other parents
 ### Data Structure
 
-Selma uses a flat DAG format for the taxonomy:
+Selma uses a split data architecture for the taxonomy.
+
+**1. Node registry (`public/data/nodes.json`)**
+Declares node properties (colors, icons, attachments):
 ```json
 {
+  "life": { "color": "#10b981" },
+  "dolphin": { "image": "/assets/nodes/dolphin.svg" }
+}
+```
+
+**2. Taxonomy structure (`public/data/taxonomies/*.json`)**
+Defines relationships using a flat DAG format:
+```json
+{
+  "id": "biological",
+  "name": "Biological",
   "root": "life",
   "nodes": {
-    "life": { "id": "life", "name": "Life", "children": ["animalia", "plantae"] },
-    "animalia": { "id": "animalia", "name": "Animalia", "children": ["mammalia", "cetacea"] },
-    "mammalia": { "id": "mammalia", "name": "Mammalia", "children": ["dolphin", "bat"] },
-    "cetacea": { "id": "cetacea", "name": "Cetacea", "children": ["dolphin", "whale"] },
-    "dolphin": { "id": "dolphin", "name": "Dolphin" }
+    "life": { "children": ["mammalia", "cetacea"] },
+    "mammalia": { "children": ["dolphin", "bat"] },
+    "cetacea": { "children": ["dolphin", "whale"] },
+    "dolphin": { "children": [] }
   }
 }
 ```
@@ -117,11 +130,12 @@ To support different classifications of the same entities (for example, showing 
 Top-level layout (important folders and files):
 
 - `public/` — static assets and runtime content
-	- `public/structured_taxonomy.json` — canonical taxonomy tree (source of truth)
+	- `public/data/nodes.json` — flat dictionary of all node properties
+	- `public/data/taxonomies/*.json` — hierarchical or DAG structures
+	- `public/data/taxonomies.json` — registry of available taxonomies
 	- `public/details/[lang]/[nodeId].md` — localized Markdown per node
-	- `public/locales/[lang]/taxonomy.json` — node translations (names and optional icon overrides)
+	- `public/locales/[lang]/taxonomy.json` — node translations and project title
 	- `public/locales/[lang]/ui.json` — interface strings
-	- `public/locales/[lang]/taxonomy.json` — node translations and **project title**
 - `src/` — React + D3 application
 	- [src/context/TreeContext.tsx](src/context/TreeContext.tsx) — application state, search and URL sync
 	- [src/components/TreeViz.tsx](src/components/TreeViz.tsx) — D3 layout and rendering
@@ -156,9 +170,9 @@ To adjust specific margins, modify these lines in `computeTransform`:
 
 Animation timing is centralized inside `src/components/TreeViz.tsx` via the `ANIMATION_MS` constant (in milliseconds). `TreeViz` injects `--anim-ms` at runtime, and the CSS derives the quicker transitions from it with `calc(var(--anim-ms) / 2)`. To change the global timing, edit `ANIMATION_MS` in `src/components/TreeViz.tsx`.
 
-## Data schema (`structured_taxonomy.json`)
+## Data schema (`nodes.json` & taxonomies)
 
-Minimal node example:
+Minimal node example in `nodes.json`:
 
 ```json
 {
@@ -179,7 +193,6 @@ Field reference:
 - `color` (string, optional): CSS color for node background.
 - `image` (string, optional): path under `/assets/` used as a node image.
 - `iconChar` (string, optional) and `iconFont` (string, optional): glyph-based icons.
-- `attachments` (array of objects, optional): list of downloadable files (e.g. `[{"name": "Report", "path": "/attachments/node_id/report.pdf", "format": "pdf", "lang": "en"}]`). The optional `lang` field restricts an attachment to a specific language: attachments with a `lang` are shown only when the UI language matches that value; attachments without `lang` are language-agnostic and shown for all languages.
 - `attachments` (array of objects, optional): list of downloadable files (e.g. `[{"name": "Report", "path": "/attachments/node_id/report.pdf", "format": "pdf", "lang": "en"}]`). The optional `lang` field restricts an attachment to a specific language: attachments with a `lang` are shown only when the UI language matches that value; attachments without `lang` are language-agnostic and shown for all languages.
 
 Attachment display behavior (UI):
@@ -227,11 +240,11 @@ Localization model:
 
 - Location & access: In development mode only (`import.meta.env.DEV === true`), a gear icon appears in the floating toolbar header. Click it to open the **Settings** modal and switch to the **Translations** tab.
 
-- Purpose: the Translations tab helps maintain parity between the canonical taxonomy (`public/structured_taxonomy.json`) and the per-language `public/locales/<lang>/taxonomy.json` files. It computes coverage per language, lists missing node ids with English name hints, and allows downloading a fully scaffolded `taxonomy.[lang].json` file ready for translators.
+- Purpose: the Translations tab helps maintain parity between the canonical node definitions (`public/data/nodes.json`) and the per-language `public/locales/<lang>/taxonomy.json` files. It computes coverage per language, lists missing node ids with English name hints, and allows downloading a fully scaffolded `taxonomy.[lang].json` file ready for translators.
 
 - How it works:
-	1. The modal fetches `public/structured_taxonomy.json` and each `public/locales/<lang>/taxonomy.json` directly (via `fetch()`), so it reports the persisted on-disk state rather than any in-memory i18next cache.
- 2. For each language the UI shows `translated_count / total_count` and a status indicator. Expanding an incomplete language reveals the missing node IDs and their English `name` values from the structured taxonomy.
+	1. The modal fetches `public/data/nodes.json` and each `public/locales/<lang>/taxonomy.json` directly (via `fetch()`), so it reports the persisted on-disk state rather than any in-memory i18next cache.
+ 2. For each language the UI shows `translated_count / total_count` and a status indicator. Expanding an incomplete language reveals the missing node IDs and their English `name` values from the node registry.
  3. Clicking `⬇ taxonomy.[lang].json` downloads a complete JSON file that merges existing translations and injects missing entries as `{ "name": "[TODO] <English name>" }`. Existing translations are preserved and never overwritten.
 
 	 You can also copy the scaffolded JSON directly to the clipboard from the Settings modal (dev-only) using the new "Copy" action — handy for pasting into an editor or creating a quick PR without saving the file first.
@@ -245,7 +258,7 @@ Localization model:
 
 - Notes and caveats:
 	- The download is a client-side Blob and currently does not write files to the repository automatically; the code contains a `// TODO: replace with backend API call` comment where a backend write could be enabled in the future.
-	- The scaffold uses the English `name` from `structured_taxonomy.json` as a translator hint; translators should remove the `[TODO] ` prefix when they provide the real translation.
+	- The scaffold uses the English `name` from `nodes.json` as a translator hint; translators should remove the `[TODO] ` prefix when they provide the real translation.
 	- This feature is intentionally gated to development builds only and will not be exposed in production.
 
 
@@ -336,9 +349,9 @@ export type TreeNode = {
 
 Keep user data separate from the application code to simplify updates. Files and folders you should NOT overwrite when updating:
 
-- `public/structured_taxonomy.json`
+- `public/data/` (node registry and taxonomies)
 - `public/details/` (node markdown files)
-- `public/locales/<lang>/taxonomy.json`
+- `public/locales/` (translations)
 - `public/assets/`
 
 Updating options:

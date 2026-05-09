@@ -240,7 +240,7 @@ export default function Sidebar({ open, onClose, node, initialWidth = 420, minWi
         )}
 
         <div className="sidebar-content">
-          <TabbedMarkdown key={node?.id || 'none'} content={markdownContent} className={`max-w-none ${textSizeClass}`} proseSize={textSizeClass as any} presentationMode={presentationMode} basePath={currentPath} searchQuery={activeSearchType === 'deep' ? searchQuery : undefined} />
+          <TabbedMarkdown key={node?.id || 'none'} content={markdownContent} className={`max-w-none ${textSizeClass}`} proseSize={textSizeClass} presentationMode={presentationMode} basePath={currentPath} searchQuery={activeSearchType === 'deep' ? searchQuery : undefined} />
         </div>
       </div>
     </div>
