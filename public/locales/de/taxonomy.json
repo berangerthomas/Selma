@@ -1,158 +1,164 @@
 {
   "project_title": "Selma — Taxonomie",
-  "project_help": "Selma ist ein interaktives Werkzeug zur Visualisierung und Exploration hierarchischer Taxonomien. Nutzen Sie die Toolbox, um die Ansichtsmodi zu ändern, nach bestimmten Knoten zu suchen oder das Diagramm zu exportieren.",
+  "project_help": "Selma ist ein interaktives Tool zur Visualisierung und Erkundung hierarchischer Taxonomien. Verwenden Sie die Symbolleiste, um die Ansichtsmodi zu ändern, nach bestimmten Knoten zu suchen oder das Diagramm zu exportieren.",
   "nodes": {
-    "taxonomy_root": {
-      "name": "Tierreich",
-      "description": "Alle Tiere — mehrzellige, heterotrophe eukaryotische Organismen."
+    "era_3000bc": { "name": "3000 v. Chr.", "description": "Die Anfänge der Schrift in Mesopotamien und Ägypten." },
+    "era_2000bc": { "name": "2000 v. Chr.", "description": "Die ersten Alphabete und kursiven Silbenschriften." },
+    "era_1000bc": { "name": "1000 v. Chr.", "description": "Die Eisenzeit und die rasante Verbreitung alphabetischer Schriften." },
+    "era_0bc": { "name": "Spätantike", "description": "Um die Zeitenwende." },
+    "era_500ad": { "name": "Frühmittelalter", "description": "Entstehung von Schriften, die mit den großen Weltreligionen verbunden sind." },
+    "era_1000ad": { "name": "2. Jahrtausend", "description": "Nationale Schriften und Standardisierung." },
+    "writing_systems_root": {
+      "name": "Schriftsysteme",
+      "description": "Die wichtigsten Schriftsysteme der Welt und ihre genealogischen Beziehungen."
     },
-    "vertebrates": {
-      "name": "Wirbeltiere",
-      "description": "Tiere mit Wirbelsäule und knöchernem oder knorpeligem Schädel."
+    "egyptian_hieroglyphs": {
+      "name": "Ägyptische Hieroglyphen",
+      "description": "Eines der frühesten Schriftsysteme, das logografische, silbische und alphabetische Elemente kombiniert. Aktiv ca. 3200 v. Chr.–394 n. Chr."
     },
-    "mammals": {
-      "name": "Säugetiere",
-      "description": "Warmblütige, haarige Wirbeltiere, die ihre Jungen mit Milch säugen."
+    "hieratic": {
+      "name": "Hieratisch",
+      "description": "Aus Hieroglyphen abgeleitete kursive Priesterschrift, ab ca. 2600 v. Chr. auf Papyrus verwendet."
     },
-    "carnivores": {
-      "name": "Raubtiere",
-      "description": "Säugetiere, deren Ernährung hauptsächlich aus tierischem Fleisch besteht."
+    "demotic": {
+      "name": "Demotisch",
+      "description": "Vereinfachte Verwaltungsschrift des alten Ägypten, verwendet ca. 650 v. Chr.–5. Jahrhundert n. Chr."
     },
-    "lion": {
-      "name": "Löwe",
-      "description": "Große soziale Raubkatze in Subsahara-Afrika, Spitzenprädatoren der Savanne."
+    "proto_sinaitic": {
+      "name": "Protosinaitisch",
+      "description": "Die älteste alphabetische Schrift, ca. 1850–1400 v. Chr.; Vorfahr fast aller modernen Alphabete."
     },
-    "wolf": {
-      "name": "Grauwolf",
-      "description": "Sozialer Hundeartige, in Rudeln lebend, wilder Vorfahre des Haushundes."
+    "sumerian_cuneiform": {
+      "name": "Sumerische Keilschrift",
+      "description": "Das älteste belegte Schriftsystem der Welt, ca. 3100 v. Chr.; logosyllabisch, auf Tontafeln geschrieben."
     },
-    "polar_bear": {
-      "name": "Eisbär",
-      "description": "Das größte terrestrische Raubtier, hervorragend an das Leben auf dem arktischen Meereis angepasst."
+    "akkadian": {
+      "name": "Akkadische Keilschrift",
+      "description": "Semitische Adaption der sumerischen Keilschrift; Lingua Franca des Alten Orients ca. 1500–600 v. Chr. Heute ausgestorben."
     },
-    "primates": {
-      "name": "Primaten",
-      "description": "Säugetierordnung, zu der Affen, Menschenaffen und Menschen gehören."
+    "ugaritic": {
+      "name": "Ugaritisch",
+      "description": "Einzigartiger DAG-Knoten: eine alphabetische Keilschrift, die das semitische Alphabet mit dem Medium der Keilschrift kombiniert. ca. 1400–1185 v. Chr."
     },
-    "chimpanzee": {
-      "name": "Schimpanse",
-      "description": "Afrikanischer Menschenaffe und einer der engsten lebenden Verwandten des Menschen."
+    "phoenician": {
+      "name": "Phönizisch",
+      "description": "22-Buchstaben-Abdschad, ca. 1050 v. Chr.; das einflussreichste Alphabet der Geschichte, Vorfahr von Griechisch, Arabisch, Hebräisch und vielen mehr."
     },
-    "gorilla": {
-      "name": "Gorilla",
-      "description": "Der größte lebende Primate, pflanzenfressender Bewohner der zentralafrikanischen Wälder."
+    "aramaic": {
+      "name": "Aramäisch",
+      "description": "Verwaltungssprache des Perserreichs; Ursprung der hebräischen, nabatäischen, syrischen, sogdischen und Brahmi-Schriften."
     },
-    "cetaceans": {
-      "name": "Wale",
-      "description": "Vollständig aquatische Meeressäuger: Wale, Delfine und Schweinswale."
+    "hebrew": {
+      "name": "Hebräisch",
+      "description": "22-Buchstaben-Abdschad, DAG-Knoten (Phönizisch + Aramäisch); heilige Schrift des Judentums, im 20. Jahrhundert als gesprochene Sprache wiederbelebt."
     },
-    "blue_whale": {
-      "name": "Blauwal",
-      "description": "Das größte auf der Erde bekannte Lebewesen."
+    "nabataean": {
+      "name": "Nabatäisch",
+      "description": "Schrift des Nabatäerreiches (Petra); direkter Vorfahr der arabischen Schrift. ca. 200 v. Chr.–4. Jahrhundert n. Chr."
     },
-    "dolphin": {
-      "name": "Großer Tümmler",
-      "description": "Sehr intelligenter, geselliger Wal, der für akrobatische Sprünge bekannt ist."
+    "syriac": {
+      "name": "Syrisch",
+      "description": "Literatursprache des östlichen Christentums; trug zur arabischen und armenischen Schrift bei. Wird noch heute liturgisch verwendet."
     },
-    "birds": {
-      "name": "Vögel",
-      "description": "Gefiederte Wirbeltiere mit hornigem Schnabel und als Flügel entwickelten Vordergliedmaßen."
+    "arabic": {
+      "name": "Arabisch",
+      "description": "DAG-Knoten (Nabatäisch + Syrisch); vollständig kursives Abdschad mit 28 Buchstaben; zweithäufigstes Schriftsystem mit ca. 1,8 Milliarden Nutzern."
     },
-    "raptors": {
-      "name": "Greifvögel",
-      "description": "Tag- oder nachtaktive Raubvögel, ausgestattet mit kräftigen Krallen und hakenförmigem Schnabel."
+    "sogdian": {
+      "name": "Sogdisch",
+      "description": "Schrift der Seidenstraßen-Händler; Vermittler, der die aramäische Tradition nach Zentral- und Ostasien weitergab."
     },
-    "golden_eagle": {
-      "name": "Steinadler",
-      "description": "Ikonischer tagaktiver Greifvogel aus den Gebirgsregionen der nördlichen Hemisphäre."
+    "uyghur": {
+      "name": "Alt-Uigurisch",
+      "description": "Vertikale Schrift des Uigurischen Khaganats, ca. 8. Jahrhundert n. Chr.; direktes Vorbild für die mongolische Schrift."
     },
-    "great_horned_owl": {
-      "name": "Virginia-Uhu",
-      "description": "Großer, nachtaktiver Raubvogel mit markanten Federohren, in ganz Amerika verbreitet."
+    "mongolian": {
+      "name": "Mongolisch",
+      "description": "Von oben nach unten geschriebene vertikale Schrift, entstanden ca. 1204 n. Chr.; noch immer offiziell in der Inneren Mongolei (China). Erlebt derzeit eine Wiederbelebung in der Mongolei."
     },
-    "passerines": {
-      "name": "Sperlingsvögel",
-      "description": "Die artenreichste Vogelordnung, umfasst mehr als die Hälfte aller Vogelarten."
+    "south_arabian": {
+      "name": "Altsüdarabisch",
+      "description": "Schrift der alten arabischen Königreiche (Saba, Qataban, Himyar); Vorfahr der Ge'ez-Schrift. ca. 900 v. Chr.–600 n. Chr."
     },
-    "sparrow": {
-      "name": "Haussperling",
-      "description": "Kleiner, allgegenwärtiger Sperlingengvogel, eng mit menschlichen Siedlungen weltweit verbunden."
+    "geez": {
+      "name": "Ge'ez (Äthiopisch)",
+      "description": "Erste Abugida der Geschichte; stammt aus dem Altsüdarabischen. Wird heute für Amharisch, Tigrinya und andere äthiopische/eritreische Sprachen verwendet."
     },
-    "robin": {
-      "name": "Rotkehlchen",
-      "description": "Bekannter europäischer Sperlingsvogel, an seiner leuchtenden orange-roten Brust sofort zu erkennen."
+    "brahmi": {
+      "name": "Brahmi",
+      "description": "Grundlegende Schrift Südasiens, ca. 3. Jahrhundert v. Chr.; Vorfahr von über 100 modernen Schriften, darunter Devanagari, Thai und Tibetisch."
     },
-    "reptiles": {
-      "name": "Reptilien",
-      "description": "Ektotherme Wirbeltiere mit schuppiger oder gepanzerter Haut: Eidechsen, Schlangen, Schildkröten, Krokodile."
+    "devanagari": {
+      "name": "Devanagari",
+      "description": "Abugida-Schrift mit markantem horizontalem Strich; verwendet für Hindi, Sanskrit, Marathi und Nepali. ca. 600 Millionen Nutzer."
     },
-    "crocodilians": {
-      "name": "Krokodilartige",
-      "description": "Große halb-aquatische Reptilien, gehören zu den ältesten überlebenden Wirbeltier-Spitzenprädatoren."
+    "tibetan": {
+      "name": "Tibetisch",
+      "description": "Schrift, die im 7. Jahrhundert n. Chr. zur Übersetzung buddhistischer Schriften entwickelt wurde; Ursprung der Phagspa-Schrift. Verwendet für Tibetisch und Dzongkha."
     },
-    "nile_crocodile": {
-      "name": "Nilkrokodil",
-      "description": "Afrikas größtes Reptil und ein gefürchtetes Raubtier in tropischen Flüssen und Seen."
+    "phags_pa": {
+      "name": "Phagspa",
+      "description": "Universalschrift des mongolischen Reiches, 1269 n. Chr.; vom Tibetischen abgeleitet, vertikal geschrieben. Möglicher Einfluss auf Hangul."
     },
-    "alligator": {
-      "name": "Mississippi-Alligator",
-      "description": "Nordamerikanisches Krokodil, ein Symbol für die Feuchtgebiete im Südosten der USA."
+    "greek": {
+      "name": "Griechisch",
+      "description": "Erstes echtes Alphabet mit Konsonanten und Vokalen, ca. 800 v. Chr.; Vorfahr der lateinischen, kyrillischen, koptischen, armenischen und glagolitischen Schriften."
     },
-    "squamata": {
-      "name": "Schuppenkriechtiere",
-      "description": "Eine Ordnung, die alle Eidechsen und Schlangen umfasst — die nach Insekten größte Reptilienordnung."
+    "coptic": {
+      "name": "Koptisch",
+      "description": "DAG-Knoten (Griechisch + Demotisch); Endphase der ägyptischen Sprache; liturgische Schrift der koptisch-orthodoxen Kirche."
     },
-    "reticulated_python": {
-      "name": "Netzpython",
-      "description": "Die längste Schlange der Welt, heimisch in den tropischen Wäldern Südostasiens."
+    "etruscan": {
+      "name": "Etruskisch",
+      "description": "Schrift der etruskischen Zivilisation, ca. 700 v. Chr.; direktes strukturelles Vorbild für das lateinische Alphabet."
     },
-    "komodo_dragon": {
-      "name": "Komodowaran",
-      "description": "Die größte lebende Eidechse, die auf einer Handvoll indonesischer Inseln endemisch ist."
+    "latin": {
+      "name": "Lateinisch",
+      "description": "DAG-Knoten (Etruskisch + Griechisch); ca. 700 v. Chr.; Ursprung des modernen lateinischen Alphabets und der Schriftsysteme aller romanischen Sprachen."
     },
-    "invertebrates": {
-      "name": "Wirbellose",
-      "description": "Tiere ohne Wirbelsäule, machen über 95% aller bekannten Tierarten aus."
+    "modern_roman": {
+      "name": "Modernes lateinisches Alphabet",
+      "description": "Das am weitesten verbreitete Schriftsystem der Welt, genutzt von ca. 3 Milliarden Menschen in über 100 Sprachen."
     },
-    "arthropods": {
-      "name": "Gliederfüßer",
-      "description": "Wirbellose mit gelenkigem Außenskelett: Insekten, Spinnentiere, Krebstiere, Tausendfüßer."
+    "glagolitic": {
+      "name": "Glagolitisch",
+      "description": "Älteste slawische Schrift, 862–863 n. Chr. von den Heiligen Kyrill und Methodius geschaffen; Vorfahr des Kyrillischen. Überlebte in Kroatien bis ins 19. Jahrhundert."
     },
-    "insects": {
-      "name": "Insekten",
-      "description": "Die artenreichste Klasse im Tierreich, gekennzeichnet durch sechs Beine und oft Flügel."
+    "cyrillic": {
+      "name": "Kyrillisch",
+      "description": "DAG-Knoten (Griechisch + Glagolitisch); 9.–10. Jahrhundert n. Chr.; verwendet für Russisch, Bulgarisch, Serbisch und von ca. 250 Millionen Menschen."
     },
-    "honeybee": {
-      "name": "Honigbiene",
-      "description": "Wesentlich soziales Insekt, ein Grundpfeiler der Bestäubung und Honigproduktion weltweit."
+    "armenian": {
+      "name": "Armenisch",
+      "description": "DAG-Knoten (Griechisch + Syrisch); 405 n. Chr. von Mesrop Maschtoz geschaffen; seit 1.600 Jahren unverändert."
     },
-    "monarch_butterfly": {
-      "name": "Monarchfalter",
-      "description": "Berühmt für seine bemerkenswerten jährlichen Migrationen, die tausende Kilometer umspannen."
+    "georgian": {
+      "name": "Georgisch",
+      "description": "Markante Schrift mit drei historischen Formen (Asomtawruli, Nuschchuri, Mchedruli); offizielle Schrift Georgiens."
     },
-    "arachnids": {
-      "name": "Spinnentiere",
-      "description": "Achtbeinige Gliederfüßer: Spinnen, Skorpione, Milben und Weberknechte."
+    "oracle_bones": {
+      "name": "Orakelknochen-Schrift",
+      "description": "Früheste chinesische Schrift, ca. 1200 v. Chr. (Shang-Dynastie); zu Weissagungszwecken in Schildkrötenpanzer geritzt."
     },
-    "wolf_spider": {
-      "name": "Wolfsspinne",
-      "description": "Einzelgängerisch, schnell jagend, baut kein Netz."
+    "classical_chinese": {
+      "name": "Klassisches Chinesisch",
+      "description": "Logografisches Schriftsystem, das sich aus der Orakelknochen-Schrift entwickelt hat; 2.000 Jahre lang literarische Lingua Franca Ostasiens."
     },
-    "emperor_scorpion": {
-      "name": "Kaiserskorpion",
-      "description": "Einer der weltweit größten Skorpione, beheimatet in westafrikanischen Tropenwäldern."
+    "kanji": {
+      "name": "Kanji (Japanisch)",
+      "description": "In Japan übernommene chinesische Schriftzeichen, 4.–5. Jahrhundert n. Chr.; eine von drei Schriften, die im modernen Japanisch gleichzeitig verwendet werden."
     },
-    "mollusks": {
-      "name": "Weichtiere",
-      "description": "Weichkörperwirbellose, oft schalenartig: Schnecken, Muscheln, Kopffüßer."
+    "hiragana_katakana": {
+      "name": "Hiragana / Katakana",
+      "description": "Zwei Silbenschriften, die im 9. Jahrhundert n. Chr. aus Kanji abgeleitet wurden; bilden zusammen mit Kanji und Rōmaji das japanische Schriftsystem."
     },
-    "giant_pacific_octopus": {
-      "name": "Pazifischer Oktopus",
-      "description": "Der größte lebende Kopffüßer, gefeiert für seine bemerkenswerte Intelligenz."
+    "hanja": {
+      "name": "Hanja (Koreanisch)",
+      "description": "Chinesische Schriftzeichen, wie sie in Korea seit ca. dem 2. Jahrhundert n. Chr. verwendet werden; Vorfahr von Hangul. Wird in Südkorea noch zur Disambiguierung verwendet."
     },
-    "garden_snail": {
-      "name": "Gartenschnecke",
-      "description": "Häufige Land schnecke, Zeichen der Langsamkeit und ein kulinarisches Grundnahrungsmittel."
+    "hangul": {
+      "name": "Hangul (Koreanisch)",
+      "description": "DAG-Knoten (Hanja + Phagspa); geschaffen 1443 n. Chr.; gilt als eines der wissenschaftlich fundiertesten Alphabete, die je entworfen wurden."
     }
   }
 }

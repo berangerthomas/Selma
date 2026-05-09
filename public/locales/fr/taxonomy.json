@@ -6,43 +6,43 @@
     "era_2000bc": { "name": "2000 av. J.-C.", "description": "Les premiers alphabets et syllabaires cursifs." },
     "era_1000bc": { "name": "1000 av. J.-C.", "description": "L'âge du fer et l'explosion des écritures alphabétiques." },
     "era_0bc": { "name": "Antiquité tardive", "description": "Autour du changement d'ère." },
-    "era_500ad": { "name": "Moyen Âge (Haut)", "description": "Émergence des écritures liées aux grandes religions." },
-    "era_1000ad": { "name": "2nd Millénaire", "description": "Écritures nationales et standardisation." },
+    "era_500ad": { "name": "Haut Moyen Âge", "description": "Émergence d'écritures liées aux grandes religions." },
+    "era_1000ad": { "name": "2ème millénaire", "description": "Écritures nationales et standardisation." },
     "writing_systems_root": {
       "name": "Systèmes d'écriture",
       "description": "Les principaux systèmes d'écriture du monde et leurs relations généalogiques."
     },
     "egyptian_hieroglyphs": {
       "name": "Hiéroglyphes égyptiens",
-      "description": "L'un des plus anciens systèmes d'écriture, combinant logogrammes, syllabes et éléments alphabétiques. Utilisé de v. 3200 av. J.-C. à 394 apr. J.-C."
+      "description": "L'un des plus anciens systèmes d'écriture, combinant des éléments logographiques, syllabiques et alphabétiques. Actif d'environ 3200 av. J.-C. à 394 apr. J.-C."
     },
     "hieratic": {
       "name": "Hiératique",
-      "description": "Écriture sacerdotale cursive dérivée des hiéroglyphes, utilisée sur papyrus dès v. 2600 av. J.-C."
+      "description": "Écriture cursive sacerdotale dérivée des hiéroglyphes, utilisée sur papyrus à partir d'environ 2600 av. J.-C."
     },
     "demotic": {
       "name": "Démotique",
-      "description": "Écriture administrative simplifiée de l'Égypte ancienne, v. 650 av. J.-C. – Ve siècle apr. J.-C."
+      "description": "Écriture administrative simplifiée de l'Égypte antique, utilisée d'environ 650 av. J.-C. jusqu'au 5ème siècle apr. J.-C."
     },
     "proto_sinaitic": {
-      "name": "Proto-sinaïtique",
-      "description": "Premier alphabet connu, v. 1850–1400 av. J.-C. ; ancêtre de presque tous les alphabets modernes."
+      "name": "Protosinaïtique",
+      "description": "La plus ancienne écriture alphabétique, vers 1850-1400 av. J.-C. ; ancêtre de presque tous les alphabets modernes."
     },
     "sumerian_cuneiform": {
       "name": "Cunéiforme sumérien",
-      "description": "Le plus ancien système d'écriture attesté au monde, v. 3100 av. J.-C. ; logo-syllabique, gravé sur tablettes d'argile."
+      "description": "Le plus ancien système d'écriture attesté au monde, vers 3100 av. J.-C. ; logosyllabique, écrit sur des tablettes d'argile."
     },
     "akkadian": {
       "name": "Cunéiforme akkadien",
-      "description": "Adaptation sémitique du cunéiforme sumérien ; lingua franca du Proche-Orient ancien v. 1500–600 av. J.-C. Éteint."
+      "description": "Adaptation sémitique du cunéiforme sumérien ; lingua franca du Proche-Orient ancien, vers 1500-600 av. J.-C. Aujourd'hui éteint."
     },
     "ugaritic": {
       "name": "Ougaritique",
-      "description": "Nœud DAG unique : un alphabet cunéiforme combinant le principe alphabétique sémitique et le medium cunéiforme. v. 1400–1185 av. J.-C."
+      "description": "Nœud DAG unique : un cunéiforme alphabétique combinant l'alphabet sémitique et le support cunéiforme. Vers 1400-1185 av. J.-C."
     },
     "phoenician": {
       "name": "Phénicien",
-      "description": "Abjad de 22 lettres, v. 1050 av. J.-C. ; l'alphabet le plus influent de l'histoire, ancêtre du grec, de l'arabe, de l'hébreu et bien d'autres."
+      "description": "Abjad de 22 lettres, vers 1050 av. J.-C. ; l'alphabet le plus influent de l'histoire, ancêtre du grec, de l'arabe, de l'hébreu et de bien d'autres."
     },
     "aramaic": {
       "name": "Araméen",
@@ -50,115 +50,115 @@
     },
     "hebrew": {
       "name": "Hébreu",
-      "description": "Abjad de 22 lettres, nœud DAG (phénicien + araméen) ; écriture sacrée du judaïsme, ressuscitée comme langue parlée au XXe siècle."
+      "description": "Abjad de 22 lettres, Nœud DAG (Phénicien + Araméen) ; écriture sacrée du judaïsme, ressuscitée en tant que langue parlée au 20ème siècle."
     },
     "nabataean": {
       "name": "Nabatéen",
-      "description": "Écriture du royaume nabatéen (Pétra) ; ancêtre direct de l'arabe. V. 200 av. J.-C. – IVe siècle apr. J.-C."
+      "description": "Écriture du royaume nabatéen (Pétra) ; ancêtre direct de l'écriture arabe. Vers 200 av. J.-C.–4ème siècle apr. J.-C."
     },
     "syriac": {
       "name": "Syriaque",
-      "description": "Langue littéraire du christianisme oriental ; a contribué aux écritures arabe et arménienne. Toujours utilisé liturgiquement."
+      "description": "Langue littéraire du christianisme oriental ; a contribué aux écritures arabe et arménienne. Toujours utilisée liturgiquement."
     },
     "arabic": {
       "name": "Arabe",
-      "description": "Nœud DAG (nabatéen + syriaque) ; abjad cursif de 28 lettres ; deuxième système d'écriture le plus utilisé avec ~1,8 milliard d'usagers."
+      "description": "Nœud DAG (Nabatéen + Syriaque) ; abjad de 28 lettres entièrement cursif ; deuxième système d'écriture le plus utilisé avec environ 1,8 milliard d'utilisateurs."
     },
     "sogdian": {
       "name": "Sogdien",
-      "description": "Écriture des marchands de la Route de la Soie ; intermédiaire qui transmit la tradition araméenne vers l'Asie centrale et orientale."
+      "description": "Écriture des marchands de la Route de la Soie ; intermédiaire qui a transmis la tradition araméenne à l'Asie centrale et orientale."
     },
     "uyghur": {
-      "name": "Vieux ouïghour",
-      "description": "Écriture verticale du khaganat ouïghour, VIIIe siècle ; modèle direct de l'écriture mongole."
+      "name": "Ancien ouïghour",
+      "description": "Écriture verticale du Khaganat ouïghour, vers le 8ème siècle apr. J.-C. ; modèle direct pour l'écriture mongole."
     },
     "mongolian": {
       "name": "Mongol",
-      "description": "Écriture verticale de haut en bas, créée v. 1204 apr. J.-C. ; toujours officielle en Mongolie-Intérieure (Chine)."
+      "description": "Écriture verticale de haut en bas créée vers 1204 apr. J.-C. ; toujours officielle en Mongolie intérieure (Chine). En cours de renaissance en Mongolie."
     },
     "south_arabian": {
       "name": "Sud-arabique",
-      "description": "Écriture des anciens royaumes d'Arabie (Saba, Qataban, Himyar) ; ancêtre du ge'ez. V. 900 av. J.-C. – 600 apr. J.-C."
+      "description": "Écriture des anciens royaumes arabiques (Saba, Qataban, Himyar) ; ancêtre de l'écriture guèze. Vers 900 av. J.-C.–600 apr. J.-C."
     },
     "geez": {
-      "name": "Ge'ez (éthiopique)",
-      "description": "Premier alphasyllabaire de l'histoire ; issu du sud-arabique. Utilisé aujourd'hui pour l'amharique, le tigrigna et d'autres langues."
+      "name": "Guèze (Éthiopien)",
+      "description": "Premier abugida de l'histoire ; descend du sud-arabique. Utilisé aujourd'hui pour l'amharique, le tigrinya et d'autres langues d'Éthiopie et d'Érythrée."
     },
     "brahmi": {
       "name": "Brahmi",
-      "description": "Écriture fondatrice de l'Asie du Sud, IIIe s. av. J.-C. ; ancêtre de plus de 100 écritures modernes dont le devanagari, le tibétain et le thaï."
+      "description": "Écriture fondatrice de l'Asie du Sud, vers le 3ème siècle av. J.-C. ; ancêtre de plus de 100 écritures modernes dont la devanagari, le thaï et le tibétain."
     },
     "devanagari": {
       "name": "Devanagari",
-      "description": "Alphasyllabaire à barre supérieure caractéristique ; utilisé pour le hindi, le sanskrit, le marathi et le népalais. ~600 millions d'usagers."
+      "description": "Écriture abugida caractérisée par sa barre horizontale supérieure ; utilisée pour le hindi, le sanskrit, le marathi et le népalais. Environ 600 millions d'utilisateurs."
     },
     "tibetan": {
       "name": "Tibétain",
-      "description": "Écriture créée au VIIe siècle pour traduire les textes bouddhistes ; parent du Phags-pa. Utilisé pour le tibétain et le dzongkha."
+      "description": "Écriture créée au 7ème siècle apr. J.-C. pour traduire les écritures bouddhistes ; parent du phags-pa. Utilisée pour le tibétain et le dzongkha."
     },
     "phags_pa": {
       "name": "Phags-pa",
-      "description": "Écriture universelle de l'Empire mongol, 1269 apr. J.-C. ; dérivée du tibétain, écrite verticalement. Possible influence sur le hangeul."
+      "description": "Écriture universelle de l'Empire mongol, 1269 apr. J.-C. ; dérivée du tibétain, s'écrit verticalement. Influence possible sur le hangeul."
     },
     "greek": {
       "name": "Grec",
-      "description": "Premier vrai alphabet avec consonnes et voyelles, v. 800 av. J.-C. ; ancêtre du latin, du cyrillique, du copte, de l'arménien et du glagolitique."
+      "description": "Premier véritable alphabet avec des consonnes et des voyelles, vers 800 av. J.-C. ; ancêtre des écritures latine, cyrillique, copte, arménienne et glagolitique."
     },
     "coptic": {
       "name": "Copte",
-      "description": "Nœud DAG (grec + démotique) ; stade final de la langue égyptienne ; écriture liturgique de l'Église copte orthodoxe."
+      "description": "Nœud DAG (Grec + Démotique) ; stade final de la langue égyptienne ; écriture liturgique de l'Église orthodoxe copte."
     },
     "etruscan": {
       "name": "Étrusque",
-      "description": "Écriture de la civilisation étrusque, v. 700 av. J.-C. ; modèle structurel direct de l'alphabet latin."
+      "description": "Écriture de la civilisation étrusque, vers 700 av. J.-C. ; modèle structurel direct de l'alphabet latin."
     },
     "latin": {
       "name": "Latin",
-      "description": "Nœud DAG (étrusque + grec) ; v. 700 av. J.-C. ; parent de l'alphabet romain moderne et des systèmes d'écriture de toutes les langues romanes."
+      "description": "Nœud DAG (Étrusque + Grec) ; vers 700 av. J.-C. ; parent de l'alphabet latin moderne et des systèmes d'écriture de toutes les langues romanes."
     },
     "modern_roman": {
-      "name": "Alphabet romain moderne",
-      "description": "Le système d'écriture le plus utilisé au monde, employé par ~3 milliards de personnes dans plus de 100 langues."
+      "name": "Alphabet latin moderne",
+      "description": "Le système d'écriture le plus largement utilisé au monde, par environ 3 milliards de personnes à travers plus de 100 langues."
     },
     "glagolitic": {
       "name": "Glagolitique",
-      "description": "Plus ancienne écriture slave, créée en 862–863 par les saints Cyrille et Méthode ; parent du cyrillique. Survécu en Croatie jusqu'au XIXe siècle."
+      "description": "La plus ancienne écriture slave, créée en 862-863 apr. J.-C. par les saints Cyrille et Méthode ; parent du cyrillique. A survécu en Croatie jusqu'au 19ème siècle."
     },
     "cyrillic": {
       "name": "Cyrillique",
-      "description": "Nœud DAG (grec + glagolitique) ; IXe–Xe siècle ; utilisé par le russe, le bulgare, le serbe et ~250 millions de personnes."
+      "description": "Nœud DAG (Grec + Glagolitique) ; 9ème-10ème siècle apr. J.-C. ; utilisé pour le russe, le bulgare, le serbe et par environ 250 millions de personnes."
     },
     "armenian": {
       "name": "Arménien",
-      "description": "Nœud DAG (grec + syriaque) ; créé en 405 par Mesrop Mashtots ; inchangé depuis 1 600 ans."
+      "description": "Nœud DAG (Grec + Syriaque) ; créé en 405 apr. J.-C. par Mesrop Machtots ; inchangé depuis 1 600 ans."
     },
     "georgian": {
       "name": "Géorgien",
-      "description": "Écriture distinctive avec trois formes historiques ; écriture officielle de la Géorgie."
+      "description": "Écriture distinctive avec trois formes historiques (Asomtavrouli, Nouskhouri, Mkhedrouli) ; écriture officielle de la Géorgie."
     },
     "oracle_bones": {
-      "name": "Écriture sur os oraculaires",
-      "description": "La plus ancienne écriture chinoise, v. 1200 av. J.-C. (dynastie Shang) ; gravée sur carapaces de tortues à des fins divinatoires."
+      "name": "Écriture ossécaillée",
+      "description": "Première écriture chinoise, vers 1200 av. J.-C. (dynastie Shang) ; gravée sur des carapaces de tortues pour la divination."
     },
     "classical_chinese": {
       "name": "Chinois classique",
-      "description": "Système logographique issu de l'écriture oraculaire ; lingua franca littéraire de l'Asie orientale pendant 2 000 ans."
+      "description": "Système d'écriture logographique évolué à partir de l'écriture ossécaillée ; lingua franca littéraire de l'Asie de l'Est pendant 2 000 ans."
     },
     "kanji": {
-      "name": "Kanji (japonais)",
-      "description": "Caractères chinois adoptés au Japon aux IVe–Ve siècles ; l'un des trois systèmes utilisés simultanément dans l'écriture japonaise moderne."
+      "name": "Kanji (Japonais)",
+      "description": "Caractères chinois adoptés au Japon, 4ème-5ème siècle apr. J.-C. ; l'une des trois écritures utilisées simultanément dans le japonais moderne."
     },
     "hiragana_katakana": {
       "name": "Hiragana / Katakana",
-      "description": "Deux systèmes syllabiques dérivés du kanji au IXe siècle ; forment avec le kanji et le rōmaji le système d'écriture japonais."
+      "description": "Deux écritures syllabiques dérivées des kanji au 9ème siècle apr. J.-C. ; forment avec les kanji et le rōmaji le système d'écriture japonais."
     },
     "hanja": {
-      "name": "Hanja (coréen)",
-      "description": "Caractères chinois utilisés en coréen depuis v. IIe siècle ; parent du hangeul. Encore utilisé ponctuellement en Corée du Sud."
+      "name": "Hanja (Coréen)",
+      "description": "Caractères chinois tels qu'utilisés en Corée, à partir du 2ème siècle apr. J.-C. environ ; parent du hangeul. Encore utilisé pour la désambiguïsation en Corée du Sud."
     },
     "hangul": {
-      "name": "Hangeul (coréen)",
-      "description": "Nœud DAG (hanja + Phags-pa) ; créé en 1443 ; considéré comme l'un des alphabets les plus scientifiquement conçus jamais inventés."
+      "name": "Hangeul (Coréen)",
+      "description": "Nœud DAG (Hanja + Phags-pa) ; créé en 1443 apr. J.-C. ; considéré comme l'un des alphabets les plus scientifiquement conçus jamais inventés."
     }
   }
 }
