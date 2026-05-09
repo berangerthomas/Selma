@@ -8,22 +8,15 @@ type Props = {
   searchQuery: string
   t: (key: string, opts?: any) => string
   hasMultipleParentsFn: (data: any, id: string) => boolean
-  displayY: number
 }
 
-export function CompactNode({ node, color, dagData, searchQuery, t, hasMultipleParentsFn, displayY }: Props) {
+export function CompactNode({ node, color, dagData, searchQuery, t, hasMultipleParentsFn }: Props) {
   const finalIconChar = t(`nodes.${node.id}.iconChar`, { defaultValue: node.iconChar || '' })
   const finalIconFont = t(`nodes.${node.id}.iconFont`, { defaultValue: node.iconFont || 'sans-serif' })
 
+  // No transform here — the parent <g> in TreeViz already handles translate(displayY, p.x)
   return (
-    <g
-      className="node"
-      style={{
-        transform: `translate(${displayY}px, ${node.x}px)`,
-        transition: 'transform 1000ms cubic-bezier(.2,.8,.2,1), opacity 500ms',
-        cursor: 'pointer',
-      }}
-    >
+    <g className="node">
       {/* Multi-parent indicator - amber ring for nodes with multiple parents */}
       {dagData && hasMultipleParentsFn(dagData, node.id) && (
         <circle r={8} fill="none" stroke="#f59e0b" strokeWidth={1.5} strokeDasharray="2 1.5" opacity={0.7} />

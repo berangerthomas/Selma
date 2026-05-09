@@ -7,22 +7,15 @@ type Props = {
   searchQuery: string
   t: (key: string, opts?: any) => string
   hasChildren: boolean
-  displayY: number
 }
 
-export function OrganicNode({ node, color, searchQuery, t, hasChildren, displayY }: Props) {
+export function OrganicNode({ node, color, searchQuery, t, hasChildren }: Props) {
   const finalIconChar = t(`nodes.${node.id}.iconChar`, { defaultValue: node.iconChar || '' })
   const finalIconFont = t(`nodes.${node.id}.iconFont`, { defaultValue: node.iconFont || 'sans-serif' })
 
+  // No transform here — the parent <g> in TreeViz already handles translate(displayY, p.x)
   return (
-    <g
-      className="node"
-      style={{
-        transform: `translate(${displayY}px, ${node.x}px)`,
-        transition: 'transform 1000ms cubic-bezier(.2,.8,.2,1), opacity 500ms',
-        cursor: 'pointer',
-      }}
-    >
+    <g className="node">
       <circle r={26} fill={color} stroke="#fff" strokeWidth={2} />
       {node.image ? (
         <image className="icon-img" href={node.image} x={0} y={0} width={32} height={32} />

@@ -8,6 +8,9 @@ import Sidebar from './Sidebar'
 import { ClusterNode } from './tree/ClusterNode'
 import { CompactNode } from './tree/CompactNode'
 import { OrganicNode } from './tree/OrganicNode'
+import { useSidebar } from '../hooks/useSidebar';
+import { buildPrunedHierarchy } from '../utils/dagUtils'
+
 type Props = {
   forwardedSvgRef?: React.RefObject<SVGSVGElement | null>
 }
@@ -95,9 +98,6 @@ function computeTransform(
   
   return d3.zoomIdentity.translate(tx, ty).scale(targetScale)
 }
-
-import { useSidebar } from '../hooks/useSidebar';
-import { buildPrunedHierarchy } from '../utils/dagUtils'
 
 export default function TreeViz({ forwardedSvgRef }: Props) {
   const defaultSvgRef = useRef<SVGSVGElement | null>(null)
@@ -249,6 +249,18 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
     activeIdRef.current = activeId
   }, [activeId])
 
+  // centerOn must be declared before the useEffect hooks that reference it,
+  // so that ESLint can resolve the dependency correctly at static analysis time.
+  const centerOn = useCallback((id: string, scale = 1) => {
+    const svgEl = svgRef.current
+    if (!svgEl || !zoomRef.current) return
+    const p = positions.get(id)
+    if (!p) return
+    const rect = svgEl.getBoundingClientRect()
+    const transform = computeTransform(p, null, rect, sidebarOpen ? sidebarWidth : 0, scale)
+    d3.select(svgEl).transition().duration(ANIMATION_MS).call(zoomRef.current.transform as any, transform)
+  }, [positions, sidebarOpen, sidebarWidth])
+
   useLayoutEffect(() => {
     const svgEl = svgRef.current
     if (!svgEl) return
@@ -394,7 +406,11 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
     if (initialFitDone.current && layoutRoot && positions.size > 0) {
       fitView(ANIMATION_MS)
     }
-  }, [viewMode, fitView])
+    // fitView intentionally omitted from deps: this effect must only fire on viewMode change.
+    // Including fitView (which depends on layoutRoot/positions) would trigger a full-tree
+    // fit on every navigation, displacing nodes from their centered position.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewMode])
 
   useEffect(() => {
     if (resetViewTrigger > lastResetRef.current && layoutRoot && layoutRoot.descendants().length > 0) {
@@ -402,16 +418,6 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
       fitView()
     }
   }, [resetViewTrigger, layoutRoot, positions, sidebarOpen, sidebarWidth])
-
-  const centerOn = useCallback((id: string, scale = 1) => {
-    const svgEl = svgRef.current
-    if (!svgEl || !zoomRef.current) return
-    const p = positions.get(id)
-    if (!p) return
-    const rect = svgEl.getBoundingClientRect()
-    const transform = computeTransform(p, null, rect, sidebarOpen ? sidebarWidth : 0, scale)
-    d3.select(svgEl).transition().duration(ANIMATION_MS).call(zoomRef.current.transform as any, transform)
-  }, [positions, sidebarOpen, sidebarWidth])
 
   function colorFor(node: d3.HierarchyPointNode<PrunedNode>) {
     const clusterFor = node.data.__cluster_for
@@ -589,7 +595,6 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
                       searchQuery={searchQuery}
                       t={t}
                       onToggle={onToggleNode}
-                      displayY={displayY}
                     />
                   ) : viewMode === 'compact' ? (
                     <CompactNode
@@ -599,7 +604,6 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
                       searchQuery={searchQuery}
                       t={t}
                       hasMultipleParentsFn={hasMultipleParents}
-                      displayY={displayY}
                     />
                   ) : (
                     <OrganicNode
@@ -608,7 +612,6 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
                       searchQuery={searchQuery}
                       t={t}
                       hasChildren={!!node.children}
-                      displayY={displayY}
                     />
                   )}
                 </g>

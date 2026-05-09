@@ -9,22 +9,17 @@ type Props = {
   searchQuery: string
   t: (key: string, opts?: any) => string
   onToggle: (id: string) => void
-  displayY: number
 }
 
-export function ClusterNode({ node, color, viewMode, searchQuery, t, onToggle, displayY }: Props) {
+export function ClusterNode({ node, color, viewMode, searchQuery, t, onToggle }: Props) {
   const [hovered, setHovered] = useState(false)
   const clusterFor = node.__cluster_for
   const radius = viewMode === 'compact' ? 8 : 12
 
+  // No transform here — the parent <g> in TreeViz already handles translate(displayY, p.x)
   return (
     <g
       className="node cluster"
-      style={{
-        transform: `translate(${displayY}px, ${node.x}px)`,
-        transition: 'transform 1000ms cubic-bezier(.2,.8,.2,1), opacity 500ms',
-        cursor: 'pointer',
-      }}
       onClick={(e) => {
         e.stopPropagation()
         if (clusterFor) onToggle(clusterFor)
