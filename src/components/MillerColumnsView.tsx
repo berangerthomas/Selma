@@ -11,7 +11,7 @@ import { NodeIcon } from './NodeIcon';
 import { useSidebar } from '../hooks/useSidebar';
 
 const MillerColumnsView = React.forwardRef<HTMLDivElement>((_props, ref) => {
-  const { data, activeId, setActiveId, setExpandedToPath, searchQuery } = useTree();
+  const { data, dagData, activeId, setActiveId, setExpandedToPath, searchQuery } = useTree();
   const { t } = useI18n();
   const { open: sidebarOpen, setOpen: setSidebarOpen, width: sidebarWidth, setWidth: setSidebarWidth } = useSidebar(activeId);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -198,7 +198,7 @@ const MillerColumnsView = React.forwardRef<HTMLDivElement>((_props, ref) => {
                   }}
                 >
                   <div className="flex items-center overflow-hidden min-w-0">
-                    <NodeIcon node={node} data={data} />
+                    <NodeIcon node={node} data={data} dagData={dagData} />
                     <div className={`text-sm select-none whitespace-nowrap overflow-hidden text-ellipsis ${isSelected || isActive ? 'font-semibold text-blue-700 dark:text-blue-300' : 'text-gray-800 dark:text-gray-200'}`}>
                       <HighlightMatch text={displayName} query={searchQuery} />
                       {node.attachments && node.attachments.length > 0 && (

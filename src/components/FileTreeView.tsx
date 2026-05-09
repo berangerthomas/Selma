@@ -4,13 +4,14 @@ import type { TreeNode } from '../types';
 import Sidebar from './Sidebar';
 import { HighlightMatch } from '../utils/highlight';
 import { findNodeById } from '../utils/treeUtils';
+import { getParents, hasMultipleParents } from '../utils/dagUtils';
 import AttachmentIcon from './AttachmentIndicator';
 import { ChevronRight } from './icons/ChevronRight';
 import { NodeIcon } from './NodeIcon';
 import { useSidebar } from '../hooks/useSidebar';
 
 const FileNode = ({ node, depth }: { node: TreeNode; depth: number }) => {
-  const { data, expanded, activeId, setActiveId, toggleNode, requestForceCenter, isFullyExpanded, searchQuery } = useTree();
+  const { data, dagData, expanded, activeId, setActiveId, toggleNode, requestForceCenter, isFullyExpanded, searchQuery } = useTree();
   const { t } = useI18n();
 
   const isExpanded = expanded.has(node.id);
@@ -49,7 +50,7 @@ const FileNode = ({ node, depth }: { node: TreeNode; depth: number }) => {
           )}
         </div>
 
-        <NodeIcon node={node} data={data} />
+        <NodeIcon node={node} data={data} dagData={dagData} />
 
         {/* Node Name */}
         <div className={`text-sm select-none whitespace-nowrap overflow-hidden text-ellipsis ${isActive ? 'font-semibold text-blue-700 dark:text-blue-300' : 'text-gray-800 dark:text-gray-200'}`}>
@@ -58,6 +59,20 @@ const FileNode = ({ node, depth }: { node: TreeNode; depth: number }) => {
             <AttachmentIcon size={12} className="ml-1 inline-block opacity-70 text-gray-600 dark:text-gray-300 flex-shrink-0" />
           )}
         </div>
+
+        {/* Multi-parent badge */}
+        {dagData && hasMultipleParents(dagData, node.id) && (
+          <button
+            onClick={(e) => { e.stopPropagation(); }}
+            title={`Also in: ${getParents(dagData, node.id).map(pid => dagData.nodes[pid]?.name ?? pid).join(', ')}`}
+            className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/40
+                       text-amber-700 dark:text-amber-300 flex-shrink-0 cursor-pointer hover:bg-amber-200
+                       dark:hover:bg-amber-800/60 transition-colors"
+            aria-label={`${getParents(dagData, node.id).length} parent groups — click to see`}
+          >
+            ×{getParents(dagData, node.id).length}
+          </button>
+        )}
       </div>
       
       {/* Children */}

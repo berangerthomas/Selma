@@ -17,4 +17,35 @@ export type TreeNode = {
   iconFont?: string
   attachments?: Attachment[]
   children?: TreeNode[]
+  tags?: string[]
+  metadata?: Record<string, string | number | boolean>
+}
+
+// Flat DAG node — children are IDs, not nested objects.
+export type DagNode = {
+  id: string
+  name: string
+  color?: string
+  image?: string
+  iconChar?: string
+  iconFont?: string
+  attachments?: Attachment[]
+  tags?: string[]
+  metadata?: Record<string, string | number | boolean>
+  children?: string[]  // IDs only — not nested objects
+}
+
+export type DagData = {
+  root: string                   // ID of the root node
+  nodes: Record<string, DagNode> // flat map: id → node
+}
+
+export type CrossEdge = {
+  parentId: string  // secondary parent
+  childId: string
+}
+
+export type TaxonomyDescription = {
+  id: string
+  label: string
 }

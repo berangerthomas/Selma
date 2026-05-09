@@ -45,6 +45,7 @@ npm run preview
 
 ## Overview & key features
 
+- Multiple taxonomies support: Keep the entities in one file, construct completely different relationships in explicit taxonomy JSON files (e.g. Genealogical vs Chronological) and switch seamlessly between them from the toolbar.
 - Programmatic rendering modes: transforms a structured JSON payload into interactive data using **four distinct visualization modes**:
   - `Organic`: Organic node-and-link clustered view.
   - `Compact`: Denser rectangular view with orthogonal connections.
@@ -53,6 +54,63 @@ npm run preview
 - Modular architecture: decoupled UI components, translation logic and markdown-driven node content.
 - Native localization: asynchronous loading of `taxonomy.json` and `ui.json` per language with safe fallbacks.
 - Export & print: inline fonts/images into exported SVG; produce PNG/JPG via canvas rasterization. Note that PNG and JPG exports have maximum dimension constraints imposed by browser memory limits (e.g., around 16,000 pixels for Chrome). The tool dynamically downscales the image to fit this limit. If the taxonomy tree is extremely large and exceeds this even at minimal scale, an error message is displayed recommending the SVG export, which is vector-based and has no such mathematical graphic limits.
+
+## DAG (Directed Acyclic Graph) Support
+
+Selma v0.6.0 introduces full support for DAG (Directed Acyclic Graph) data structures, allowing nodes to belong to multiple branches simultaneously. This is particularly useful for taxonomies where entities naturally belong to multiple categories (e.g., "Dolphin" is both a Mammal and a Cetacean).
+
+### Key DAG Features
+
+- **Multi-parent nodes**: Nodes can have multiple parents while maintaining an acyclic structure
+- **Cross-edges visualization**: Secondary parent-child relationships are displayed as amber dashed lines in graph views
+- **Spanning tree approach**: Primary parent determines node position; additional relationships become cross-edges
+- **Visual indicators**: Amber rings around nodes, badges in list view, and sidebar navigation to other parents
+### Data Structure
+
+Selma uses a flat DAG format for the taxonomy:
+```json
+{
+  "root": "life",
+  "nodes": {
+    "life": { "id": "life", "name": "Life", "children": ["animalia", "plantae"] },
+    "animalia": { "id": "animalia", "name": "Animalia", "children": ["mammalia", "cetacea"] },
+    "mammalia": { "id": "mammalia", "name": "Mammalia", "children": ["dolphin", "bat"] },
+    "cetacea": { "id": "cetacea", "name": "Cetacea", "children": ["dolphin", "whale"] },
+    "dolphin": { "id": "dolphin", "name": "Dolphin" }
+  }
+}
+```
+
+In this example, "dolphin" appears in both `mammalia.children` and `cetacea.children`, giving it two parents.
+
+### Implementation Details
+
+- **Core utilities**: `src/utils/dagUtils.ts` provides DAG traversal, cycle detection, and path finding
+- **Data loading**: `src/hooks/useTaxonomyData.ts` handles taxonomy fetching and validation
+- **Rendering**: `TreeContext` manages both spanning tree (for layout) and DAG data (for relationships)
+- **Visualization**: Enhanced `TreeViz`, `FileTreeView`, and `Sidebar` with DAG awareness
+
+### User Experience
+
+- **Navigation**: Click multi-parent nodes to see all parent branches in the sidebar
+- **Visual cues**: Amber indicators show nodes with multiple parents
+- **Context switching**: Navigate between different parent contexts seamlessly
+- **Search**: DAG-aware search finds nodes by any parent path
+
+### SVG Images and Dark Mode
+
+By default, SVG images loaded via Markdown are automatically inverted when Dark Mode is active. This ensures that text or monochrome icons drawn in dark colors remain readable against the app's dark background.
+
+**Preserving Original Colors**
+If you have a customized or colorful SVG that should *not* be inverted in dark mode, simply append `-color` to its filename before the extension (e.g., `illustration-color.svg`). The application will recognize this naming convention and preserve the image's original colors.
+
+## Multi-Taxonomy Architecture
+
+To support different classifications of the same entities (for example, showing linguistic families vs a chronological timeline), Selma allows multiple taxonomy definitions.
+
+1. `public/data/nodes.json`: A flat dictionary declaring all node properties (IDs, colors, icons).
+2. `public/data/taxonomies/*.json`: Individual tree/DAG structure defining the parent-child relationships. These are automatically discovered at runtime via a registry.
+3. `public/data/taxonomies.json`: An automatically generated registry of available taxonomies.
 
 ## Project layout & architecture
 
@@ -63,6 +121,7 @@ Top-level layout (important folders and files):
 	- `public/details/[lang]/[nodeId].md` — localized Markdown per node
 	- `public/locales/[lang]/taxonomy.json` — node translations (names and optional icon overrides)
 	- `public/locales/[lang]/ui.json` — interface strings
+	- `public/locales/[lang]/taxonomy.json` — node translations and **project title**
 - `src/` — React + D3 application
 	- [src/context/TreeContext.tsx](src/context/TreeContext.tsx) — application state, search and URL sync
 	- [src/components/TreeViz.tsx](src/components/TreeViz.tsx) — D3 layout and rendering
@@ -72,7 +131,7 @@ Top-level layout (important folders and files):
 
 Data flow (high level):
 
-1. App fetches `/structured_taxonomy.json` on startup (`useTaxonomyData`).
+1. App fetches `/data/taxonomies.json` to discover available taxonomies, then loads the selected one (`useTaxonomyData`).
 2. `TreeViz` prunes/arranges the tree and renders the SVG with D3.
 3. Selecting a node triggers `Sidebar` to fetch `/details/<lang>/<nodeId>.md` (fallback to unlocalized file) and render tabs from `##` headers.
 4. Translations are loaded via `i18next` HTTP backend configured in [src/i18n.tsx](src/i18n.tsx).
@@ -92,6 +151,10 @@ To adjust specific margins, modify these lines in `computeTransform`:
 - `visualMaxY`: Adjusts the **Right** margin (space after the deepest nodes, usually for text).
 - `visualMinX`: Adjusts the **Top** margin.
 - `visualMaxX`: Adjusts the **Bottom** margin.
+
+## Animation timing
+
+Animation timing is centralized inside `src/components/TreeViz.tsx` via the `ANIMATION_MS` constant (in milliseconds). `TreeViz` injects `--anim-ms` at runtime, and the CSS derives the quicker transitions from it with `calc(var(--anim-ms) / 2)`. To change the global timing, edit `ANIMATION_MS` in `src/components/TreeViz.tsx`.
 
 ## Data schema (`structured_taxonomy.json`)
 
@@ -157,7 +220,7 @@ Images and icons:
 
 Localization model:
 
-- `public/locales/<lang>/taxonomy.json` maps node ids → localized `name` and optional `iconChar`/`iconFont`.
+- `public/locales/<lang>/taxonomy.json` maps node ids → localized `name` and optional `iconChar`/`iconFont`. It also contains the `project_title` key for the main application title.
 - `public/locales/<lang>/ui.json` contains interface strings used by `i18next`.
 
 ### Translations maintenance (dev-only Settings modal)

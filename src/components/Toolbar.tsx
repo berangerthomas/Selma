@@ -96,7 +96,8 @@ export default function Toolbar({
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const { isDark, toggleTheme } = useTheme()
   const [settingsOpen, setSettingsOpen] = useState(false)
-  const { viewMode, setViewMode } = useTree()
+  const [helpOpen, setHelpOpen] = useState(false)
+  const { viewMode, setViewMode, activeTaxonomyId, setActiveTaxonomyId, availableTaxonomies } = useTree()
 
   const { refs: searchMenuRefs, floatingStyles: searchMenuFloatingStyles, context: searchMenuContext } = useFloating({
     open: searchMenuOpen,
@@ -167,8 +168,37 @@ export default function Toolbar({
         style={{ left: pos.left, top: pos.top }}
         onMouseDown={(e) => e.stopPropagation()}
         role="region"
-        aria-label={t('toolbar_title', { defaultValue: 'Tools' })}
+        aria-label={t('project_title', { defaultValue: 'Selma' })}
       >
+        <div className="toolbar-row" style={{ borderBottom: '1px solid var(--border-color)', padding: '6px 8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button 
+            onClick={() => setHelpOpen(!helpOpen)}
+            className="help-toggle-btn"
+            style={{ 
+              background: 'none', 
+              border: 'none', 
+              cursor: 'pointer', 
+              padding: '4px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'transform 0.2s',
+              transform: helpOpen ? 'rotate(90deg)' : 'rotate(0deg)',
+              color: 'var(--text-muted)'
+            }}
+            title={t('help', { defaultValue: 'Help' })}
+          >
+            <span style={{ fontSize: '10px' }}>▶</span>
+          </button>
+          <div className="project-main-title" style={{ fontWeight: 700, fontSize: '14px', flex: 1 }}>
+            {t('project_title', { defaultValue: 'Selma' })}
+          </div>
+        </div>
+        {helpOpen && (
+          <div className="toolbar-help-content" style={{ padding: '8px 12px', fontSize: '12px', borderBottom: '1px solid var(--border-color)', backgroundColor: 'rgba(0,0,0,0.02)', color: 'var(--text-muted)', lineHeight: '1.4' }}>
+            {t('project_help', { defaultValue: '' })}
+          </div>
+        )}
         <div className="toolbar-header" onMouseDown={onHeaderPointerDown} style={{ display: 'flex', justifyContent: 'space-between' }}>
           <div className="toolbar-title">{t('toolbar_title', { defaultValue: 'Tools' })}</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
@@ -267,6 +297,24 @@ export default function Toolbar({
               <MillerIcon className="w-[18px] h-[18px] block" />
             </ToolbarIconButton>
           </div>
+          
+          <div className="toolbar-row" style={{ display: 'flex', gap: '4px', borderTop: '1px solid var(--border-color)', paddingTop: '6px', marginTop: '2px', alignItems: 'center' }}>
+            <div className="toolbar-title" style={{ marginRight: '8px' }}>{t('taxonomy', { defaultValue: 'Taxonomy' })}</div>
+            <select
+              value={activeTaxonomyId}
+              onChange={(e) => setActiveTaxonomyId(e.target.value)}
+              className="toolbar-search"
+              style={{ padding: '4px', fontSize: '12px', height: '24px', flex: 1 }}
+              aria-label={t('taxonomy', { defaultValue: 'Taxonomy' })}
+            >
+              {availableTaxonomies.map((taxo) => (
+                <option key={taxo.id} value={taxo.id}>
+                  {t(`taxonomy_${taxo.id}`, { defaultValue: taxo.label })}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div className="toolbar-row">
               <input
                 className="toolbar-search"

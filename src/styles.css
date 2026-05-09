@@ -44,6 +44,10 @@ body{color:var(--text-main);background:var(--bg-gradient-start)}
 .breadcrumb .crumb{background:transparent;border:0;padding:4px 8px;border-radius:6px;font-size:13px;font-weight:normal;color:var(--text-main);cursor:pointer}
 .breadcrumb .crumb:hover{background:var(--crumb-hover)}
 
+/* Invert SVG colors for dark mode because SVGs loaded via <img> tags don't inherit currentColor */
+html.dark .prose img[src$=".svg"]:not([src$="-color.svg"]) {
+  filter: invert(1) hue-rotate(180deg) brightness(1.2);
+}
 
 /* Sidebar (right docked, resizable) */
 .sidebar{
@@ -56,7 +60,7 @@ body{color:var(--text-main);background:var(--bg-gradient-start)}
   display:flex;
   flex-direction:column;
   transform:translateX(100%);
-  transition:transform 260ms ease;
+  transition:transform var(--anim-ms) cubic-bezier(.2,.8,.2,1);
   z-index:40;
   overflow:hidden;
   border-left-radius:8px;
@@ -114,10 +118,20 @@ body{color:var(--text-main);background:var(--bg-gradient-start)}
 .toolbar-body{padding:8px 6px;display:flex;flex-direction:column;gap:8px}
 .toolbar-row{display:flex;gap:8px;align-items:center}
 .btn{background:var(--btn-bg);color:var(--btn-text);border:0;padding:6px 8px;border-radius:6px;cursor:pointer;font-size:13px}
-.toolbar-search{flex:1;padding:6px 8px;border-radius:6px;border:1px solid var(--input-border);background:transparent;color:var(--text-main)}
+.toolbar-search{flex:1;padding:6px 8px;border-radius:6px;border:1px solid var(--input-border);background:var(--panel-bg);color:var(--text-main);-webkit-appearance:none;appearance:none}
+.toolbar-search option { background: var(--panel-bg); color: var(--text-main); }
+/* Ensure native select dropdown is legible in dark mode on most platforms */
+.toolbar-search::-ms-expand { display: none; }
 .toolbar-row.search-nav{justify-content:center;padding-top:4px}
 .search-counter{font-size:12px;color:var(--text-muted);min-width:40px;text-align:center}
 .btn-nav{padding:4px 8px;font-size:12px;min-width:28px}
+
+.help-toggle-btn:hover {
+  background-color: rgba(0,0,0,0.05) !important;
+}
+html.dark .help-toggle-btn:hover {
+  background-color: rgba(255,255,255,0.1) !important;
+}
 
 /* Floating translate button for Markdown viewer (match main page panels) */
 .translate-btn{
@@ -136,7 +150,7 @@ body{color:var(--text-main);background:var(--bg-gradient-start)}
   border:1px solid var(--border-color);
   backdrop-filter:blur(6px);
   cursor:pointer;
-  transition:box-shadow 160ms ease, transform 120ms ease;
+  transition:box-shadow calc(var(--anim-ms) / 2) ease, transform calc(var(--anim-ms) / 2) ease;
 }
 .translate-btn:hover{box-shadow:0 14px 40px rgba(2,6,23,0.12);transform:translateY(-1px)}
 .translate-btn .translate-icon{width:16px;height:16px;flex:0 0 auto;color:var(--text-main)}
@@ -172,7 +186,7 @@ body{color:var(--text-main);background:var(--bg-gradient-start)}
 
 /* Miller columns smooth collapse animation */
 .miller-col {
-  transition: max-width 250ms ease-in-out, opacity 250ms ease-in-out, padding 250ms ease-in-out, border-right-width 250ms ease-in-out;
+  transition: max-width var(--anim-ms) ease-in-out, opacity var(--anim-ms) ease-in-out, padding var(--anim-ms) ease-in-out, border-right-width var(--anim-ms) ease-in-out;
   overflow-x: hidden;
 }
 .miller-col-exit {

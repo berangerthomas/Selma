@@ -1,4 +1,5 @@
-import type { TreeNode } from '../types';
+import type { TreeNode, DagData } from '../types';
+import { hasMultipleParents } from './dagUtils';
 
 export function getAllNodeIds(root: TreeNode): string[] {
   const ids: string[] = [];
@@ -89,17 +90,19 @@ export function exportTreeAsText(
   node: TreeNode,
   t?: (key: string, opts?: any) => string,
   prefix: string = '',
-  isLast: boolean = true
+  isLast: boolean = true,
+  dagData?: DagData
 ): string {
   const displayName = t ? t(`nodes.${node.id}.name`, { defaultValue: node.name }) : (node.name || node.id);
   const connector = prefix === '' ? '' : (isLast ? '└── ' : '├── ');
-  let result = prefix + connector + displayName + '\n';
+  const multiMark = dagData && hasMultipleParents(dagData, node.id) ? ' ⬡' : '';
+  let result = prefix + connector + displayName + multiMark + '\n';
 
   if (node.children && node.children.length > 0) {
     const childPrefix = prefix + (isLast ? '    ' : '│   ');
     node.children.forEach((child, index) => {
       const childIsLast = index === node.children!.length - 1;
-      result += exportTreeAsText(child, t, childPrefix, childIsLast);
+      result += exportTreeAsText(child, t, childPrefix, childIsLast, dagData);
     });
   }
 

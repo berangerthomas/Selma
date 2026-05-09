@@ -1,21 +1,14 @@
 import React, { useEffect, useState } from 'react'
 import { supportedLanguages } from '../utils/localization'
 import { useI18n } from '../i18n'
-import type { Attachment } from '../types'
+import type { Attachment, DagData } from '../types'
 import CopyIcon from '../assets/icons/copy.svg?react'
 import CopyButton from './CopyButton'
 import DownloadIcon from '../assets/icons/download.svg?react'
+import { getAllDagNodeIds } from '../utils/dagUtils'
 
 type Props = {
   onClose: () => void
-}
-
-type TaxonomyNode = {
-  id?: string
-  name?: string
-  attachments?: Attachment[]
-  children?: TaxonomyNode[]
-  [k: string]: any
 }
 
 type AttachmentDiscrepancy = {
@@ -35,7 +28,7 @@ export default function SettingsModal({ onClose }: Props) {
   const [localeData, setLocaleData] = useState<Record<string, any>>({})
   const [activeTab, setActiveTab] = useState<string>('translations')
   const [attachmentDiscrepancies, setAttachmentDiscrepancies] = useState<AttachmentDiscrepancy[]>([])
-  const [taxonomyData, setTaxonomyData] = useState<TaxonomyNode | null>(null)
+  const [dagData, setDagData] = useState<DagData | null>(null)
 
   useEffect(() => {
     let mounted = true
@@ -44,12 +37,17 @@ export default function SettingsModal({ onClose }: Props) {
       try {
         const taxResp = await fetch('/structured_taxonomy.json')
         if (!taxResp.ok) throw new Error('Failed to fetch structured_taxonomy.json')
-        const tax: TaxonomyNode = await taxResp.json()
+        const json = await taxResp.json()
+        const currentDagData = json as DagData
 
-        const ids: string[] = []
+        if (!currentDagData.root || !currentDagData.nodes) {
+          throw new Error('Invalid taxonomy format. Expected DAG format.')
+        }
+
+        const ids: string[] = getAllDagNodeIds(currentDagData)
         const names: Record<string, string> = {}
         const discrepancies: AttachmentDiscrepancy[] = []
-        
+
         // For discovery we only need the list of filenames (the glob keys).
         // Avoid using `?url` here because Vite warns when resolving URLs
         // for files under `public/` (they're served from the site root).
@@ -58,74 +56,67 @@ export default function SettingsModal({ onClose }: Props) {
           discoveredKeys = Object.keys(import.meta.glob('../../public/attachments/**/*'))
         }
 
-        function walk(node?: TaxonomyNode) {
-          if (!node) return
-          if (node.id) {
-            ids.push(node.id)
-            names[node.id] = node.name || ''
+        Object.values(currentDagData.nodes).forEach(node => {
+          names[node.id] = node.name || ''
 
-            // Attachments Discovery
-            const declaredAttachments = node.attachments || []
-            const nodeFilesOnDiskPath = `../../public/attachments/${node.id}/`
-            
-              const filesOnDisk = discoveredKeys.filter(path => path.startsWith(nodeFilesOnDiskPath))
-            
-            const undeclaredFiles: Partial<Attachment>[] = []
-            const ghostFiles: Attachment[] = []
-            
-            filesOnDisk.forEach(filePath => {
-              const filename = filePath.split('/').pop() || ''
-              const urlPath = `/attachments/${node.id}/${filename}`
-              
-              if (!declaredAttachments.some(att => att.path === urlPath)) {
-                // Inferred logic
-                const parts = filename.split('.')
-                const ext = parts.pop() || ''
-                let name = parts.join('.')
-                let lang = undefined
-                
-                if (parts.length > 1 && supportedLanguages.includes(parts[parts.length - 1])) {
-                   lang = parts.pop()
-                   name = parts.join('.')
-                }
-                
-                const cleanName = name.replace(/[-_]/g, ' ')
-                
-                undeclaredFiles.push({
-                   path: urlPath,
-                   format: ext,
-                   lang,
-                   name: `[TODO] ${cleanName.charAt(0).toUpperCase() + cleanName.slice(1)}`
-                })
+          // Attachments Discovery
+          const declaredAttachments = node.attachments || []
+          const nodeFilesOnDiskPath = `../../public/attachments/${node.id}/`
+
+          const filesOnDisk = discoveredKeys.filter(path => path.startsWith(nodeFilesOnDiskPath))
+
+          const undeclaredFiles: Partial<Attachment>[] = []
+          const ghostFiles: Attachment[] = []
+
+          filesOnDisk.forEach(filePath => {
+            const filename = filePath.split('/').pop() || ''
+            const urlPath = `/attachments/${node.id}/${filename}`
+
+            if (!declaredAttachments.some(att => att.path === urlPath)) {
+              // Inferred logic
+              const parts = filename.split('.')
+              const ext = parts.pop() || ''
+              let name = parts.join('.')
+              let lang = undefined
+
+              if (parts.length > 1 && supportedLanguages.includes(parts[parts.length - 1])) {
+                 lang = parts.pop()
+                 name = parts.join('.')
               }
-            })
-            
-            declaredAttachments.forEach(att => {
-               if (!filesOnDisk.some(filePath => filePath.endsWith(att.path))) {
-                  ghostFiles.push(att)
-               }
-            })
-            
-            if (declaredAttachments.length > 0 || filesOnDisk.length > 0) {
-               discrepancies.push({
-                  nodeId: node.id,
-                  declaredFiles: declaredAttachments.length,
-                  filesOnDisk: filesOnDisk.length,
-                  undeclaredFiles,
-                  ghostFiles
-               })
-            }
-          }
-          if (Array.isArray(node.children)) node.children.forEach(walk)
-        }
 
-        walk(tax)
+              const cleanName = name.replace(/[-_]/g, ' ')
+
+              undeclaredFiles.push({
+                 path: urlPath,
+                 format: ext,
+                 lang,
+                 name: `[TODO] ${cleanName.charAt(0).toUpperCase() + cleanName.slice(1)}`
+              })
+            }
+          })
+
+          declaredAttachments.forEach(att => {
+             if (!filesOnDisk.some(filePath => filePath.endsWith(att.path))) {
+                ghostFiles.push(att)
+             }
+          })
+
+          if (declaredAttachments.length > 0 || filesOnDisk.length > 0) {
+             discrepancies.push({
+                nodeId: node.id,
+                declaredFiles: declaredAttachments.length,
+                filesOnDisk: filesOnDisk.length,
+                undeclaredFiles,
+                ghostFiles
+             })
+          }
+        })
 
         if (!mounted) return
         setAllIds(ids)
         setEnglishNames(names)
         setAttachmentDiscrepancies(discrepancies)
-        setTaxonomyData(tax)
+        setDagData(currentDagData)
 
         const langs = supportedLanguages
         const results: Record<string, any> = {}
@@ -180,27 +171,21 @@ export default function SettingsModal({ onClose }: Props) {
   }
 
   function getAttachmentsScaffoldText() {
-    if (!taxonomyData) return ''
-    const clonedTax = JSON.parse(JSON.stringify(taxonomyData))
+    if (!dagData) return ''
+    const clonedDag = JSON.parse(JSON.stringify(dagData)) as DagData
 
-    function walkAndInject(node: any) {
-      if (node.id) {
-        const discrepancy = attachmentDiscrepancies.find(d => d.nodeId === node.id)
-        if (discrepancy && discrepancy.undeclaredFiles.length > 0) {
-          node.attachments = node.attachments || []
-          discrepancy.undeclaredFiles.forEach((uf: any) => {
-            if (!node.attachments.some((att: any) => att.path === uf.path)) {
-              node.attachments.push(uf)
-            }
-          })
-        }
+    Object.values(clonedDag.nodes).forEach(node => {
+      const discrepancy = attachmentDiscrepancies.find(d => d.nodeId === node.id)
+      if (discrepancy && discrepancy.undeclaredFiles.length > 0) {
+        node.attachments = node.attachments || []
+        discrepancy.undeclaredFiles.forEach((uf: any) => {
+          if (!node.attachments?.some((att: any) => att.path === uf.path)) {
+            node.attachments?.push(uf)
+          }
+        })
       }
-      if (Array.isArray(node.children)) {
-        node.children.forEach(walkAndInject)
-      }
-    }
-    walkAndInject(clonedTax)
-    return JSON.stringify(clonedTax, null, 2)
+    })
+    return JSON.stringify(clonedDag, null, 2)
   }
 
   function downloadScaffold(lang: string) {
@@ -227,29 +212,23 @@ export default function SettingsModal({ onClose }: Props) {
   }
 
   function downloadAttachmentsScaffold() {
-    if (!taxonomyData) return
-    
-    const clonedTax = JSON.parse(JSON.stringify(taxonomyData))
-    
-    function walkAndInject(node: any) {
-       if (node.id) {
-          const discrepancy = attachmentDiscrepancies.find(d => d.nodeId === node.id)
-          if (discrepancy && discrepancy.undeclaredFiles.length > 0) {
-             node.attachments = node.attachments || []
-             discrepancy.undeclaredFiles.forEach(uf => {
-                if (!node.attachments.some((att: any) => att.path === uf.path)) {
-                   node.attachments.push(uf)
-                }
-             })
+    if (!dagData) return
+
+    const clonedDag = JSON.parse(JSON.stringify(dagData)) as DagData
+
+    Object.values(clonedDag.nodes).forEach(node => {
+      const discrepancy = attachmentDiscrepancies.find(d => d.nodeId === node.id)
+      if (discrepancy && discrepancy.undeclaredFiles.length > 0) {
+        node.attachments = node.attachments || []
+        discrepancy.undeclaredFiles.forEach((uf: any) => {
+          if (!node.attachments?.some((att: any) => att.path === uf.path)) {
+            node.attachments?.push(uf)
           }
-       }
-       if (Array.isArray(node.children)) {
-          node.children.forEach(walkAndInject)
-       }
-    }
-    walkAndInject(clonedTax)
-    
-    const blob = new Blob([JSON.stringify(clonedTax, null, 2)], { type: 'application/json' })
+        })
+      }
+    })
+
+    const blob = new Blob([JSON.stringify(clonedDag, null, 2)], { type: 'application/json' })
     // TODO: replace with backend API call
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -442,12 +421,12 @@ export default function SettingsModal({ onClose }: Props) {
                           })}
                         </tbody>
                       </table>
-                      
+
                       <div className="mt-4 pt-4 border-t border-neutral-200 dark:border-neutral-700 flex items-center justify-end gap-2">
                         <span className="font-mono text-sm px-3 py-1.5 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded text-neutral-600 dark:text-neutral-300">
                           structured_taxonomy.attachments.json
                         </span>
-                        
+
                         <button
                           className="p-1.5 rounded transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-400 cursor-pointer"
                           onClick={() => downloadAttachmentsScaffold()}

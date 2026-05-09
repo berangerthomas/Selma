@@ -1,11 +1,14 @@
 import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect, useRef, useMemo } from 'react';
-import type { TreeNode, ViewMode } from '../types';
+import type { TreeNode, ViewMode, DagData, CrossEdge, TaxonomyDescription } from '../types';
 import { findAllPathsByQuery, findNodePath, getAllNodeIds } from '../utils/treeUtils';
 import { useTaxonomyData } from '../hooks/useTaxonomyData';
 import { useI18n } from '../i18n';
+import { buildSpanningTree, getAllDagNodeIds, findMatchingIds, hasMultipleParents, getParents } from '../utils/dagUtils';
 
 interface TreeContextType {
   data: TreeNode;
+  dagData: DagData | null;
+  crossEdges: CrossEdge[];
   expanded: Set<string>;
   activeId: string;
   searchResults: string[];
@@ -27,12 +30,16 @@ interface TreeContextType {
   requestForceCenter: () => void;
   resetViewTrigger: number;
   resetView: () => void;
-  
+
   // Custom navigation history
   canGoBack: boolean;
   canGoForward: boolean;
   goBack: () => void;
   goForward: () => void;
+
+  activeTaxonomyId: string;
+  setActiveTaxonomyId: (id: string) => void;
+  availableTaxonomies: TaxonomyDescription[];
 
     searchQuery: string;
     activeSearchType: 'simple' | 'deep' | null;
@@ -51,8 +58,48 @@ type HistoryAction =
   | { type: 'GO_FORWARD' };
 
 export function TreeProvider({ children }: { children: ReactNode }) {
-  const { data, loading, error } = useTaxonomyData();
+  const [availableTaxonomies, setAvailableTaxonomies] = useState<TaxonomyDescription[]>([]);
+  const [activeTaxonomyId, setActiveTaxonomyId] = useState<string>('');
+
+  useEffect(() => {
+    fetch('/data/taxonomies.json')
+      .then(res => res.json())
+      .then((data: TaxonomyDescription[]) => {
+        setAvailableTaxonomies(data);
+        if (data.length > 0 && !activeTaxonomyId) {
+          // Check if we have a saved taxonomy in URL or localStorage
+          const p = new URLSearchParams(window.location.search);
+          const urlTaxo = p.get('taxonomy');
+          const savedTaxo = urlTaxo || localStorage.getItem('selma_activeTaxonomyId');
+          
+          if (savedTaxo && data.find(t => t.id === savedTaxo)) {
+            setActiveTaxonomyId(savedTaxo);
+          } else {
+            setActiveTaxonomyId(data[0].id);
+          }
+        }
+      })
+      .catch(err => console.error('Failed to load taxonomies registry:', err));
+  }, []);
+
+  const { data: dagData, loading, error } = useTaxonomyData(activeTaxonomyId);
   const { t, lang } = useI18n();
+
+  useEffect(() => {
+    if (activeTaxonomyId) {
+      localStorage.setItem('selma_activeTaxonomyId', activeTaxonomyId);
+      const url = new URL(window.location.href);
+      if (url.searchParams.get('taxonomy') !== activeTaxonomyId) {
+        url.searchParams.set('taxonomy', activeTaxonomyId);
+        window.history.replaceState({}, '', url.toString());
+      }
+    }
+  }, [activeTaxonomyId]);
+
+  const { tree: data, crossEdges } = useMemo(() => {
+    if (!dagData) return { tree: null as unknown as TreeNode, crossEdges: [] as CrossEdge[] };
+    return buildSpanningTree(dagData);
+  }, [dagData]);
 
   const [viewMode, setViewModeState] = useState<ViewMode>(() => {
     const saved = localStorage.getItem('selma_viewMode');
@@ -99,32 +146,50 @@ export function TreeProvider({ children }: { children: ReactNode }) {
   const isNavigatingHistory = useRef(false);
 
   const isFullyExpanded = useMemo(() => {
-    if (!data) return false;
-    const allIds = getAllNodeIds(data);
+    if (!dagData) return false;
+    const allIds = getAllDagNodeIds(dagData);
     return allIds.every((id) => expanded.has(id));
-  }, [data, expanded]);
+  }, [dagData, expanded]);
+
+  const isInitialMount = useRef(true);
 
   useEffect(() => {
     if (data) {
-      const p = new URLSearchParams(window.location.search);
-      const initialNodeId = p.get('node');
-      if (initialNodeId) {
-        const path = findNodePath(data, initialNodeId)?.map(n => n.id);
-        if (path) {
-          setExpanded(new Set(path));
-          setActiveId(initialNodeId);
-          return;
+      setExpanded(prev => {
+        const next = new Set(prev);
+        next.add(data.id);
+
+        const p = new URLSearchParams(window.location.search);
+        const initialNodeId = p.get('node');
+        
+        if (initialNodeId) {
+          const path = findNodePath(data, initialNodeId)?.map(n => n.id);
+          if (path) {
+            path.forEach(id => next.add(id));
+            if (isInitialMount.current) {
+              setActiveId(initialNodeId);
+            }
+          }
         }
-      }
-      setExpanded(new Set([data.id]));
-      setActiveId(data.id);
+        return next;
+      });
+      isInitialMount.current = false;
     }
   }, [data]);
 
   useEffect(() => {
-    if (!activeId) return;
     const url = new URL(window.location.href);
-    if (url.searchParams.get('node') !== activeId) {
+    const currentNode = url.searchParams.get('node');
+
+    if (!activeId) {
+      if (currentNode !== null) {
+        url.searchParams.delete('node');
+        window.history.pushState({}, '', url.toString());
+      }
+      return;
+    }
+
+    if (currentNode !== activeId) {
       url.searchParams.set('node', activeId);
       window.history.pushState({ nodeId: activeId }, '', url.toString());
     }
@@ -141,6 +206,9 @@ export function TreeProvider({ children }: { children: ReactNode }) {
            setActiveId(nodeId);
            setForceCenterOnActive(true);
          }
+      } else if (data) {
+        setExpanded(new Set([data.id]));
+        setActiveId('');
       }
     };
     window.addEventListener('popstate', handlePopState);
@@ -212,21 +280,32 @@ export function TreeProvider({ children }: { children: ReactNode }) {
 
   const collapseAll = useCallback(() => {
     if (!data) return;
+    // If the active node has multiple DAG parents, keep all origin branches (paths to each parent)
+    let pathSet: Set<string>;
+    if (dagData && activeId && hasMultipleParents(dagData, activeId)) {
+      pathSet = new Set<string>();
+      const parents = getParents(dagData, activeId);
+      for (const p of parents) {
+        const ppath = findNodePath(data, p)?.map(n => n.id) ?? [];
+        ppath.forEach(id => pathSet.add(id));
+      }
+      // also ensure the active node itself is present (it may be off the primary branch)
+      pathSet.add(activeId);
+    } else {
+      // default behaviour: path from root to active node in the spanning tree
+      const path = findNodePath(data, activeId || data.id)?.map(n => n.id) ?? [data.id];
+      pathSet = new Set(path);
+    }
 
-    // build the set of IDs along the path from root to the active node
-    const path = findNodePath(data, activeId || data.id)?.map(n => n.id) ?? [data.id];
-    const pathSet = new Set(path);
-
-    // Current status: are there expanded nodes that are NOT on the active path?
+    // Current status: are there expanded nodes that are NOT on the preserved path(s)?
     const hasNodesOutsidePath = Array.from(expanded).some(id => !pathSet.has(id));
 
     if (hasNodesOutsidePath) {
-      // Step 1: collapse everything else to isolate only the selected node's branch
+      // Step 1: collapse everything else to isolate only the selected node's branch(es)
       setExpanded(pathSet);
     } else {
       // Step 2 (or if the branch was already the only one open): collapse everything back to the root
       setExpanded(new Set([data.id]));
-      // Optional: we can bring the activeId back to the root for a full reset
       setActiveId(data.id);
     }
 
@@ -234,10 +313,10 @@ export function TreeProvider({ children }: { children: ReactNode }) {
   }, [data, activeId, expanded, resetView]);
 
   const expandAll = useCallback(() => {
-    if (!data) return;
-    setExpanded(new Set(getAllNodeIds(data)));
+    if (!dagData) return;
+    setExpanded(new Set(getAllDagNodeIds(dagData)));
     resetView();
-  }, [data, resetView]);
+  }, [dagData, resetView]);
 
   const navigateToResult = useCallback((nodeId: string, forceCenter: boolean = true) => {
     if (!data) return;
@@ -332,7 +411,7 @@ export function TreeProvider({ children }: { children: ReactNode }) {
   }, [data, lang, t, navigateToResult]);
 
   useEffect(() => {
-    if (!data) return;
+    if (!dagData) return;
 
     // If a deep search is active, do not run the simple-search flow
     if (activeSearchType === 'deep') {
@@ -353,7 +432,8 @@ export function TreeProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const results = findAllPathsByQuery(data, searchQuery, t);
+    // Use the translation function directly
+    const results = findMatchingIds(dagData, searchQuery, (key, opts) => t(key, opts as any) as string);
     if (results.length === 0) {
       console.warn('No node matched search:', searchQuery);
       setSearchResults([]);
@@ -375,18 +455,18 @@ export function TreeProvider({ children }: { children: ReactNode }) {
         return;
       }
     }
-    
+
     // If we land here and it's NOT a new query (e.g. language change),
     // and the user has already navigated away or the result changed,
     // DO NOT force jump back to the first result and steal focus from activeId.
     if (!isNewQuery) {
       setCurrentResultIndex(-1);
-      return; 
+      return;
     }
 
     setCurrentResultIndex(0);
     navigateToResult(results[0], true);
-  }, [searchQuery, lang, data, t, navigateToResult, activeSearchType]);
+  }, [searchQuery, lang, dagData, t, navigateToResult, activeSearchType]);
 
   const goToNextResult = useCallback(() => {
     if (searchResults.length === 0) return;
@@ -410,7 +490,7 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     setForceCenterOnActive(true);
   }, []);
 
-  if (loading) {
+  if (loading && !dagData) {
     return <div style={centeredFullscreenStyle}>{t('loading', { defaultValue: 'Loading...' })}</div>;
   }
 
@@ -418,12 +498,16 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     return <div style={{ ...centeredFullscreenStyle, color: 'red' }}>{t('error', { defaultValue: 'Error:' })} {error.message}</div>;
   }
 
+  if (!data) return null;
+
   if (!data) {
     return null;
   }
 
   const value = {
     data,
+    dagData,
+    crossEdges,
     expanded,
     activeId,
     searchResults,
@@ -449,7 +533,10 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     goBack,
     goForward,
     searchQuery,
-    activeSearchType
+    activeSearchType,
+    activeTaxonomyId,
+    setActiveTaxonomyId,
+    availableTaxonomies
   };
 
   return <TreeContext.Provider value={value}>{children}</TreeContext.Provider>;

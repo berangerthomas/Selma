@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense, useRef } from 'react'
+import React, { useState, useEffect, Suspense, useRef, useMemo } from 'react'
 const TabbedMarkdown = React.lazy(() => import('../components/TabbedMarkdown'))
 import { useI18n } from '../i18n'
 import { useTheme } from '../hooks/useTheme'
@@ -9,6 +9,8 @@ import ThemeIcon from '../components/icons/ThemeIcon'
 import LangMenu from '../components/LangMenu'
 import { useTaxonomyData } from '../hooks/useTaxonomyData'
 import { findNodeById } from '../utils/treeUtils'
+import { buildSpanningTree } from '../utils/dagUtils'
+import type { TreeNode } from '../types'
 import AttachmentList from '../components/AttachmentList'
 import CopyButton from '../components/CopyButton'
 
@@ -34,7 +36,11 @@ export default function MarkdownViewerPage() {
   const { textSizeClass, increaseSize, decreaseSize, canIncrease, canDecrease } = useTextSize()
   const contentRef = useRef<HTMLDivElement>(null)
 
-  const { data: treeData } = useTaxonomyData()
+  const { data: dagData } = useTaxonomyData()
+  const { tree: treeData } = useMemo(() => {
+    if (!dagData) return { tree: null as unknown as TreeNode };
+    return buildSpanningTree(dagData);
+  }, [dagData]);
   const node = treeData && nodeId ? findNodeById(treeData, nodeId) : null
 
   useEffect(() => {

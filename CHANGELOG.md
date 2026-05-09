@@ -1,5 +1,26 @@
 # Changelog
 
+## [v0.6.0] - 2026-05-09
+
+### Added
+- **Multiple Taxonomies**: Ability to define and instantly switch between multiple taxonomy structures (e.g. Genealogical vs Chronological) using the same unified nodes dataset.
+- **DAG (Directed Acyclic Graph) Support**: Complete migration from strict tree model to DAG model supporting nodes with multiple parents.
+  - **Cross-edges visualization**: Visual representation of secondary parent-child relationships in both Organic and Compact graph modes.
+  - **Multi-parent indicators**: Visual cues (amber rings, badges, sidebar sections) to identify nodes belonging to multiple branches.
+  - **Context-aware navigation**: Enhanced sidebar showing "Also appears in" section with navigation to other parent nodes.
+  - **DAG utilities**: Comprehensive set of utility functions in `src/utils/dagUtils.ts` for DAG traversal, cycle detection, and path finding.
+ - Note: transition durations have been centralized under the `ANIMATION_MS` variable for easy tuning.
+ - **Feature**: Added automatic color inversion for Markdown SVG images in dark mode, introducing a `-color.svg` filename convention to opt-out and preserve original colors.
+- **Project Title & Help**: Added an internationalizable project title and mini-help section integrated at the top of the Toolbar. Configurable via `project_title` and `project_help` keys in `public/locales/[lang]/taxonomy.json`.
+
+### Modified
+- **Data model**: Extended `TreeNode` and added `DagNode`, `DagData`, `CrossEdge` types to support DAG topology.
+- **Core architecture**: Updated `TreeContext` to manage both spanning tree (for rendering) and DAG data (for multi-parent relationships).
+- **Visualization components**: Enhanced `TreeViz`, `FileTreeView`, `MillerColumnsView`, `Breadcrumb`, and `Sidebar` with DAG awareness.
+- **Search system**: Migrated from recursive tree traversal to DAG-aware search using `findMatchingIds`.
+- **Export functionality**: Updated `exportTreeAsText` to annotate multi-parent nodes with visual indicators.
+- **Settings modal**: Fixed node counting to work with both legacy and new DAG formats.
+
 ## [v0.5.1] - 2026-05-01
 
 ### Added

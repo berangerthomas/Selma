@@ -8,6 +8,7 @@ import { HighlightMatch } from '../utils/highlight'
 import AttachmentList from './AttachmentList'
 import { Attachment } from '../types'
 import CopyButton from './CopyButton'
+import { getParents, hasMultipleParents } from '../utils/dagUtils'
 
 type SidebarProps = {
   open: boolean
@@ -26,7 +27,7 @@ function isHtmlResponse(r: Response): boolean {
 }
 
 export default function Sidebar({ open, onClose, node, initialWidth = 420, minWidth = 220, maxWidth = 720, onWidthChange }: SidebarProps) {
-  const { searchQuery, activeSearchType } = useTree()
+  const { searchQuery, activeSearchType, dagData, setActiveId, activeId } = useTree()
   const [width, setWidth] = useState<number>(initialWidth)
   const [presentationMode, setPresentationMode] = useState<'tabs' | 'linear'>('tabs')
   const dragging = useRef(false)
@@ -49,7 +50,7 @@ export default function Sidebar({ open, onClose, node, initialWidth = 420, minWi
         setMarkdownContent('')
         return
       }
-      
+
       const cacheKey = `${lang}_${node.id}`
       if (mdCache.has(cacheKey)) {
         setMarkdownContent(mdCache.get(cacheKey)!)
@@ -57,12 +58,12 @@ export default function Sidebar({ open, onClose, node, initialWidth = 420, minWi
       }
 
       setMarkdownContent(`*${t('loading', { defaultValue: 'Loading...' })}*`)
-      
+
       try {
         const preferredPath = `/details/${lang}/${node.id}.md`
         let res = await fetch(preferredPath)
         if (!mounted) return
-        
+
         if (!res || !res.ok || isHtmlResponse(res)) {
           setCurrentPath(`/details/${node.id}.md`)
           res = await fetch(`/details/${node.id}.md`)
@@ -222,18 +223,18 @@ export default function Sidebar({ open, onClose, node, initialWidth = 420, minWi
                 title={t('copy_content', { defaultValue: 'Copy content' })}
               />
             )}
-            <button 
-              className="sidebar-view-toggle text-sm font-bold" 
-              onClick={decreaseSize} 
-              disabled={!canDecrease} 
+            <button
+              className="sidebar-view-toggle text-sm font-bold"
+              onClick={decreaseSize}
+              disabled={!canDecrease}
               title={t('decrease_text_size', { defaultValue: 'Decrease text' })}
             >
               A-
             </button>
-            <button 
-              className="sidebar-view-toggle text-[15px] font-bold" 
-              onClick={increaseSize} 
-              disabled={!canIncrease} 
+            <button
+              className="sidebar-view-toggle text-[15px] font-bold"
+              onClick={increaseSize}
+              disabled={!canIncrease}
               title={t('increase_text_size', { defaultValue: 'Increase text' })}
             >
               A+
@@ -265,10 +266,32 @@ export default function Sidebar({ open, onClose, node, initialWidth = 420, minWi
             <button className="sidebar-close" onClick={onClose} aria-label={t('close', { defaultValue: 'Close' })}>×</button>
           </div>
         </div>
-        
+
         {node?.attachments && node.attachments.length > 0 && (
           <div className="border-b border-gray-200 dark:border-gray-700">
             <AttachmentList attachments={node.attachments} lang={lang || undefined} />
+          </div>
+        )}
+
+        {/* Also appears in: multi-parent node indicator */}
+        {node?.id && dagData && hasMultipleParents(dagData, node.id) && (
+          <div className="mt-2 text-xs text-amber-600 dark:text-amber-400
+                          border border-amber-200 dark:border-amber-800 rounded px-2 py-1.5">
+            <span className="font-semibold block mb-0.5">
+              {t('belongs_to', { defaultValue: 'Belongs to:' })}
+            </span>
+            <div className="flex flex-wrap gap-1">
+              {getParents(dagData, node.id).filter(pid => pid !== activeId).map(pid => (
+                <button
+                  key={pid}
+                  onClick={() => setActiveId(pid)}
+                  className="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900/40
+                             hover:bg-amber-200 dark:hover:bg-amber-800/60 transition-colors"
+                >
+                  {dagData?.nodes[pid]?.name ?? pid}
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
