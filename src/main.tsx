@@ -44,7 +44,9 @@ try {
     root.render(
       <React.StrictMode>
         <React.Suspense fallback={<div>Loading...</div>}>
-          <MarkdownViewerPage />
+          <ToastProvider>
+            <MarkdownViewerPage />
+          </ToastProvider>
         </React.Suspense>
       </React.StrictMode>
     )
