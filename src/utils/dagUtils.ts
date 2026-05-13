@@ -106,7 +106,7 @@ export function findMatchingIds(
 ): string[] {
   if (!query.trim()) return [];
   return Object.values(data.nodes)
-    .filter(node => nodeMatchesQuery(node.id, node.name, query, t))
+    .filter(node => nodeMatchesQuery(node.id, node.name, query, t, node.tags))
     .map(n => n.id);
 }
 
@@ -183,4 +183,69 @@ export function findDagPath(
 
   dfs(rootId, []);
   return preferredResult ?? firstResult ?? [];
+}
+
+export function getAllTags(data: DagData): string[] {
+  const tags = new Set<string>();
+  for (const node of Object.values(data.nodes)) {
+    if (node.tags) {
+      node.tags.forEach(t => tags.add(t));
+    }
+  }
+  return Array.from(tags).sort();
+}
+
+/**
+ * Filter the DAG to keep only nodes that have at least one of the selected tags,
+ * and their ancestors (to maintain the tree structure).
+ */
+export function filterDagByTags(data: DagData, selectedTags: string[]): DagData | null {
+  if (!selectedTags || selectedTags.length === 0) return data;
+
+  const tagSet = new Set(selectedTags);
+  const keep = new Set<string>();
+  const memo = new Map<string, boolean>();
+
+  function dfs(id: string): boolean {
+    if (memo.has(id)) return memo.get(id)!;
+    
+    // Temporarily set to false to handle potential DAG loops
+    memo.set(id, false);
+
+    const node = data.nodes[id];
+    if (!node) return false;
+
+    let matches = false;
+    if (node.tags && node.tags.some(t => tagSet.has(t))) {
+      matches = true;
+    }
+
+    for (const childId of node.children ?? []) {
+      if (dfs(childId)) {
+        matches = true;
+      }
+    }
+
+    memo.set(id, matches);
+    if (matches) keep.add(id);
+    return matches;
+  }
+
+  dfs(data.root);
+
+  if (!keep.has(data.root)) return null;
+
+  const newNodes: Record<string, DagNode> = {};
+  for (const id of keep) {
+    const original = data.nodes[id];
+    newNodes[id] = {
+      ...original,
+      children: (original.children ?? []).filter(c => keep.has(c))
+    };
+  }
+
+  return {
+    root: data.root,
+    nodes: newNodes
+  };
 }

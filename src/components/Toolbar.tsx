@@ -176,7 +176,7 @@ export default function Toolbar({
   const { isDark, toggleTheme } = useTheme()
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
-  const { viewMode, setViewMode, activeTaxonomyId, setActiveTaxonomyId, availableTaxonomies } = useTree()
+  const { viewMode, setViewMode, activeTaxonomyId, setActiveTaxonomyId, availableTaxonomies, availableTags, selectedTags, setSelectedTags } = useTree()
 
   const { refs: searchMenuRefs, floatingStyles: searchMenuFloatingStyles, context: searchMenuContext } = useFloating({
     open: searchMenuOpen,
@@ -399,6 +399,49 @@ export default function Toolbar({
               )}
             </div>
           </div>
+          {availableTags && availableTags.length > 0 && (
+            <div className="toolbar-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', padding: '6px 8px', borderTop: '1px solid var(--border-color)' }}>
+              <div className="toolbar-title" style={{ width: '100%', marginBottom: '2px', fontSize: '12px', fontWeight: 600, display: 'flex', justifyContent: 'space-between' }}>
+                <span>{t('tags_label', { defaultValue: 'Tags' })}</span>
+                {selectedTags.length > 0 && (
+                  <button 
+                    onClick={() => setSelectedTags([])}
+                    className="text-blue-600 dark:text-blue-400 hover:underline"
+                    style={{ fontSize: '10px', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                  >
+                    {t('clear_tags', { defaultValue: 'Clear all' })}
+                  </button>
+                )}
+              </div>
+              {availableTags.map(tag => {
+                const isSelected = selectedTags.includes(tag);
+                return (
+                  <button
+                    key={tag}
+                    onClick={() => {
+                      if (isSelected) {
+                        setSelectedTags(selectedTags.filter(t => t !== tag));
+                      } else {
+                        setSelectedTags([...selectedTags, tag]);
+                      }
+                    }}
+                    className={`tag-pill ${isSelected ? 'bg-blue-600 text-white border-blue-600 dark:bg-blue-500' : 'bg-transparent text-gray-700 dark:text-gray-300 border-gray-300 dark:border-neutral-600 hover:bg-black/5 dark:hover:bg-white/10'}`}
+                    style={{
+                      padding: '2px 8px',
+                      fontSize: '11px',
+                      borderRadius: '12px',
+                      borderWidth: '1px',
+                      borderStyle: 'solid',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    {t(`tags.${tag}`, { defaultValue: tag })}
+                  </button>
+                );
+              })}
+            </div>
+          )}
           {hasResults && (
             <div className="toolbar-row search-nav">
               <span className="search-counter">{currentResultIndex + 1}/{totalResults}</span>

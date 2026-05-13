@@ -3,7 +3,7 @@ import type { TreeNode, ViewMode, DagData, CrossEdge, TaxonomyDescription } from
 import { findNodePath } from '../utils/treeUtils';
 import { useTaxonomyData } from '../hooks/useTaxonomyData';
 import { useI18n } from '../i18n';
-import { buildSpanningTree, getAllDagNodeIds, hasMultipleParents, getParents } from '../utils/dagUtils';
+import { buildSpanningTree, getAllDagNodeIds, hasMultipleParents, getParents, getAllTags, filterDagByTags } from '../utils/dagUtils';
 import { useUrlSync } from '../hooks/useUrlSync';
 import { useNavigationHistory } from '../hooks/useNavigationHistory';
 import { useSearchEngine } from '../hooks/useSearchEngine';
@@ -46,6 +46,10 @@ interface TreeContextType {
 
   searchQuery: string;
   activeSearchType: 'simple' | 'deep' | null;
+
+  selectedTags: string[];
+  setSelectedTags: (tags: string[]) => void;
+  availableTags: string[];
 }
 
 const TreeContext = createContext<TreeContextType | undefined>(undefined);
@@ -82,8 +86,38 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     return () => controller.abort();
   }, []);
 
-  const { data: dagData, loading, error } = useTaxonomyData(activeTaxonomyId);
+  const { data: rawDagData, loading, error } = useTaxonomyData(activeTaxonomyId);
   const { t, lang } = useI18n();
+
+  const [selectedTags, setSelectedTags] = useState<string[]>(() => {
+    try {
+      const saved = safeLocalStorageGet('selma_selectedTags');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // clear selected tags when taxonomy changes
+  useEffect(() => {
+    setSelectedTags([]);
+  }, [activeTaxonomyId]);
+
+  const updateSelectedTags = useCallback((tags: string[]) => {
+    setSelectedTags(tags);
+    safeLocalStorageSet('selma_selectedTags', JSON.stringify(tags));
+  }, []);
+
+  const availableTags = useMemo(() => {
+    if (!rawDagData) return [];
+    return getAllTags(rawDagData);
+  }, [rawDagData]);
+
+  const dagData = useMemo(() => {
+    if (!rawDagData) return null;
+    if (selectedTags.length === 0) return rawDagData;
+    return filterDagByTags(rawDagData, selectedTags) || rawDagData;
+  }, [rawDagData, selectedTags]);
 
   const { tree: data, crossEdges } = useMemo(() => {
     if (!dagData) return { tree: null as unknown as TreeNode, crossEdges: [] as CrossEdge[] };
@@ -258,7 +292,10 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     activeSearchType,
     activeTaxonomyId,
     setActiveTaxonomyId,
-    availableTaxonomies
+    availableTaxonomies,
+    selectedTags,
+    setSelectedTags: updateSelectedTags,
+    availableTags,
   };
 
   return <TreeContext.Provider value={value}>{children}</TreeContext.Provider>;

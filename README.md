@@ -191,6 +191,7 @@ Field reference:
 - `id` (string, required): stable identifier for lookups, translations and URLs. Recommended pattern: `^[a-z0-9_\\\\-]+$`. Avoid renaming ids.
 - `name` (string): default label shown when no translation exists.
 - `color` (string, optional): CSS color for node background.
+- `tags` (array of strings, optional): list of textual tags (e.g. `["extinct", "living"]`) used for filtering the tree and displaying metadata in the Markdown viewer. Tags are localized via `public/locales/<lang>/taxonomy.json`.
 - `image` (string, optional): path under `/assets/` used as a node image.
 - `iconChar` (string, optional) and `iconFont` (string, optional): glyph-based icons.
 - `attachments` (array of objects, optional): list of downloadable files (e.g. `[{"name": "Report", "path": "/attachments/node_id/report.pdf", "format": "pdf", "lang": "en"}]`). The optional `lang` field restricts an attachment to a specific language: attachments with a `lang` are shown only when the UI language matches that value; attachments without `lang` are language-agnostic and shown for all languages.
@@ -210,6 +211,22 @@ Recommended practices:
 - Keep `id` stable and compact.
 - Prefer `/assets/` absolute paths for images.
 - Use `image` for rich SVG icons and `iconChar` for lightweight glyphs.
+
+### Filtering with Tags
+
+Tags provide a fast, centralized way to categorize and filter nodes across any taxonomy.
+When adding a tag to a node in `public/data/nodes.json`:
+
+1. Define the `tags` array: `"tags": ["logogram", "middle_east"]`.
+2. Map the tags in your localization files (`public/locales/<lang>/taxonomy.json`) under the `"tags"` object:
+   ```json
+   "tags": {
+     "logogram": "Logogram",
+     "middle_east": "Middle East"
+   }
+   ```
+
+Users can filter the taxonomy graph dynamically using tag pills underneath the search bar. Tag references are also translated instantly through the UI and seamlessly inject into the node's detail panel (Markdown Viewer). Moreover, searching for a tag string via the main search field highlights any nodes associated with that tag.
 
 ## Content authoring & localization
 

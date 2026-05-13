@@ -213,7 +213,7 @@ export default function MarkdownViewerPage() {
       </div>
 
       {/* This controls the global text width of the tab. You can adjust the "800px" value up or down as needed! */}
-      <main id="viewer" ref={contentRef} className="mx-auto w-full" style={{ maxWidth: '700px' }}>
+      <main id="viewer" ref={contentRef} className="mx-auto w-full pb-20" style={{ maxWidth: '700px' }}>
         {node?.attachments && node.attachments.length > 0 && (
           <div className="mb-2 pb-2 border-b border-gray-200 dark:border-neutral-700">
             <AttachmentList attachments={node.attachments} lang={lang || undefined} compact />
@@ -227,11 +227,23 @@ export default function MarkdownViewerPage() {
             proseSize={textSizeClass as any}
             sanitize={sanitize}
             presentationMode={presentationMode}
-            introClassName="mb-20"
+            introClassName="mb-10"
             basePath={currentPath}
           />
         </Suspense>
       </main>
+
+      {(node as any)?.tags && (node as any)?.tags.length > 0 && (
+        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, padding: '8px 24px', backgroundColor: 'var(--panel-bg)', backdropFilter: 'blur(8px)', borderTop: '1px solid var(--border-color)', zIndex: 40, display: 'flex', justifyContent: 'center' }}>
+          <div style={{ maxWidth: '700px', width: '100%', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+            {(node as any).tags.map((tag: string) => (
+              <span key={tag} className="px-3 py-1 rounded-full border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-sm text-gray-500">
+                {t(`tags.${tag}`, { defaultValue: tag })}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

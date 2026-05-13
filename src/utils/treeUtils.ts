@@ -25,7 +25,7 @@ export function findAllPathsByQuery(
 
   const results: string[] = [];
   function dfs(node: TreeNode): void {
-    if (nodeMatchesQuery(node.id, node.name, query, t)) {
+    if (nodeMatchesQuery(node.id, node.name, query, t, node.tags)) {
       results.push(node.id);
     }
     if (node.children) {

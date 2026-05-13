@@ -242,6 +242,21 @@ export default function Sidebar({ open, onClose, node, initialWidth = 420, minWi
         <div className="sidebar-content">
           <TabbedMarkdown key={node?.id || 'none'} content={markdownContent} className={`max-w-none ${textSizeClass}`} proseSize={textSizeClass} presentationMode={presentationMode} basePath={currentPath} searchQuery={activeSearchType === 'deep' ? searchQuery : undefined} />
         </div>
+        {node?.id && dagData?.nodes[node.id]?.tags && dagData.nodes[node.id].tags!.length > 0 && (
+          <div className="sidebar-footer" style={{ padding: '12px 20px', borderTop: '1px solid var(--border-color)', display: 'flex', flexWrap: 'wrap', gap: '6px', flexShrink: 0, marginTop: 'auto' }}>
+            {dagData.nodes[node.id].tags!.map((tag: string) => (
+              <span key={tag} style={{
+                padding: '2px 8px',
+                fontSize: '11px',
+                borderRadius: '12px',
+                border: '1px solid var(--border-color)',
+                color: 'var(--text-muted)'
+              }}>
+                <HighlightMatch text={t(`tags.${tag}`, { defaultValue: tag })} query={searchQuery} />
+              </span>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )
