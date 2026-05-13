@@ -51,7 +51,7 @@ const HELP_CONTENT_STYLE: React.CSSProperties = {
 
 const HEADER_STYLE: React.CSSProperties = { display: 'flex', justifyContent: 'space-between' };
 
-const FLEX_ROW_STYLE: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: '2px' };
+const TOOLBAR_ACTIONS_STYLE: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: '2px' };
 
 const HISTORY_ROW_STYLE: React.CSSProperties = {
   display: 'flex', alignItems: 'center', gap: '2px',
@@ -73,11 +73,11 @@ const TITLE_MARGIN_STYLE: React.CSSProperties = { marginRight: '8px' };
 
 const SELECT_STYLE: React.CSSProperties = { padding: '4px', fontSize: '12px', height: '24px', flex: 1 };
 
-const RELATIVE_INLINE_STYLE: React.CSSProperties = { position: 'relative', display: 'inline-block' };
+const SEARCH_BUTTON_WRAPPER_STYLE: React.CSSProperties = { position: 'relative', display: 'inline-block' };
 
-const INLINE_BLOCK_STYLE: React.CSSProperties = { display: 'inline-block' };
+const SEARCH_TRIGGER_STYLE: React.CSSProperties = { display: 'inline-block' };
 
-const WHITE_SPACE_NOWRAP: React.CSSProperties = { whiteSpace: 'nowrap' };
+const NOWRAP_STYLE: React.CSSProperties = { whiteSpace: 'nowrap' };
 
 const HELP_TOGGLE_BASE_STYLE: React.CSSProperties = {
   background: 'none', border: 'none', cursor: 'pointer',
@@ -86,7 +86,21 @@ const HELP_TOGGLE_BASE_STYLE: React.CSSProperties = {
   color: 'var(--text-muted)',
 };
 
-const TEN_PX_FONT: React.CSSProperties = { fontSize: '10px' };
+const HELP_TOGGLE_ICON_STYLE: React.CSSProperties = { fontSize: '10px' };
+
+const TAGS_SECTION_STYLE: React.CSSProperties = { display: 'flex', flexWrap: 'wrap', gap: '4px', padding: '6px 8px', borderTop: '1px solid var(--border-color)' };
+
+const TAGS_HEADER_STYLE: React.CSSProperties = { width: '100%', marginBottom: '2px', fontSize: '12px', fontWeight: 600, display: 'flex', justifyContent: 'space-between' };
+
+const TAG_PILL_STYLE: React.CSSProperties = {
+  padding: '2px 8px',
+  fontSize: '11px',
+  borderRadius: '12px',
+  borderWidth: '1px',
+  borderStyle: 'solid',
+  cursor: 'pointer',
+  transition: 'all 0.2s',
+};
 
 interface ToolbarIconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   label: string
@@ -256,7 +270,7 @@ export default function Toolbar({
             style={{ ...HELP_TOGGLE_BASE_STYLE, transform: helpOpen ? 'rotate(90deg)' : 'rotate(0deg)' }}
             title={t('help', { defaultValue: 'Help' })}
           >
-            <span style={TEN_PX_FONT}>▶</span>
+            <span style={HELP_TOGGLE_ICON_STYLE}>▶</span>
           </button>
           <div className="project-main-title" style={PROJECT_TITLE_STYLE}>
             {t('project_title', { defaultValue: 'Selma' })}
@@ -269,7 +283,7 @@ export default function Toolbar({
         )}
         <div className="toolbar-header" onMouseDown={onHeaderPointerDown} style={HEADER_STYLE}>
           <div className="toolbar-title">{t('toolbar_title', { defaultValue: 'Tools' })}</div>
-          <div style={FLEX_ROW_STYLE}>
+          <div style={TOOLBAR_ACTIONS_STYLE}>
             <div style={HISTORY_ROW_STYLE}>
               <ToolbarIconButton
                 label={t('go_back', { defaultValue: 'Previous' })}
@@ -370,8 +384,8 @@ export default function Toolbar({
               }}
               aria-label={t('search_placeholder', { defaultValue: 'Go to a node (id or name)...' })}
             />
-            <div style={RELATIVE_INLINE_STYLE}>
-              <div ref={searchMenuRefs.setReference} {...getSearchMenuReferenceProps()} style={INLINE_BLOCK_STYLE}>
+            <div style={SEARCH_BUTTON_WRAPPER_STYLE}>
+              <div ref={searchMenuRefs.setReference} {...getSearchMenuReferenceProps()} style={SEARCH_TRIGGER_STYLE}>
                 <ToolbarIconButton
                   label={t('go', { defaultValue: 'Go' })}
                   onClick={() => handleSearch()}
@@ -390,7 +404,7 @@ export default function Toolbar({
                 >
                   <button
                     className="search-mode-item w-full text-left px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 whitespace-nowrap transition-colors"
-                    style={WHITE_SPACE_NOWRAP}
+                    style={NOWRAP_STYLE}
                     onClick={() => { handleSearch('deep'); }}
                   >
                     {t('search_deep', { defaultValue: 'Recherche approfondie' })}
@@ -400,8 +414,8 @@ export default function Toolbar({
             </div>
           </div>
           {availableTags && availableTags.length > 0 && (
-            <div className="toolbar-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', padding: '6px 8px', borderTop: '1px solid var(--border-color)' }}>
-              <div className="toolbar-title" style={{ width: '100%', marginBottom: '2px', fontSize: '12px', fontWeight: 600, display: 'flex', justifyContent: 'space-between' }}>
+            <div className="toolbar-row" style={TAGS_SECTION_STYLE}>
+              <div className="toolbar-title" style={TAGS_HEADER_STYLE}>
                 <span>{t('tags_label', { defaultValue: 'Tags' })}</span>
                 {selectedTags.length > 0 && (
                   <button 
@@ -426,15 +440,7 @@ export default function Toolbar({
                       }
                     }}
                     className={`tag-pill ${isSelected ? 'bg-blue-600 text-white border-blue-600 dark:bg-blue-500' : 'bg-transparent text-gray-700 dark:text-gray-300 border-gray-300 dark:border-neutral-600 hover:bg-black/5 dark:hover:bg-white/10'}`}
-                    style={{
-                      padding: '2px 8px',
-                      fontSize: '11px',
-                      borderRadius: '12px',
-                      borderWidth: '1px',
-                      borderStyle: 'solid',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                    }}
+                    style={TAG_PILL_STYLE}
                   >
                     {t(`tags.${tag}`, { defaultValue: tag })}
                   </button>

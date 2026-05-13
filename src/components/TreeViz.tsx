@@ -2,7 +2,7 @@ import React, { useEffect, useLayoutEffect, useMemo, useRef, useCallback } from 
 import * as d3 from 'd3'
 import { useI18n } from '../i18n'
 import { useTree } from '../context/TreeContext'
-import type { TreeNode } from '../types'
+import type { TreeNode, PrunedNode } from '../types'
 import { hasMultipleParents, getParents } from '../utils/dagUtils'
 import Sidebar from './Sidebar'
 import { ClusterNode } from './tree/ClusterNode'
@@ -13,16 +13,6 @@ import { buildPrunedHierarchy } from '../utils/dagUtils'
 
 type Props = {
   forwardedSvgRef?: React.RefObject<SVGSVGElement | null>
-}
-
-// Extracted from useMemo to fix typing issues module-wide
-export interface PrunedNode extends Omit<TreeNode, 'children'> {
-  __cluster_for?: string
-  __cluster_count?: number
-  children?: PrunedNode[]
-  image?: string
-  iconChar?: string
-  iconFont?: string
 }
 
 function computeBounds(
@@ -121,20 +111,27 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
     searchQuery
   } = useTree()
 
-  const onToggleNode = (id: string) => {
+  const onToggleNode = useCallback((id: string, shouldSelect = true) => {
     const willOpen = !expanded.has(id)
     toggleNode(id);
-    setActiveId(id);
+    if (shouldSelect) setActiveId(id);
     if (willOpen || isFullyExpanded) requestForceCenter();
-  };
+  }, [expanded, toggleNode, setActiveId, isFullyExpanded, requestForceCenter]);
 
   const { t, lang } = useI18n()
   const { open: sidebarOpen, setOpen: setSidebarOpen, width: sidebarWidth, setWidth: setSidebarWidth } = useSidebar(activeId);
 
-  const clearSelection = () => {
+  const nodeClickGuard = useRef<'node' | null>(null)
+
+  const clearSelection = useCallback((_e?: React.MouseEvent) => {
+    // If a node was just clicked, ignore the clearSelection event
+    if (nodeClickGuard.current === 'node') {
+      nodeClickGuard.current = null
+      return
+    }
     setSidebarOpen(false)
     setActiveId('')
-  }
+  }, [setSidebarOpen, setActiveId])
 
   // Build pruned tree and preserve node metadata (color)
   const layoutRoot = useMemo(() => {
@@ -569,7 +566,6 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
               const dim = !!activeId && !activePathAndSubtree.has(node.data.id) && !activeDagAncestors.has(node.data.id) && node.data.id !== activeId
               const color = colorFor(node as unknown as d3.HierarchyPointNode<PrunedNode>)
               const isCluster = Boolean(node.data.__cluster_for)
-              const clusterFor = node.data.__cluster_for
               const displayY = getDisplayY(node)
               return (
                 <g
@@ -583,8 +579,13 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
                   }}
                   onClick={(e) => {
                     e.stopPropagation()
-                    const targetId = clusterFor || node.data.id
-                    onToggleNode(targetId)
+                    nodeClickGuard.current = 'node'
+                    // For cluster nodes, ClusterNode handles the click internally
+                    // (with proper event isolation) to avoid double-toggle issues.
+                    // For regular nodes, toggle and select.
+                    if (!isCluster) {
+                      onToggleNode(node.data.id)
+                    }
                   }}
                 >
                   {isCluster ? (
@@ -593,8 +594,9 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
                       color={color}
                       viewMode={viewMode}
                       searchQuery={searchQuery}
-                      t={t}
                       onToggle={onToggleNode}
+                      setActiveId={setActiveId}
+                      nodeClickGuardRef={nodeClickGuard}
                     />
                   ) : viewMode === 'compact' ? (
                     <CompactNode
@@ -602,7 +604,6 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
                       color={color}
                       dagData={dagData}
                       searchQuery={searchQuery}
-                      t={t}
                       hasMultipleParentsFn={hasMultipleParents}
                     />
                   ) : (
@@ -610,7 +611,6 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
                       node={{ ...node.data, x: p.x, y: displayY }}
                       color={color}
                       searchQuery={searchQuery}
-                      t={t}
                       hasChildren={!!node.children}
                     />
                   )}

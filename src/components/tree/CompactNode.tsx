@@ -1,16 +1,17 @@
 import { HighlightSVGText } from '../../utils/highlightSVG'
-import type { PrunedNode } from '../TreeViz'
+import type { PrunedNode, DagData } from '../../types'
+import { useI18n } from '../../i18n'
 
 type Props = {
   node: PrunedNode & { x: number; y: number }
   color: string
-  dagData: any
+  dagData: DagData | null
   searchQuery: string
-  t: (key: string, opts?: any) => string
-  hasMultipleParentsFn: (data: any, id: string) => boolean
+  hasMultipleParentsFn: (data: DagData, id: string) => boolean
 }
 
-export function CompactNode({ node, color, dagData, searchQuery, t, hasMultipleParentsFn }: Props) {
+export function CompactNode({ node, color, dagData, searchQuery, hasMultipleParentsFn }: Props) {
+  const { t } = useI18n()
   const finalIconChar = t(`nodes.${node.id}.iconChar`, { defaultValue: node.iconChar || '' })
   const finalIconFont = t(`nodes.${node.id}.iconFont`, { defaultValue: node.iconFont || 'sans-serif' })
 

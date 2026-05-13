@@ -1,5 +1,6 @@
 import { RefObject } from 'react';
 import { useToast } from '../context/ToastContext';
+import { openPrintWindow } from '../utils/printWindow';
 
 export function usePrintMarkdown(contentRef: RefObject<HTMLElement | null>) {
   const { showToast } = useToast();
@@ -7,13 +8,7 @@ export function usePrintMarkdown(contentRef: RefObject<HTMLElement | null>) {
     if (!contentRef.current) return;
     const htmlContent = contentRef.current.innerHTML;
 
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      showToast("Pop-up blocked. Please allow pop-ups to print.");
-      return;
-    }
-
-    printWindow.document.write(`
+    const html = `
       <!DOCTYPE html>
       <html>
         <head>
@@ -58,8 +53,11 @@ export function usePrintMarkdown(contentRef: RefObject<HTMLElement | null>) {
           </script>
         </body>
       </html>
-    `);
-    printWindow.document.close();
+    `;
+    const printWindow = openPrintWindow(html);
+    if (!printWindow) {
+      showToast("Pop-up blocked. Please allow pop-ups to print.");
+    }
   };
 
   return { printContent };

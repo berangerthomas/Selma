@@ -1,11 +1,10 @@
-import type { DagData, DagNode, CrossEdge, TreeNode } from '../types';
+import type { DagData, DagNode, CrossEdge, TreeNode, PrunedNode } from '../types';
+import { FALLBACK_COLOR } from '../types';
 import * as d3 from 'd3'
 import { nodeMatchesQuery, type TranslateFn } from './searchRegex';
 
 // Prune tree -> produce a D3 hierarchy suitable for layout (adds optional cluster nodes)
 export function buildPrunedHierarchy(root: TreeNode, expanded: Set<string> | null) {
-  type PrunedNode = Omit<TreeNode, 'children'> & { __cluster_for?: string; __cluster_count?: number; children?: PrunedNode[] }
-
   function totalCount(n: TreeNode): number {
     if (!n || !n.children || n.children.length === 0) return 0
     return n.children.length
@@ -79,23 +78,36 @@ export function buildSpanningTree(data: DagData): { tree: TreeNode; crossEdges: 
   return { tree: resolve(data.root), crossEdges };
 }
 
-export function getDagNode(data: DagData, id: string): DagNode | null {
-  return data.nodes[id] ?? null;
-}
-
 export function getAllDagNodeIds(data: DagData): string[] {
   return Object.keys(data.nodes);
 }
 
+/**
+ * Build a reverse map of child → parents for O(1) lookups.
+ */
+export function buildParentMap(data: DagData): Map<string, string[]> {
+  const map = new Map<string, string[]>();
+  for (const node of Object.values(data.nodes)) {
+    for (const childId of node.children ?? []) {
+      if (!map.has(childId)) map.set(childId, []);
+      map.get(childId)!.push(node.id);
+    }
+  }
+  return map;
+}
+
 /** All direct parents of a node (may be multiple in a DAG). */
-export function getParents(data: DagData, nodeId: string): string[] {
+export function getParents(data: DagData, nodeId: string, parentMap?: Map<string, string[]>): string[] {
+  if (parentMap) {
+    return parentMap.get(nodeId) ?? [];
+  }
   return Object.values(data.nodes)
     .filter(n => n.children?.includes(nodeId))
     .map(n => n.id);
 }
 
-export function hasMultipleParents(data: DagData, nodeId: string): boolean {
-  return getParents(data, nodeId).length > 1;
+export function hasMultipleParents(data: DagData, nodeId: string, parentMap?: Map<string, string[]>): boolean {
+  return getParents(data, nodeId, parentMap).length > 1;
 }
 
 /** Text search: returns IDs matching query by id or translated name. */
@@ -111,7 +123,7 @@ export function findMatchingIds(
 }
 
 /** Climb toward root via first available parent path to resolve inherited color. */
-export function getInheritedColorDag(data: DagData, nodeId: string): string {
+export function getInheritedColorDag(data: DagData, nodeId: string, parentMap?: Map<string, string[]>): string {
   const visited = new Set<string>();
   function climb(id: string): string | null {
     if (visited.has(id)) return null;
@@ -119,13 +131,13 @@ export function getInheritedColorDag(data: DagData, nodeId: string): string {
     const node = data.nodes[id];
     if (!node) return null;
     if (node.color) return node.color;
-    for (const parentId of getParents(data, id)) {
+    for (const parentId of getParents(data, id, parentMap)) {
       const c = climb(parentId);
       if (c) return c;
     }
     return null;
   }
-  return climb(nodeId) ?? '#6b7280';
+  return climb(nodeId) ?? FALLBACK_COLOR;
 }
 
 /** Cycle detection — must run at load time. Throws if a cycle is found. */

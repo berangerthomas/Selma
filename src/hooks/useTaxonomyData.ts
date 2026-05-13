@@ -6,6 +6,8 @@ interface TaxoStructNode {
   children?: string[];
 }
 
+let cachedNodesDict: Record<string, unknown> | null = null;
+
 export function useTaxonomyData(taxonomyId: string) {
   const [data, setData] = useState<DagData | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
@@ -19,10 +21,13 @@ export function useTaxonomyData(taxonomyId: string) {
       try {
         setLoading(true)
         
-        // Fetch nodes definitions
-        const nodesResponse = await fetch('/data/nodes.json')
-        if (!nodesResponse.ok) throw new Error(`HTTP error! status: ${nodesResponse.status}`)
-        const nodesDict = await nodesResponse.json()
+        // Fetch nodes definitions (cached at module level since it's static)
+        if (!cachedNodesDict) {
+          const nodesResponse = await fetch('/data/nodes.json')
+          if (!nodesResponse.ok) throw new Error(`HTTP error! status: ${nodesResponse.status}`)
+          cachedNodesDict = await nodesResponse.json()
+        }
+        const nodesDict: Record<string, unknown> = cachedNodesDict!;
 
         // Fetch taxonomy structure
         const taxoResponse = await fetch(`/data/taxonomies/${taxonomyId}.json`)
@@ -36,10 +41,11 @@ export function useTaxonomyData(taxonomyId: string) {
         };
 
         for (const [id, structNode] of Object.entries(taxoFile.nodes)) {
-          const detailNode = nodesDict[id] || {};
+          const detailNode = (nodesDict[id] || {}) as Record<string, unknown>;
           const struct = structNode as TaxoStructNode;
           dagData.nodes[id] = {
             id,
+            name: (detailNode.name as string) || id,
             children: struct.children ?? [],
             ...detailNode
           };

@@ -280,8 +280,8 @@ export function usePrintSVG(svgRef: RefObject<SVGSVGElement | null>) {
 
   const printSVG = async (title: string = 'Taxonomy') => {
     if (!svgRef.current) return;
-    
-    // Open window synchronously to avoid popup blockers
+
+    // Open window synchronously to avoid popup blockers (before async prepareSVG)
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
       showToast("Pop-up blocked. Please allow pop-ups to print.");
@@ -289,7 +289,7 @@ export function usePrintSVG(svgRef: RefObject<SVGSVGElement | null>) {
     }
 
     const { svgString: embeddedSvgString } = await prepareSVG(svgRef.current);
-    
+
     printWindow.document.write(`
       <html>
         <head>

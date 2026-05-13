@@ -1,4 +1,5 @@
 import type { TreeNode, DagData } from '../types';
+import { FALLBACK_COLOR } from '../types';
 import { hasMultipleParents } from './dagUtils';
 import { nodeMatchesQuery, type TranslateFn } from './searchRegex';
 
@@ -69,12 +70,12 @@ export function findNodeById(root: TreeNode, id: string): TreeNode | null {
  */
 export function getInheritedColor(nodeId: string, root: TreeNode): string {
   const path = findNodePath(root, nodeId);
-  if (!path) return '#6b7280';
+  if (!path) return FALLBACK_COLOR;
   for (let i = path.length - 1; i >= 0; i--) {
     const color = path[i].color;
     if (color) return color;
   }
-  return '#6b7280';
+  return FALLBACK_COLOR;
 }
 
 /**

@@ -103,11 +103,6 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     setSelectedTags([]);
   }, [activeTaxonomyId]);
 
-  const updateSelectedTags = useCallback((tags: string[]) => {
-    setSelectedTags(tags);
-    safeLocalStorageSet('selma_selectedTags', JSON.stringify(tags));
-  }, []);
-
   const availableTags = useMemo(() => {
     if (!rawDagData) return [];
     return getAllTags(rawDagData);
@@ -138,6 +133,16 @@ export function TreeProvider({ children }: { children: ReactNode }) {
   const [activeId, setActiveId] = useState<string>('');
   const [forceCenterOnActive, setForceCenterOnActive] = useState<boolean>(false);
   const [resetViewTrigger, setResetViewTrigger] = useState<number>(0);
+
+  const resetView = useCallback(() => {
+    setResetViewTrigger(prev => prev + 1);
+  }, []);
+
+  const updateSelectedTags = useCallback((tags: string[]) => {
+    setSelectedTags(tags);
+    safeLocalStorageSet('selma_selectedTags', JSON.stringify(tags));
+    resetView();
+  }, [resetView]);
 
   // Hook 1: URL synchronization
   useUrlSync(activeId, activeTaxonomyId, data, setExpanded, setActiveId, setForceCenterOnActive);
@@ -204,10 +209,6 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     setActiveId(pathIds[pathIds.length - 1]);
   }, []);
 
-  const resetView = useCallback(() => {
-    setResetViewTrigger(prev => prev + 1);
-  }, []);
-
   const collapseAll = useCallback(() => {
     if (!data) return;
     let pathSet: Set<string>;
@@ -250,17 +251,8 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     setForceCenterOnActive(true);
   }, []);
 
-  if (loading && !dagData) {
-    return <div style={centeredFullscreenStyle}>{t('loading', { defaultValue: 'Loading...' })}</div>;
-  }
-
-  if (error) {
-    return <div style={{ ...centeredFullscreenStyle, color: 'red' }}>{t('error', { defaultValue: 'Error:' })} {error.message}</div>;
-  }
-
-  if (!data) return null;
-
-  const value = {
+  // value must be memoized before any early return to keep hook count stable
+  const value = useMemo(() => ({
     data,
     dagData,
     crossEdges,
@@ -296,7 +288,53 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     selectedTags,
     setSelectedTags: updateSelectedTags,
     availableTags,
-  };
+  }), [
+    data,
+    dagData,
+    crossEdges,
+    expanded,
+    activeId,
+    searchResults,
+    currentResultIndex,
+    forceCenterOnActive,
+    isFullyExpanded,
+    viewMode,
+    setViewMode,
+    toggleNode,
+    setExpandedToPath,
+    collapseAll,
+    expandAll,
+    handleSearch,
+    goToNextResult,
+    goToPrevResult,
+    setActiveId,
+    clearForceCenter,
+    requestForceCenter,
+    resetViewTrigger,
+    resetView,
+    canGoBack,
+    canGoForward,
+    goBack,
+    goForward,
+    searchQuery,
+    activeSearchType,
+    activeTaxonomyId,
+    setActiveTaxonomyId,
+    availableTaxonomies,
+    selectedTags,
+    updateSelectedTags,
+    availableTags,
+  ]);
+
+  if (loading && !dagData) {
+    return <div style={centeredFullscreenStyle}>{t('loading', { defaultValue: 'Loading...' })}</div>;
+  }
+
+  if (error) {
+    return <div style={{ ...centeredFullscreenStyle, color: 'red' }}>{t('error', { defaultValue: 'Error:' })} {error.message}</div>;
+  }
+
+  if (!data) return null;
 
   return <TreeContext.Provider value={value}>{children}</TreeContext.Provider>;
 }

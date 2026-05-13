@@ -1,16 +1,11 @@
 import { RefObject } from 'react';
 import { useToast } from '../context/ToastContext';
+import { openPrintWindow } from '../utils/printWindow';
 
 export function usePrintHTML(htmlRef: RefObject<HTMLDivElement | null>, landscape: boolean = false) {
   const { showToast } = useToast();
   const printHTML = (title: string = 'Document') => {
     if (!htmlRef.current) return;
-
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      showToast("Pop-up blocked. Please allow pop-ups to print.");
-      return;
-    }
 
     // Gather all stylesheet links and inline styles from the current document
     const stylesheets: string[] = [];
@@ -32,7 +27,7 @@ export function usePrintHTML(htmlRef: RefObject<HTMLDivElement | null>, landscap
     // Clone the content
     const content = htmlRef.current.innerHTML;
 
-    printWindow.document.write(`
+    const html = `
       <!DOCTYPE html>
       <html class="${bodyClass}">
         <head>
@@ -75,8 +70,11 @@ export function usePrintHTML(htmlRef: RefObject<HTMLDivElement | null>, landscap
           <\/script>
         </body>
       </html>
-    `);
-    printWindow.document.close();
+    `;
+    const printWindow = openPrintWindow(html);
+    if (!printWindow) {
+      showToast("Pop-up blocked. Please allow pop-ups to print.");
+    }
   };
 
   return { printHTML };

@@ -1,15 +1,16 @@
 import { HighlightSVGText } from '../../utils/highlightSVG'
-import type { PrunedNode } from '../TreeViz'
+import type { PrunedNode } from '../../types'
+import { useI18n } from '../../i18n'
 
 type Props = {
   node: PrunedNode & { x: number; y: number }
   color: string
   searchQuery: string
-  t: (key: string, opts?: any) => string
   hasChildren: boolean
 }
 
-export function OrganicNode({ node, color, searchQuery, t, hasChildren }: Props) {
+export function OrganicNode({ node, color, searchQuery, hasChildren }: Props) {
+  const { t } = useI18n()
   const finalIconChar = t(`nodes.${node.id}.iconChar`, { defaultValue: node.iconChar || '' })
   const finalIconFont = t(`nodes.${node.id}.iconFont`, { defaultValue: node.iconFont || 'sans-serif' })
 
