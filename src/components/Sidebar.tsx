@@ -21,8 +21,6 @@ type SidebarProps = {
   onWidthChange?: (w: number) => void
 }
 
-const mdCache = new Map<string, string>()
-
 export default function Sidebar({ open, onClose, node, initialWidth = 420, minWidth = 220, maxWidth = 720, onWidthChange }: SidebarProps) {
   const { searchQuery, activeSearchType, dagData, setActiveId, activeId } = useTree()
   const [width, setWidth] = useState<number>(initialWidth)
@@ -48,26 +46,18 @@ export default function Sidebar({ open, onClose, node, initialWidth = 420, minWi
         return
       }
 
-      const cacheKey = `${lang}_${node.id}`
-      if (mdCache.has(cacheKey)) {
-        setMarkdownContent(mdCache.get(cacheKey)!)
-        return
-      }
-
       setMarkdownContent(`*${t('loading', { defaultValue: 'Loading...' })}*`)
 
       try {
         const text = await fetchMarkdownContent(lang, node.id)
         if (!mounted) return
         if (text !== null) {
-          mdCache.set(cacheKey, text)
           setMarkdownContent(text)
           setCurrentPath(`/details/${lang}/${node.id}.md`)
         } else {
           const title = t(`nodes.${node.id}.name`, { defaultValue: node.name })
           const mdFallback = `# ${title}\n\n*${t('description_not_provided', { defaultValue: 'No description provided.' })}*`
           if (mounted) {
-            mdCache.set(cacheKey, mdFallback)
             setMarkdownContent(mdFallback)
             setCurrentPath(`/details/${node.id}.md`)
           }
@@ -76,7 +66,6 @@ export default function Sidebar({ open, onClose, node, initialWidth = 420, minWi
         const title = t(`nodes.${node.id}.name`, { defaultValue: node.name })
         const mdFallback = `# ${title}\n\n*${t('description_not_provided', { defaultValue: 'No description provided.' })}*`
         if (mounted) {
-          mdCache.set(cacheKey, mdFallback)
           setMarkdownContent(mdFallback)
         }
       }

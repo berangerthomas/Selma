@@ -7,8 +7,7 @@ import { type TranslateFn } from '../utils/searchRegex'
 export function useDeepSearch(
   data: TreeNode | null,
   lang: string,
-  t: TranslateFn,
-  searchContentCacheRef: React.MutableRefObject<Map<string, string>>
+  t: TranslateFn
 ) {
   const performDeepSearch = useCallback(async (query: string): Promise<string[]> => {
     if (!data || !query.trim()) return []
@@ -30,17 +29,9 @@ export function useDeepSearch(
       const batch = allIds.slice(i, i + BATCH_SIZE)
       await Promise.all(batch.map(async (id) => {
         try {
-          const cacheKey = `${lang || 'default'}|${id}`
-          if (searchContentCacheRef.current.has(cacheKey)) {
-            const cached = searchContentCacheRef.current.get(cacheKey) || ''
-            if (cached.toLowerCase().includes(q)) resultsSet.add(id)
-            return
-          }
-
           const mdContent = await fetchMarkdownContent(lang, id)
-          if (mdContent !== null) {
-            searchContentCacheRef.current.set(cacheKey, mdContent)
-            if (mdContent.toLowerCase().includes(q)) resultsSet.add(id)
+          if (mdContent !== null && mdContent.toLowerCase().includes(q)) {
+            resultsSet.add(id)
           }
         } catch (err) {
           // ignore
@@ -49,7 +40,7 @@ export function useDeepSearch(
     }
 
     return Array.from(resultsSet)
-  }, [data, lang, t, searchContentCacheRef])
+  }, [data, lang, t])
 
   return { performDeepSearch }
 }

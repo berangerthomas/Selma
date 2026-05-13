@@ -3,7 +3,8 @@ import * as d3 from 'd3'
 import { useI18n } from '../i18n'
 import { useTree } from '../context/TreeContext'
 import type { TreeNode, PrunedNode } from '../types'
-import { hasMultipleParents, getParents } from '../utils/dagUtils'
+import { FALLBACK_COLOR } from '../types'
+import { buildParentMap, hasMultipleParents, getParents } from '../utils/dagUtils'
 import Sidebar from './Sidebar'
 import { ClusterNode } from './tree/ClusterNode'
 import { CompactNode } from './tree/CompactNode'
@@ -110,6 +111,11 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
     requestForceCenter,
     searchQuery
   } = useTree()
+
+  const parentMap = useMemo(() => {
+    if (!dagData) return new Map<string, string[]>();
+    return buildParentMap(dagData);
+  }, [dagData]);
 
   const onToggleNode = useCallback((id: string, shouldSelect = true) => {
     const willOpen = !expanded.has(id)
@@ -221,12 +227,12 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
     function dfsUp(id: string) {
       if (set.has(id)) return
       set.add(id)
-      const parents = getParents(dd, id)
+      const parents = getParents(dd, id, parentMap)
       for (const p of parents) dfsUp(p)
     }
     dfsUp(activeId)
     return set
-  }, [activeId, dagData])
+  }, [activeId, dagData, parentMap])
 
   function isInViewport(id: string, margin = CENTER_MARGIN) {
     const svgEl = svgRef.current
@@ -416,7 +422,7 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
     }
   }, [resetViewTrigger, layoutRoot, positions, sidebarOpen, sidebarWidth])
 
-  function colorFor(node: d3.HierarchyPointNode<PrunedNode>) {
+  const colorFor = useCallback((node: d3.HierarchyPointNode<PrunedNode>) => {
     const clusterFor = node.data.__cluster_for
     if (clusterFor) {
       const original = d3NodeMap.get(clusterFor)
@@ -432,12 +438,15 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
       if (cur.data.color) return cur.data.color
       cur = (cur.parent as d3.HierarchyPointNode<PrunedNode>) || null
     }
-    return '#6b7280'
-  }
+    return FALLBACK_COLOR
+  }, [d3NodeMap, treeNodeMap]);
 
   // D3 link generator for organic mode (horizontal tree: x = node.x, y = node.y)
   const linkGenerator = useMemo(() => {
-    return d3.linkHorizontal<any, any>().x((d: any) => d.y).y((d: any) => d.x)
+    return d3
+      .linkHorizontal<d3.HierarchyPointLink<PrunedNode>, d3.HierarchyPointNode<PrunedNode>>()
+      .x((d) => d.y)
+      .y((d) => d.x)
   }, [])
 
   function linkPath(sourceX: number, sourceY: number, targetX: number, targetY: number) {
@@ -564,7 +573,7 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
             {visibleNodes.map((node) => {
               const p = positions.get(node.data.id)!
               const dim = !!activeId && !activePathAndSubtree.has(node.data.id) && !activeDagAncestors.has(node.data.id) && node.data.id !== activeId
-              const color = colorFor(node as unknown as d3.HierarchyPointNode<PrunedNode>)
+              const color = colorFor(node)
               const isCluster = Boolean(node.data.__cluster_for)
               const displayY = getDisplayY(node)
               return (
@@ -604,7 +613,7 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
                       color={color}
                       dagData={dagData}
                       searchQuery={searchQuery}
-                      hasMultipleParentsFn={hasMultipleParents}
+                      hasMultipleParentsFn={(data, id) => hasMultipleParents(data, id, parentMap)}
                     />
                   ) : (
                     <OrganicNode

@@ -268,6 +268,7 @@ function processImage(
 }
 
 import { triggerDownload } from '../utils/download';
+import { openPrintWindow } from '../utils/printWindow';
 
 export function usePrintSVG(svgRef: RefObject<SVGSVGElement | null>) {
   const { showToast } = useToast();
@@ -281,16 +282,9 @@ export function usePrintSVG(svgRef: RefObject<SVGSVGElement | null>) {
   const printSVG = async (title: string = 'Taxonomy') => {
     if (!svgRef.current) return;
 
-    // Open window synchronously to avoid popup blockers (before async prepareSVG)
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      showToast("Pop-up blocked. Please allow pop-ups to print.");
-      return;
-    }
-
     const { svgString: embeddedSvgString } = await prepareSVG(svgRef.current);
 
-    printWindow.document.write(`
+    const html = `
       <html>
         <head>
           <title>${title}</title>
@@ -315,8 +309,12 @@ export function usePrintSVG(svgRef: RefObject<SVGSVGElement | null>) {
           </script>
         </body>
       </html>
-    `);
-    printWindow.document.close();
+    `;
+
+    const printWindow = openPrintWindow(html);
+    if (!printWindow) {
+      showToast("Pop-up blocked. Please allow pop-ups to print.");
+    }
   };
 
   const downloadSVG = async (filename: string = 'export.svg') => {

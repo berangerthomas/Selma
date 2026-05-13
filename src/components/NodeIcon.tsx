@@ -2,6 +2,7 @@ import { getInheritedColor } from '../utils/treeUtils';
 import { getInheritedColorDag } from '../utils/dagUtils';
 import { useI18n } from '../i18n';
 import type { TreeNode, DagData } from '../types';
+import { FALLBACK_COLOR } from '../types';
 
 interface NodeIconProps {
   node: TreeNode;
@@ -12,7 +13,7 @@ interface NodeIconProps {
 
 export function NodeIcon({ node, data, dagData, className = '' }: NodeIconProps) {
   const { t } = useI18n();
-  const bgColor = dagData ? getInheritedColorDag(dagData, node.id) : (data ? getInheritedColor(node.id, data) : '#6b7280');
+  const bgColor = dagData ? getInheritedColorDag(dagData, node.id) : (data ? getInheritedColor(node.id, data) : FALLBACK_COLOR);
   
   const finalIconChar = t(`nodes.${node.id}.iconChar`, { defaultValue: node.iconChar || '' });
   const finalIconFont = t(`nodes.${node.id}.iconFont`, { defaultValue: node.iconFont || 'sans-serif' });

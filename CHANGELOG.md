@@ -1,5 +1,43 @@
 # Changelog
 
+## [v0.7.0] - 2026-05-13
+
+This version introduces the use of tags in Selma. You can filter nodes by clicking on individual tags in the toolbox on the main screen.
+
+### Added
+- Added support for node tags, allowing filtering the taxonomy tree and visualizing them in node details.
+- Integrated translated tags directly into the search engine, matching taxonomy node queries based on their tags (translated or not) via standard search fields.
+- Implemented visual indicators (pills) for node tags in the Markdown Viewer:
+  - Sticky footer displaying tags dynamically in the Sidebar details panel.
+  - Fixed-position tag indicators at the bottom of the standalone Markdown Viewer mode.
+  - Tag queries hit by searches are highlighted in real-time within the panel using `<mark>` indicators.
+- Added `FALLBACK_COLOR` constant in `types.ts` shared between `dagUtils.ts` and `treeUtils.ts`.
+- Added `buildParentMap` utility in `dagUtils.ts` for O(1) inverse parent lookups.
+- Added `PrunedNode` type in `types.ts` (centralized, was duplicated in `TreeViz.tsx` and `dagUtils.ts`).
+- Implemented module-level shared Markdown cache in `fetchMarkdownContent` utility.
+
+### Changed
+- Wrapped `onToggleNode`, `clearSelection`, and `colorFor` in `TreeViz.tsx` with `useCallback`.
+- Integrated `parentMap` in `TreeViz.tsx` and `FileTreeView.tsx` to enable O(1) parent lookups during render.
+- Properly typed `linkGenerator` D3 utility in `TreeViz.tsx`.
+- Cached `nodes.json` fetch at module level in `useTaxonomyData.ts` (avoids refetch on taxonomy switch).
+- Added optional `parentMap` parameter to `getParents`/`hasMultipleParents`/`getInheritedColorDag` for O(1) lookups.
+- Replaced duplicated fallback color literal `'#6b7280'` with shared `FALLBACK_COLOR`.
+- Extracted `openPrintWindow` utility in `src/utils/printWindow.ts` (shared by `usePrintHTML`, `usePrintMarkdown`).
+- Replaced hover `useState` with CSS-only hover in `ClusterNode` (removes React reconciliation on mouse hover).
+- Removed `t` prop from `ClusterNode`, `CompactNode`, `OrganicNode` — each now calls `useI18n()` directly.
+- Renamed `Toolbar` style constants for clarity (`FLEX_ROW_STYLE` → `TOOLBAR_ACTIONS_STYLE`, `TEN_PX_FONT` → `HELP_TOGGLE_ICON_STYLE`, etc.) and extracted tags section styles.
+
+### Fixed
+- Fixed redundant Markdown fetches by unifying the cache system across Sidebar and Deep Search.
+- Fixed stale closure bug in `useSearchEngine` search effect using `useRef` for search results and index tracking.
+- remove duplicate SVG transform on node sub-components (ClusterNode, OrganicNode, CompactNode) that caused nodes to render at twice their intended coordinates
+- Fixed "useToast must be used within a ToastProvider" error when opening the standalone Markdown viewer window.
+- Fixed TypeScript error in `useTaxonomyData.ts` (missing `name` property on `DagNode` assignment).
+- Fixed "Rendered more hooks than during the previous render" error in `TreeContext.tsx` by moving `useMemo(value)` before early returns.
+- Unified `usePrintSVG.ts` with other print hooks by using the shared `openPrintWindow` utility.
+- Removed unnecessary type casts in `TreeViz.tsx` by improving hierarchy node typing.
+
 ## [v0.6.3] - 2026-05-09
 
 ### Fixed

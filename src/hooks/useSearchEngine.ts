@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import type { TreeNode, DagData } from '../types';
 import { findMatchingIds } from '../utils/dagUtils';
 import { useDeepSearch } from './useDeepSearch';
+import { clearMarkdownCache } from '../utils/fetchMarkdown';
 import { type TranslateFn } from '../utils/searchRegex';
 
 export function useSearchEngine(
@@ -13,16 +14,21 @@ export function useSearchEngine(
 ) {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [searchResults, setSearchResults] = useState<string[]>([]);
-  const searchContentCacheRef = useRef<Map<string, string>>(new Map());
   const [activeSearchType, setActiveSearchType] = useState<'simple' | 'deep' | null>(null);
   const prevSearchStateRef = useRef<{ query: string; type: 'simple' | 'deep' | null }>({ query: '', type: null });
   const [currentResultIndex, setCurrentResultIndex] = useState<number>(-1);
 
-  const { performDeepSearch } = useDeepSearch(data, lang, t, searchContentCacheRef);
+  const currentResultIndexRef = useRef(currentResultIndex);
+  const searchResultsRef = useRef(searchResults);
+
+  useEffect(() => { currentResultIndexRef.current = currentResultIndex; }, [currentResultIndex]);
+  useEffect(() => { searchResultsRef.current = searchResults; }, [searchResults]);
+
+  const { performDeepSearch } = useDeepSearch(data, lang, t);
 
   // Clear search cache when dagData changes (taxonomy switch)
   useEffect(() => {
-    searchContentCacheRef.current.clear();
+    clearMarkdownCache();
   }, [dagData]);
 
   const handleSearch = useCallback((query: string, mode: 'simple' | 'deep' = 'simple') => {
@@ -97,8 +103,10 @@ export function useSearchEngine(
     const isNewQuery = prevSearchStateRef.current.query !== searchQuery || prevSearchStateRef.current.type !== activeSearchType;
     prevSearchStateRef.current = { query: searchQuery, type: 'simple' };
 
-    if (!isNewQuery && currentResultIndex >= 0 && searchResults[currentResultIndex]) {
-      const activeItem = searchResults[currentResultIndex];
+    const curIdx = currentResultIndexRef.current;
+    const curResults = searchResultsRef.current;
+    if (!isNewQuery && curIdx >= 0 && curResults[curIdx]) {
+      const activeItem = curResults[curIdx];
       const newIndex = results.indexOf(activeItem);
       if (newIndex >= 0) {
         setCurrentResultIndex(newIndex);
