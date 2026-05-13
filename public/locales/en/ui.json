@@ -89,5 +89,7 @@
   "settings_modal_copy_attachments_title": "Copy synchronized structured_taxonomy.json to clipboard",
   "built_with_selma": "Built with Selma",
   "copy_content": "Copy content",
-  "belongs_to": "Belongs to:"
+  "belongs_to": "Belongs to:",
+  "tags_label": "Tags",
+  "clear_tags": "Clear all"
 }

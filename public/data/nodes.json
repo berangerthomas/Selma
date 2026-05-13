@@ -13,6 +13,7 @@
   "egyptian_hieroglyphs": {
     "color": "#f59e0b",
     "image": "/assets/nodes/egyptian_hieroglyphs.svg",
+    "tags": ["logogram", "extinct", "middle_east"],
     "attachments": [
       {
         "path": "/attachments/egyptian_hieroglyphs/guide_en.md",
@@ -41,11 +42,13 @@
   "proto_sinaitic": {
     "color": "#b45309",
     "iconChar": "PS",
+    "tags": ["extinct", "middle_east"],
     "iconFont": "\"AsapCondensed-Bold\""
   },
   "sumerian_cuneiform": {
     "color": "#92400e",
     "iconChar": "📜",
+    "tags": ["logogram", "extinct", "middle_east"],
     "iconFont": "\"NotoEmoji\""
   },
   "akkadian": {
@@ -62,6 +65,7 @@
     "color": "#ef4444",
     "iconChar": "⚓",
     "iconFont": "\"NotoEmoji\"",
+    "tags": ["abjad", "extinct", "mediterranean"],
     "attachments": [
       {
         "path": "/attachments/phoenician/alphabet_article.md",
@@ -74,16 +78,19 @@
   "aramaic": {
     "color": "#dc2626",
     "iconChar": "AR",
+    "tags": ["abjad", "extinct", "middle_east"],
     "iconFont": "\"AsapCondensed-Bold\""
   },
   "hebrew": {
     "color": "#b91c1c",
     "iconChar": "✡️",
+    "tags": ["abjad", "living", "middle_east"],
     "iconFont": "\"NotoEmoji\""
   },
   "nabataean": {
     "color": "#c2410c",
     "iconChar": "NB",
+    "tags": ["extinct", "middle_east"],
     "iconFont": "\"AsapCondensed-Bold\""
   },
   "syriac": {
@@ -94,6 +101,7 @@
   "arabic": {
     "color": "#7c2d12",
     "image": "/assets/nodes/arabic.svg",
+    "tags": ["abjad", "living", "middle_east"],
     "attachments": [
       {
         "path": "/attachments/arabic/arabic_alphabet.svg",

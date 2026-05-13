@@ -88,5 +88,7 @@
   "settings_modal_copy_attachments_title": "Copiar structured_taxonomy.json sincronizado al portapapeles",
   "built_with_selma": "Creado con Selma",
   "copy_content": "Copiar contenido",
-  "belongs_to": "Pertenece a:"
+  "belongs_to": "Pertenece a:",
+  "tags_label": "Etiquetas",
+  "clear_tags": "Borrar todo"
 }

@@ -89,5 +89,7 @@
   "settings_modal_copy_attachments_title": "Copier le structured_taxonomy.json synchronisé dans le presse-papiers",
   "built_with_selma": "Construit avec Selma",
   "copy_content": "Copier le contenu",
-  "belongs_to": "Appartient à :"
+  "belongs_to": "Appartient à :",
+  "tags_label": "Étiquettes",
+  "clear_tags": "Tout effacer"
 }

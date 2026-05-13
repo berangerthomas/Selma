@@ -1,7 +1,13 @@
 {
   "project_title": "Selma — Taxonomie",
-  "project_help": "Selma est un outil interactif pour visualiser et explorer des taxonomies hiérarchiques. Utilisez la barre d'outils pour changer de mode de vue, rechercher des nœuds spécifiques ou exporter le diagramme.",
-  "nodes": {
+  "project_help": "Selma est un outil interactif pour visualiser et explorer des taxonomies hiérarchiques. Utilisez la barre d'outils pour changer de mode de vue, rechercher des nœuds spécifiques ou exporter le diagramme.",  "tags": {
+    "logogram": "Logogramme",
+    "extinct": "Disparu",
+    "middle_east": "Moyen-Orient",
+    "abjad": "Abjad",
+    "mediterranean": "Méditerranée",
+    "living": "Vivant"
+  },  "nodes": {
     "era_3000bc": { "name": "3000 av. J.-C.", "description": "L'aube de l'écriture en Mésopotamie et en Égypte." },
     "era_2000bc": { "name": "2000 av. J.-C.", "description": "Les premiers alphabets et syllabaires cursifs." },
     "era_1000bc": { "name": "1000 av. J.-C.", "description": "L'âge du fer et l'explosion des écritures alphabétiques." },

@@ -1,6 +1,14 @@
 {
   "project_title": "Selma — Taxonomy",
   "project_help": "Selma is an interactive tool for visualizing and exploring hierarchical taxonomies. Use the toolbar to change view modes, search for specific nodes, or export the diagram.",
+  "tags": {
+    "logogram": "Logogram",
+    "extinct": "Extinct",
+    "middle_east": "Middle East",
+    "abjad": "Abjad",
+    "mediterranean": "Mediterranean",
+    "living": "Living"
+  },
   "nodes": {
     "era_3000bc": { "name": "3000 BC", "description": "The dawn of writing in Mesopotamia and Egypt." },
     "era_2000bc": { "name": "2000 BC", "description": "The first alphabets and cursive syllabaries." },

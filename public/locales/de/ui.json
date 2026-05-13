@@ -87,5 +87,7 @@
   "settings_modal_copy_attachments_title": "Synchronisierte structured_taxonomy.json in Zwischenablage kopieren",
   "built_with_selma": "Erstellt mit Selma",
   "copy_content": "Inhalt kopieren",
-  "belongs_to": "Gehört zu:"
+  "belongs_to": "Gehört zu:",
+  "tags_label": "Tags",
+  "clear_tags": "Alle löschen"
 }
