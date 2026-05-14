@@ -2,32 +2,38 @@
 
 [![Demo](https://img.shields.io/badge/demo-Hugging%20Face-orange?logo=huggingface&style=flat)](https://huggingface.co/spaces/berangerthomas/selma) [![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue?logo=github&style=flat)](https://berangerthomas.github.io/selma/) [![License](https://img.shields.io/badge/license-MIT-brightgreen?style=flat)](LICENSE) [![Release](https://img.shields.io/github/v/release/berangerthomas/selma?label=release&style=flat)](https://github.com/berangerthomas/selma/releases) [![React](https://img.shields.io/badge/-React-61DAFB?logo=react&logoColor=white&style=flat)](https://reactjs.org/) [![Vite](https://img.shields.io/badge/-Vite-646cff?logo=vite&logoColor=white&style=flat)](https://vitejs.dev/) [![D3](https://img.shields.io/badge/-D3-f9a03c?logo=d3&logoColor=white&style=flat)](https://d3js.org/) [![Tailwind CSS](https://img.shields.io/badge/-Tailwind_CSS-06B6D4?logo=tailwindcss&logoColor=white&style=flat)](https://tailwindcss.com/)
 
-Selma is a React + Vite application for visualizing and navigating hierarchical taxonomies. It renders a JSON-based tree as an interactive node-link diagram (D3.js), supports multilingual content, and provides export/print helpers for diagrams and node content.
+Selma is a React + Vite application for visualizing and navigating hierarchical taxonomies. It renders JSON-based tree structures as interactive diagrams, supports multiple taxonomies over the same set of nodes, Directed Acyclic Graphs (DAG), multilingual content, and provides advanced export/print helpers.
 
 <p align="center">
   <img src="src/assets/pictures/selma.png" alt="Selma main screen" style="width:100%;height:auto;border:1px solid #ddd" />
 </p>
 
-## Table of contents
+## Key Features
 
-- [Quick start](#quick-start)
-- [Overview & key features](#overview--key-features)
-- [Project layout & architecture](#project-layout--architecture)
-- [Data schema (`nodes.json` & taxonomies)](#data-schema-nodesjson--taxonomies)
-- [Content authoring & localization](#content-authoring--localization)
-- [Screens & controls (UI)](#screens--controls-ui)
-- [Deployment & CI](#deployment--ci)
-- [Technical reference](#technical-reference)
-- [Updating Selma (forks / upgrades)](#updating-selma-forks--upgrades)
-- [FAQ / Troubleshooting](#faq--troubleshooting)
-- [Contributing & development](#contributing--development)
-- [License](#license)
+- **4 Visualization Modes**: Organic (D3 link-node), Compact (orthogonal), List (collapsible tree), and Columns (Miller columns).
+- **Multiple Taxonomies**: Switch between different classification lenses on the same dataset (e.g., chronological vs. genealogical).
+- **DAG Support**: Full support for nodes with multiple parents, with dedicated visual indicators.
+- **Native Localization**: Asynchronous loading of UI translations and localized Markdown content.
+- **Export & Print**: Export diagrams as SVG, PNG, or JPG, and export list views as plain text ASCII trees.
 
-## Quick start
+## Documentation
 
-Requirements: Node.js (LTS, Node 18+ recommended; project works with current stable Node versions). Using Node 24+ is fine if CI targets it.
+Detailed documentation is available in the `docs/` folder or [online](https://berangerthomas.github.io/selma/):
 
-Clone, install and run locally:
+- [Introduction](docs/introduction.md) — Project overview.
+- [Getting Started](docs/getting-started.md) — Requirements and installation.
+- [Taxonomy Data](docs/taxonomy-data.md) — How to structure your JSON data.
+- [Content & Markdown](docs/content-markdown.md) — Writing Markdown for nodes.
+- [Export & Print](docs/export-print.md) — How to export your diagrams.
+- [Configuration](docs/configuration.md) — Customizing themes and behaviors.
+- [Deployment](docs/deployment.md) — Hosting on GitHub Pages, Vercel, etc.
+- [Architecture](docs/architecture.md) — How the app works internally.
+- [Updating Selma](docs/updating-fork.md) — Keeping your fork up to date.
+- [FAQ](docs/faq.md) & [Reference](docs/reference.md) — Technical details and troubleshooting.
+
+## Quick Start
+
+Requirements: Node.js 18 or higher (Node 20+ recommended).
 
 ```bash
 git clone https://github.com/berangerthomas/selma.git
@@ -36,384 +42,31 @@ npm ci
 npm run dev
 ```
 
-Build for production and preview locally:
+Build for production:
 
 ```bash
 npm run build
 npm run preview
 ```
 
-## Overview & key features
+## Data Architecture
 
-- Multiple taxonomies support: Keep the entities in one file, construct completely different relationships in explicit taxonomy JSON files (e.g. Genealogical vs Chronological) and switch seamlessly between them from the toolbar.
-- Programmatic rendering modes: transforms a structured JSON payload into interactive data using **four distinct visualization modes**:
-  - `Organic`: Organic node-and-link clustered view.
-  - `Compact`: Denser rectangular view with orthogonal connections.
-  - `List`: Flat, familiar collapsible tree for purely textual navigation.
-  - `Columns`: Miller Columns (like macOS Finder) for deep hierarchies.
-- Modular architecture: decoupled UI components, translation logic and markdown-driven node content.
-- Native localization: asynchronous loading of `taxonomy.json` and `ui.json` per language with safe fallbacks.
-- Export & print: inline fonts/images into exported SVG; produce PNG/JPG via canvas rasterization. Note that PNG and JPG exports have maximum dimension constraints imposed by browser memory limits (e.g., around 16,000 pixels for Chrome). The tool dynamically downscales the image to fit this limit. If the taxonomy tree is extremely large and exceeds this even at minimal scale, an error message is displayed recommending the SVG export, which is vector-based and has no such mathematical graphic limits.
+Selma separates application logic from user content to simplify updates. All your data lives in the `public/` folder:
 
-## DAG (Directed Acyclic Graph) Support
+- `public/data/nodes.json` — Global registry of node properties (colors, icons, tags, attachments).
+- `public/data/taxonomies/*.json` — JSON structures defining relationships for each taxonomy.
+- `public/details/<lang>/<nodeId>.md` — Localized Markdown content for each node.
+- `public/locales/<lang>/` — Interface strings (`ui.json`) and taxonomy labels (`taxonomy.json`).
+- `public/assets/` — Your images, fonts, and downloadable attachments.
 
-Selma v0.6.0 introduces full support for DAG (Directed Acyclic Graph) data structures, allowing nodes to belong to multiple branches simultaneously. This is particularly useful for taxonomies where entities naturally belong to multiple categories (e.g., "Dolphin" is both a Mammal and a Cetacean).
+## DAG Support
 
-### Key DAG Features
+Nodes can belong to multiple parents simultaneously. Secondary parent-child relationships are automatically detected and displayed as amber dashed lines in graph views. For example, in the included **writing systems** taxonomy, the Ugaritic script appears under both Proto-Sinaitic and Sumerian Cuneiform.
 
-- **Multi-parent nodes**: Nodes can have multiple parents while maintaining an acyclic structure
-- **Cross-edges visualization**: Secondary parent-child relationships are displayed as amber dashed lines in graph views
-- **Spanning tree approach**: Primary parent determines node position; additional relationships become cross-edges
-- **Visual indicators**: Amber rings around nodes, badges in list view, and sidebar navigation to other parents
-### Data Structure
+## Customization
 
-Selma uses a split data architecture for the taxonomy.
-
-**1. Node registry (`public/data/nodes.json`)**
-Declares node properties (colors, icons, attachments):
-```json
-{
-  "life": { "color": "#10b981" },
-  "dolphin": { "image": "/assets/nodes/dolphin.svg" }
-}
-```
-
-**2. Taxonomy structure (`public/data/taxonomies/*.json`)**
-Defines relationships using a flat DAG format:
-```json
-{
-  "id": "biological",
-  "name": "Biological",
-  "root": "life",
-  "nodes": {
-    "life": { "children": ["mammalia", "cetacea"] },
-    "mammalia": { "children": ["dolphin", "bat"] },
-    "cetacea": { "children": ["dolphin", "whale"] },
-    "dolphin": { "children": [] }
-  }
-}
-```
-
-In this example, "dolphin" appears in both `mammalia.children` and `cetacea.children`, giving it two parents.
-
-### Implementation Details
-
-- **Core utilities**: `src/utils/dagUtils.ts` provides DAG traversal, cycle detection, and path finding
-- **Data loading**: `src/hooks/useTaxonomyData.ts` handles taxonomy fetching and validation
-- **Rendering**: `TreeContext` manages both spanning tree (for layout) and DAG data (for relationships)
-- **Visualization**: Enhanced `TreeViz`, `FileTreeView`, and `Sidebar` with DAG awareness
-
-### User Experience
-
-- **Navigation**: Click multi-parent nodes to see all parent branches in the sidebar
-- **Visual cues**: Amber indicators show nodes with multiple parents
-- **Context switching**: Navigate between different parent contexts seamlessly
-- **Search**: DAG-aware search finds nodes by any parent path
-
-### SVG Images and Dark Mode
-
-By default, SVG images loaded via Markdown are automatically inverted when Dark Mode is active. This ensures that text or monochrome icons drawn in dark colors remain readable against the app's dark background.
-
-**Preserving Original Colors**
-If you have a customized or colorful SVG that should *not* be inverted in dark mode, simply append `-color` to its filename before the extension (e.g., `illustration-color.svg`). The application will recognize this naming convention and preserve the image's original colors.
-
-## Multi-Taxonomy Architecture
-
-To support different classifications of the same entities (for example, showing linguistic families vs a chronological timeline), Selma allows multiple taxonomy definitions.
-
-1. `public/data/nodes.json`: A flat dictionary declaring all node properties (IDs, colors, icons).
-2. `public/data/taxonomies/*.json`: Individual tree/DAG structure defining the parent-child relationships. These are automatically discovered at runtime via a registry.
-3. `public/data/taxonomies.json`: An automatically generated registry of available taxonomies.
-
-## Project layout & architecture
-
-Top-level layout (important folders and files):
-
-- `public/` — static assets and runtime content
-	- `public/data/nodes.json` — flat dictionary of all node properties
-	- `public/data/taxonomies/*.json` — hierarchical or DAG structures
-	- `public/data/taxonomies.json` — registry of available taxonomies
-	- `public/details/[lang]/[nodeId].md` — localized Markdown per node
-	- `public/locales/[lang]/taxonomy.json` — node translations and project title
-	- `public/locales/[lang]/ui.json` — interface strings
-- `src/` — React + D3 application
-	- [src/context/TreeContext.tsx](src/context/TreeContext.tsx) — application state, search and URL sync
-	- [src/components/TreeViz.tsx](src/components/TreeViz.tsx) — D3 layout and rendering
-	- [src/components/Sidebar.tsx](src/components/Sidebar.tsx) — node detail panel and Markdown loader
-	- [src/components/MarkdownRenderer.tsx](src/components/MarkdownRenderer.tsx) & [src/components/TabbedMarkdown.tsx](src/components/TabbedMarkdown.tsx) — markdown rendering and tab extraction
-	- [src/hooks/useTaxonomyData.ts](src/hooks/useTaxonomyData.ts) — taxonomy fetch and caching
-
-Data flow (high level):
-
-1. App fetches `/data/taxonomies.json` to discover available taxonomies, then loads the selected one (`useTaxonomyData`).
-2. `TreeViz` prunes/arranges the tree and renders the SVG with D3.
-3. Selecting a node triggers `Sidebar` to fetch `/details/<lang>/<nodeId>.md` (fallback to unlocalized file) and render tabs from `##` headers.
-4. Translations are loaded via `i18next` HTTP backend configured in [src/i18n.tsx](src/i18n.tsx).
-
-Notes:
-- Keep user-provided content under `public/locales/` and `public/details/` to simplify upgrades.
-- Supported languages are discovered at build/start using `import.meta.glob`; after adding a new `public/locales/<lang>/` folder restart the dev server.
-
-## Customizing Graph Margins
-
-If you want to adjust how the graph fits within the screen (its margins) when entering "fit view" mode, look in `src/components/TreeViz.tsx` inside the `computeTransform` function. You can modify the `visualMinY`, `visualMaxY`, `visualMinX`, and `visualMaxX` values to add or reduce empty space around the graph.
-
-**Note on D3 coordinates:** Because the tree is horizontal (grows from left to right), the D3 axes are inverted relative to the screen. D3's "Y" represents depth (horizontal on screen) and "X" represents breadth (vertical on screen).
-
-To adjust specific margins, modify these lines in `computeTransform`:
-- `visualMinY`: Adjusts the **Left** margin (space before the root node).
-- `visualMaxY`: Adjusts the **Right** margin (space after the deepest nodes, usually for text).
-- `visualMinX`: Adjusts the **Top** margin.
-- `visualMaxX`: Adjusts the **Bottom** margin.
-
-## Animation timing
-
-Animation timing is centralized inside `src/components/TreeViz.tsx` via the `ANIMATION_MS` constant (in milliseconds). `TreeViz` injects `--anim-ms` at runtime, and the CSS derives the quicker transitions from it with `calc(var(--anim-ms) / 2)`. To change the global timing, edit `ANIMATION_MS` in `src/components/TreeViz.tsx`.
-
-## Data schema (`nodes.json` & taxonomies)
-
-Minimal node example in `nodes.json`:
-
-```json
-{
-	"id": "mammals",
-	"name": "Mammals",
-	"color": "#f97316",
-	"image": "/assets/nodes/mammal.svg",
-	"iconChar": "🐾",
-	"iconFont": "\\"NotoEmoji\\"",
-	"children": []
-}
-```
-
-Field reference:
-
-- `id` (string, required): stable identifier for lookups, translations and URLs. Recommended pattern: `^[a-z0-9_\\\\-]+$`. Avoid renaming ids.
-- `name` (string): default label shown when no translation exists.
-- `color` (string, optional): CSS color for node background.
-- `tags` (array of strings, optional): list of textual tags (e.g. `["extinct", "living"]`) used for filtering the tree and displaying metadata in the Markdown viewer. Tags are localized via `public/locales/<lang>/taxonomy.json`.
-- `image` (string, optional): path under `/assets/` used as a node image.
-- `iconChar` (string, optional) and `iconFont` (string, optional): glyph-based icons.
-- `attachments` (array of objects, optional): list of downloadable files (e.g. `[{"name": "Report", "path": "/attachments/node_id/report.pdf", "format": "pdf", "lang": "en"}]`). The optional `lang` field restricts an attachment to a specific language: attachments with a `lang` are shown only when the UI language matches that value; attachments without `lang` are language-agnostic and shown for all languages.
-
-Attachment display behavior (UI):
-
-- The viewer shows attachments compactly in this order: language-agnostic files (no `lang`), then files matching the current UI language, then other-language files grouped under a collapsible "Other languages" section.
-- This preserves a single, compact top-line for the most relevant documents while still exposing translations and extras on demand.
-- `lang` remains optional in the schema; keep it for translated files (or consider `langs: string[]` if a file targets multiple languages).
-
-- `children` (array): nested node objects.
-
-Precedence for visuals: localized overrides (in `public/locales/<lang>/taxonomy.json`) → `image` → `iconChar`/`iconFont` → text label.
-
-Recommended practices:
-
-- Keep `id` stable and compact.
-- Prefer `/assets/` absolute paths for images.
-- Use `image` for rich SVG icons and `iconChar` for lightweight glyphs.
-
-### Filtering with Tags
-
-Tags provide a fast, centralized way to categorize and filter nodes across any taxonomy.
-When adding a tag to a node in `public/data/nodes.json`:
-
-1. Define the `tags` array: `"tags": ["logogram", "middle_east"]`.
-2. Map the tags in your localization files (`public/locales/<lang>/taxonomy.json`) under the `"tags"` object:
-   ```json
-   "tags": {
-     "logogram": "Logogram",
-     "middle_east": "Middle East"
-   }
-   ```
-
-Users can filter the taxonomy graph dynamically using tag pills underneath the search bar. Tag references are also translated instantly through the UI and seamlessly inject into the node's detail panel (Markdown Viewer). Moreover, searching for a tag string via the main search field highlights any nodes associated with that tag.
-
-## Content authoring & localization
-
-File locations & resolution:
-
-- Localized node content: `public/details/<lang>/<nodeId>.md`.
-- Fallback: `/details/<nodeId>.md` if localized file is missing.
-- Translations: `public/locales/<lang>/taxonomy.json` (node data) and `public/locales/<lang>/ui.json` (interface strings).
-
-Authoring notes for Markdown:
-
-- Use a single H1 title. Content before the first `##` becomes the intro.
-- Use `##` to create tabs (handled automatically by `TabbedMarkdown`).
-- Prefer absolute `/assets/...` paths for images stored in `public/`.
-
-Images and icons:
-
-- Absolute paths starting with `/` resolve from `public/`.
-- Relative paths in Markdown are resolved relative to the Markdown file by `MarkdownRenderer`.
-- For webfonts, add files under `public/assets/fonts/` and reference them from `public/assets/fonts/custom-fonts.css`.
-
-Localization model:
-
-- `public/locales/<lang>/taxonomy.json` maps node ids → localized `name` and optional `iconChar`/`iconFont`. It also contains the `project_title` key for the main application title.
-- `public/locales/<lang>/ui.json` contains interface strings used by `i18next`.
-
-### Translations maintenance (dev-only Settings modal)
-
-- Location & access: In development mode only (`import.meta.env.DEV === true`), a gear icon appears in the floating toolbar header. Click it to open the **Settings** modal and switch to the **Translations** tab.
-
-- Purpose: the Translations tab helps maintain parity between the canonical node definitions (`public/data/nodes.json`) and the per-language `public/locales/<lang>/taxonomy.json` files. It computes coverage per language, lists missing node ids with English name hints, and allows downloading a fully scaffolded `taxonomy.[lang].json` file ready for translators.
-
-- How it works:
-	1. The modal fetches `public/data/nodes.json` and each `public/locales/<lang>/taxonomy.json` directly (via `fetch()`), so it reports the persisted on-disk state rather than any in-memory i18next cache.
- 2. For each language the UI shows `translated_count / total_count` and a status indicator. Expanding an incomplete language reveals the missing node IDs and their English `name` values from the node registry.
- 3. Clicking `⬇ taxonomy.[lang].json` downloads a complete JSON file that merges existing translations and injects missing entries as `{ "name": "[TODO] <English name>" }`. Existing translations are preserved and never overwritten.
-
-	 You can also copy the scaffolded JSON directly to the clipboard from the Settings modal (dev-only) using the new "Copy" action — handy for pasting into an editor or creating a quick PR without saving the file first.
-
-- How to use the downloaded scaffold:
-	1. Download `taxonomy.<lang>.json` from the Translations tab.
-	2. Move the file into your project at `public/locales/<lang>/taxonomy.json`. If a `taxonomy.json` already exists, either replace it (recommended when you're intentionally committing the full updated file) or manually merge the new entries into the existing file.
-	3. Edit the file and replace any `name` values prefixed with `[TODO] ` with the proper translated string. Keep the node `id` keys unchanged.
-	4. Commit and push the updated translation file with a descriptive message (e.g., `git add public/locales/fr/taxonomy.json && git commit -m "locales(fr): scaffold and add missing taxonomy translations"`).
-	5. If you added an entirely new `public/locales/<lang>/` folder, restart the dev server so the build-time locale detection picks it up. Otherwise a simple page reload in dev mode is usually sufficient.
-
-- Notes and caveats:
-	- The download is a client-side Blob and currently does not write files to the repository automatically; the code contains a `// TODO: replace with backend API call` comment where a backend write could be enabled in the future.
-	- The scaffold uses the English `name` from `nodes.json` as a translator hint; translators should remove the `[TODO] ` prefix when they provide the real translation.
-	- This feature is intentionally gated to development builds only and will not be exposed in production.
-
-
-## Screens & controls (UI)
-
-Main UI areas:
-
-- Central interactive SVG tree (`TreeViz`) — pan/zoom, cluster/collapse behaviour.
-- Floating Toolbar — search, language/theme toggles, fit/expand/collapse, export.
-- Sidebar — node Markdown viewer with tab extraction from `##` headings.
-
-Key interactions:
-
-- Click a node to show details in the Sidebar; the URL is synchronized with `?node=<id>` for deep links.
-- Nodes that have file attachments show a small document indicator in every view mode, so users can identify downloadable content before opening the sidebar.
-- Search by id/name and cycle results with next/previous controls.
-- Use the toolbar for language switching, theme toggle and exporting the current view.
-- Adjust the reading text size dynamically from the Sidebar or the standalone Markdown viewer.
-
-Export & print behavior per view mode:
-
-| View mode | Print | Export formats |
-|-----------|-------|----------------|
-| **Organic / Compact** | Prints the SVG tree | SVG, PNG, JPG |
-| **List / Miller Columns** | Prints the HTML page | Plain text tree (`.txt`) |
-
-Notes on export:
-- **SVG/PNG/JPG** exports are only available in the graph views (Organic and Compact) because they rasterize the D3 SVG canvas.
-- **PNG and JPG** exports have maximum dimension constraints imposed by browser canvas memory limits (e.g., around 16,000 pixels for Chrome). The tool dynamically downscales the image to fit this limit. If the taxonomy tree is extremely large and exceeds this even at minimal scale, an error message is displayed recommending the SVG export, which is vector-based and has no such mathematical graphic limits.
-- **Text export** is available in List and Miller Columns views. It generates an ASCII tree representation using box-drawing characters (e.g., `├── Mammals`) and downloads it as a `.txt` file.
-
-Implementation pointers:
-
-- [src/components/TreeViz.tsx](src/components/TreeViz.tsx) — D3 layout, pruning and rendering logic.
-- [src/components/Toolbar.tsx](src/components/Toolbar.tsx) — buttons and toolbar actions.
-- [src/components/Sidebar.tsx](src/components/Sidebar.tsx) — Markdown fetching and rendering.
-
-## Deployment & CI
-
-Build and preview locally:
-
-```bash
-npm ci
-npm run build
-npm run preview
-```
-
-## Technical reference
-
-Quick pointers to useful files and APIs:
-
-- Data fetch: [src/hooks/useTaxonomyData.ts](src/hooks/useTaxonomyData.ts)
-- Global context / state: [src/context/TreeContext.tsx](src/context/TreeContext.tsx)
-- Visualization: [src/components/TreeViz.tsx](src/components/TreeViz.tsx)
-- Markdown rendering: [src/components/MarkdownRenderer.tsx](src/components/MarkdownRenderer.tsx)
-- Utilities: [src/utils/treeUtils.ts](src/utils/treeUtils.ts), [src/utils/localization.ts](src/utils/localization.ts)
-- Export/print: [src/hooks/usePrintSVG.ts](src/hooks/usePrintSVG.ts), [src/hooks/usePrintMarkdown.ts](src/hooks/usePrintMarkdown.ts)
-
-`useTree()` (exposed by `TreeContext`) basic API:
-
-- `data: TreeNode` — loaded taxonomy
-- `expanded: Set<string>` — expanded node ids
-- `activeId: string` — selected node id
-- `toggleNode(id: string)`, `setActiveId(id: string)`, `collapseAll()`, `expandAll()`
-
-Type definition (see [src/types.ts](src/types.ts)):
-
-```ts
-export type TreeNode = {
-	id: string
-	name: string
-	color?: string
-	image?: string
-	iconChar?: string
-	iconFont?: string
-	attachments?: {
-		name: string
-		path: string
-		format: string
-		lang?: string
-		size?: number
-	}[]
-	children?: TreeNode[]
-}
-```
-
-## Updating Selma (forks & upgrades)
-
-Keep user data separate from the application code to simplify updates. Files and folders you should NOT overwrite when updating:
-
-- `public/data/` (node registry and taxonomies)
-- `public/details/` (node markdown files)
-- `public/locales/` (translations)
-- `public/assets/`
-
-Updating options:
-
-- Manual ZIP update: replace `src/`, `package.json`, `vite.config.ts`, `index.html` but preserve `public/` data folders.
-- Fork + rebase (recommended):
-
-```bash
-git remote add upstream https://github.com/berangerthomas/selma.git
-git fetch upstream
-git checkout main
-git rebase upstream/main
-# resolve conflicts (preserve your public/locales and public/details changes)
-git push --force-with-lease origin main
-```
-
-Alternative: merge instead of rebase if you prefer not to rewrite history.
-
-See [docs/updating-fork.md](docs/updating-fork.md) for full instructions.
-
-## FAQ / Troubleshooting
-
-- Images or Markdown do not load: ensure content is under `public/details/` and referenced with correct paths; check network requests in devtools.
-- Translations missing: verify `public/locales/<lang>/taxonomy.json` and `ui.json` and restart dev server after adding a new locale.
-- Export issues (fonts/icons missing): ensure fonts are reachable (CORS) and included in `public/assets/fonts/` if serving locally.
-
-## Contributing & development
-
-Typical developer workflow:
-
-```bash
-npm ci
-npm run dev
-npm run build
-```
-
-- Build the docs site (if you want to preview the VitePress documentation):
-
-```bash
-npx vitepress build docs
-npx vitepress dev docs
-```
-
-If you contribute, please open a PR, keep changes focused and test locally.
+The repository ships with sample data. To use Selma for your own project, simply replace the contents of the `public/` folder with your own taxonomies and Markdown files.
 
 ## License
 
-This project is licensed under the MIT License — see [LICENSE](LICENSE).
+MIT — see [LICENSE](LICENSE).
