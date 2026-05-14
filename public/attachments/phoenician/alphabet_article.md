@@ -37,7 +37,7 @@ Around 800 BCE, Greek traders adapted the Phoenician alphabet, making a decisive
 
 ### 3.2 The Aramaic Branch
 Aramaic, adopted as the lingua franca of the Persian Empire, carried an evolved form of Phoenician across Asia:
-- **Hebrew** (square script — DAG node: also from Phoenician directly)
+- **Hebrew** (square script — also from Phoenician directly)
 - **Nabataean** → **Arabic**
 - **Syriac** → contributed to **Arabic** and **Armenian**
 - **Sogdian** → **Uyghur** → **Mongolian**

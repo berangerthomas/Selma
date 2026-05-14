@@ -9,7 +9,7 @@ Aramaic was the lingua franca of the ancient Near East for over a millennium. It
 - Jesus of Nazareth is believed to have spoken a Galilean dialect of Aramaic
 
 ## Script Descendants
-The Aramaic script is a prolific parent in the writing systems DAG:
+The Aramaic script is a prolific ancestor across many writing systems:
 
 | Script | Region | Status |
 |---|---|---|

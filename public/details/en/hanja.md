@@ -16,7 +16,7 @@ After Hangul's creation, Hanja use declined progressively:
 - **North Korea**: Hanja is essentially abolished in everyday use
 
 ## Hangul Connection
-Hanja is a **parent of Hangul** in the DAG — not because Hangul characters are derived from Chinese characters, but because:
+Hanja is an **influential predecessor to Hangul** — not because Hangul characters are derived from Chinese characters, but because:
 1. The *concept* of a character representing a morpheme influenced Hangul's design
 2. Hangul was designed to be used *alongside* Hanja
 3. Many Sino-Korean words (from Chinese via Hanja) can optionally be written in Hanja even today

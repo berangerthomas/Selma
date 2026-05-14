@@ -19,4 +19,4 @@ Aunque el glagolítico se diseñó principalmente sobre la base de la **minúscu
 A diferencia de la mayor parte de Europa, **Croacia** continuó usando el glagolítico para propósitos religiosos hasta bien entrado el siglo XIX: una extraordinaria supervivencia de 1.000 años. Croacia fue el único país católico romano al que se le permitió usar una escritura vernácula en la misa.
 
 ## Relación con el cirílico
-El cirílico, que finalmente reemplazó al glagolítico en casi todas partes, fue creado en parte *a partir* del glagolítico (razón por la cual el cirílico es un nodo en el DAG con el glagolítico y el griego como progenitores).
+El cirílico, que finalmente reemplazó al glagolítico en casi todas partes, fue creado en parte *a partir* del glagolítico — lo que refleja una doble herencia, tanto del glagolítico como del griego.

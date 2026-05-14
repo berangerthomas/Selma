@@ -16,7 +16,7 @@ Nach der Erschaffung des Hangul ging die Verwendung von Hanja zunehmend zurück:
 - **Nordkorea**: Hanja ist im alltäglichen Gebrauch im Wesentlichen abgeschafft
 
 ## Die Hangul-Verbindung
-Hanja ist ein **Elternteil von Hangul** im DAG — nicht weil die Hangul-Zeichen von den chinesischen Schriftzeichen abgeleitet sind, sondern weil:
+Hanja ist ein **historischer Einfluss auf Hangul** — nicht, weil die Hangul-Zeichen von den chinesischen Schriftzeichen abgeleitet sind, sondern weil:
 1. Das *Konzept*, dass ein Zeichen ein Morphem darstellt, das Design von Hangul beeinflusste
 2. Hangul so konzipiert war, dass es *zusammen mit* Hanja verwendet werden konnte
 3. Viele sinokoreanische Wörter (aus dem Chinesischen via Hanja) auch heute noch optional in Hanja geschrieben werden können

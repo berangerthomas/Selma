@@ -6,7 +6,7 @@
 ## Overview
 Hangul (한글) is the official writing system of Korea, created in **1443 CE** by **King Sejong the Great** of the Joseon dynasty and introduced to the public in 1446 via the *Hunminjeongeum* document. It is considered one of the most scientifically designed alphabets ever created.
 
-## A True DAG Node
+## Dual inheritance
 Hangul has two distinct parents:
 - **Hanja** (Chinese characters): conceptual influence, co-existence in the text system
 - **Phags-pa**: structural and phonological design principles — letter shapes in Hangul may be partly inspired by Phags-pa's systematic articulation-based design

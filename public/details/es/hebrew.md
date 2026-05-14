@@ -1,7 +1,7 @@
 # Escritura Hebrea
 
 ## Descripción general
-La escritura hebrea, también conocida como la **"escritura cuadrada"** (*Ktav Ashuri*), surgió de la convergencia de las tradiciones fenicia y aramea imperial. Es un **nodo DAG**: sus formas de letras cuadradas derivan principalmente del arameo, mientras que su forma paleohebrea anterior desciende directamente del fenicio.
+La escritura hebrea, también conocida como la **"escritura cuadrada"** (*Ktav Ashuri*), surgió de la convergencia de las tradiciones fenicia y aramea imperial. Presenta una **doble herencia**: sus formas de letras cuadradas derivan principalmente del arameo, mientras que su forma paleohebrea anterior desciende directamente del fenicio.
 
 ## Dos fases
 - **Paleohebreo** (c. 900–135 a. C.): Utilizado en monedas, inscripciones y secciones de los Rollos del Mar Muerto. Se asemeja mucho al fenicio.

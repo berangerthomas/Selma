@@ -1,7 +1,7 @@
 # Hebrew Script
 
 ## Overview
-The Hebrew script, also known as the **"square script"** (*Ktav Ashuri*), emerged from the convergence of Phoenician and Imperial Aramaic traditions. It is a **DAG node**: its square letterforms derive primarily from Aramaic, while its earlier paleo-Hebrew form descends directly from Phoenician.
+The Hebrew script, also known as the **"square script"** (*Ktav Ashuri*), emerged from the convergence of Phoenician and Imperial Aramaic traditions. It shows a **dual heritage**: its square letterforms derive primarily from Aramaic, while its earlier paleo-Hebrew form descends directly from Phoenician.
 
 ## Two Phases
 - **Paleo-Hebrew** (c. 900–135 CE): Used on coins, inscriptions and the Dead Sea Scrolls sections. Closely resembles Phoenician.

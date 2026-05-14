@@ -16,7 +16,7 @@ Después de la creación del Hangul, el uso del Hanja disminuyó progresivamente
 - **Corea del Norte**: el Hanja está esencialmente abolido en el uso diario.
 
 ## La conexión con el Hangul
-El Hanja es un **progenitor del Hangul** en el DAG, no porque los caracteres Hangul se deriven de los caracteres chinos, sino porque:
+El Hanja es una **influencia histórica sobre el Hangul** — no porque los caracteres Hangul se deriven de los caracteres chinos, sino porque:
 1. El *concepto* de un carácter que representa un morfema influyó en el diseño del Hangul.
 2. El Hangul fue diseñado para usarse *junto con* el Hanja.
 3. Muchas palabras sino-coreanas (del chino a través del Hanja) pueden escribirse opcionalmente en Hanja incluso hoy en día.

@@ -1,7 +1,7 @@
 # Écriture Hébraïque
 
 ## Aperçu
-L'écriture hébraïque, également connue sous le nom d'**"écriture carrée"** (*Ktav Ashuri*), a émergé de la convergence des traditions phénicienne et araméenne impériale. C'est un **nœud DAG** : la forme carrée de ses lettres dérive principalement de l'araméen, tandis que sa forme paléo-hébraïque antérieure descend directement du phénicien.
+L'écriture hébraïque, également connue sous le nom d'**"écriture carrée"** (*Ktav Ashuri*), a émergé de la convergence des traditions phénicienne et araméenne impériale. Elle témoigne d'un **double héritage** : la forme carrée de ses lettres dérive principalement de l'araméen, tandis que sa forme paléo-hébraïque antérieure descend directement du phénicien.
 
 ## Deux Phases
 - **Paléo-hébreu** (c. 900–135 av. J.-C.) : Utilisé sur les pièces de monnaie, les inscriptions et certaines sections des manuscrits de la mer Morte. Ressemble étroitement au phénicien.

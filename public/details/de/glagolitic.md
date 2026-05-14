@@ -19,4 +19,4 @@ Obwohl Glagolitisch primär auf Basis der **griechischen Minuskel** entworfen wu
 Im Gegensatz zum Großteil Europas nutzte **Kroatien** die Glagoliza für religiöse Zwecke bis weit ins 19. Jahrhundert hinein — ein außergewöhnliches 1.000-jähriges Überleben. Kroatien war das einzige römisch-katholische Land, dem es gestattet war, in der Messe eine volkssprachliche Schrift zu verwenden.
 
 ## Beziehung zu Kyrillisch
-Das Kyrillische, das die Glagoliza schließlich fast überall ersetzte, wurde teilweise *aus* der Glagoliza geschaffen (weshalb das Kyrillische im DAG ein Knoten ist, der sowohl Glagolitisch als auch Griechisch als Eltern hat).
+Das Kyrillische, das die Glagoliza schließlich fast überall ersetzte, wurde teilweise *aus* der Glagoliza geschaffen — was sein doppeltes Erbe sowohl aus der Glagoliza als auch aus dem Griechischen widerspiegelt.

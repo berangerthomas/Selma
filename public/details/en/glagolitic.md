@@ -19,4 +19,4 @@ Although Glagolitic was designed primarily on the basis of the **Greek minuscule
 Unlike most of Europe, **Croatia** continued using Glagolitic for religious purposes well into the 19th century — an extraordinary 1,000-year survival. Croatia was the only Roman Catholic country permitted to use a vernacular script in the Mass.
 
 ## Relation to Cyrillic
-Cyrillic, which eventually replaced Glagolitic almost everywhere, was created partly *from* Glagolitic (which is why Cyrillic is a DAG node with both Glagolitic and Greek as parents).
+Cyrillic, which eventually replaced Glagolitic almost everywhere, was created partly *from* Glagolitic — reflecting a dual heritage from both Glagolitic and Greek.

@@ -9,7 +9,7 @@ Aramäisch war über ein Jahrtausend lang die Lingua franca des alten Nahen Oste
 - Es wird angenommen, dass Jesus von Nazareth einen galiläischen Dialekt des Aramäischen sprach
 
 ## Schrift-Nachkommen
-Die aramäische Schrift ist ein produktiver Vorfahre im DAG (gerichteter azyklischer Graph) der Schriftsysteme:
+Die aramäische Schrift ist ein produktiver Vorfahre in der Entwicklungsgeschichte der Schriftsysteme:
 
 | Schrift | Region | Status |
 |---|---|---|

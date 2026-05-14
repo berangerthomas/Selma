@@ -6,7 +6,7 @@
 ## Aperçu
 Le Hangul (한글) est le système d'écriture officiel de la Corée, créé en **1443 apr. J.-C.** par le **roi Sejong le Grand** de la dynastie Joseon et présenté au public en 1446 via le document *Hunminjeongeum*. Il est considéré comme l'un des alphabets les plus scientifiquement conçus jamais créés.
 
-## Un Véritable Nœud DAG
+## Double héritage
 Le Hangul a deux parents distincts :
 - **Hanja** (caractères chinois) : influence conceptuelle, coexistence dans le système de texte
 - **Phags-pa** : principes de conception structurels et phonologiques — les formes des lettres en Hangul pourraient être en partie inspirées par la conception systématique basée sur l'articulation du Phags-pa

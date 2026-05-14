@@ -9,7 +9,7 @@ L'araméen a été la lingua franca du Proche-Orient ancien pendant plus d'un mi
 - On pense que Jésus de Nazareth parlait un dialecte galiléen de l'araméen
 
 ## Descendants de l'Écriture
-L'écriture araméenne est un parent prolifique dans l'arbre (DAG) des systèmes d'écriture :
+L'écriture araméenne a joué un rôle majeur dans l'évolution de nombreux systèmes d'écriture :
 
 | Écriture | Région | Statut |
 |---|---|---|
