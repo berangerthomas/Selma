@@ -34,19 +34,29 @@ export function useTaxonomyData(taxonomyId: string) {
         if (!taxoResponse.ok) throw new Error(`HTTP error! status: ${taxoResponse.status}`)
         const taxoFile = await taxoResponse.json()
 
-        // Merge them into a single DagData
+        // Collect all IDs: declared keys + every child referenced in children[]
+        const allIds = new Set<string>();
+        for (const [id, structNode] of Object.entries(taxoFile.nodes)) {
+          allIds.add(id);
+          const struct = structNode as TaxoStructNode;
+          for (const childId of struct.children ?? []) {
+            allIds.add(childId);
+          }
+        }
+
+        // Resolve every ID in one pass: declared nodes keep their children,
+        // unreferenced leaf nodes get [] and are enriched from nodes.json.
         const dagData: DagData = {
           root: taxoFile.root,
           nodes: {}
         };
-
-        for (const [id, structNode] of Object.entries(taxoFile.nodes)) {
+        for (const id of allIds) {
+          const taxoNode = taxoFile.nodes[id] as TaxoStructNode | undefined;
           const detailNode = (nodesDict[id] || {}) as Record<string, unknown>;
-          const struct = structNode as TaxoStructNode;
           dagData.nodes[id] = {
             id,
             name: (detailNode.name as string) || id,
-            children: struct.children ?? [],
+            children: taxoNode?.children ?? [],
             ...detailNode
           };
         }

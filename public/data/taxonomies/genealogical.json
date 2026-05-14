@@ -38,12 +38,6 @@
         "ugaritic"
       ]
     },
-    "akkadian": {
-      "children": []
-    },
-    "ugaritic": {
-      "children": []
-    },
     "phoenician": {
       "children": [
         "aramaic",
@@ -61,9 +55,6 @@
         "sogdian"
       ]
     },
-    "hebrew": {
-      "children": []
-    },
     "nabataean": {
       "children": [
         "arabic"
@@ -75,9 +66,6 @@
         "armenian"
       ]
     },
-    "arabic": {
-      "children": []
-    },
     "sogdian": {
       "children": [
         "uyghur"
@@ -88,25 +76,16 @@
         "mongolian"
       ]
     },
-    "mongolian": {
-      "children": []
-    },
     "south_arabian": {
       "children": [
         "geez"
       ]
-    },
-    "geez": {
-      "children": []
     },
     "brahmi": {
       "children": [
         "devanagari",
         "tibetan"
       ]
-    },
-    "devanagari": {
-      "children": []
     },
     "tibetan": {
       "children": [
@@ -127,9 +106,6 @@
         "armenian"
       ]
     },
-    "coptic": {
-      "children": []
-    },
     "etruscan": {
       "children": [
         "latin"
@@ -140,24 +116,15 @@
         "modern_roman"
       ]
     },
-    "modern_roman": {
-      "children": []
-    },
     "glagolitic": {
       "children": [
         "cyrillic"
       ]
     },
-    "cyrillic": {
-      "children": []
-    },
     "armenian": {
       "children": [
         "georgian"
       ]
-    },
-    "georgian": {
-      "children": []
     },
     "oracle_bones": {
       "children": [
@@ -175,16 +142,10 @@
         "hiragana_katakana"
       ]
     },
-    "hiragana_katakana": {
-      "children": []
-    },
     "hanja": {
       "children": [
         "hangul"
       ]
-    },
-    "hangul": {
-      "children": []
     }
   }
 }

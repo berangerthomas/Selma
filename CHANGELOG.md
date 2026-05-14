@@ -1,5 +1,10 @@
 # Changelog
 
+## [v0.7.1] - 2026-05-??
+
+### Modified
+- Automatic resolution of leaf nodes from nodes.json. Taxonomy files (`public/data/taxonomies/*.json`) no longer need to define an end node for each font referenced in `children[]`. From now on, any ID that appears in a taxonomy’s `children` array but is not a key in the taxonomy file is automatically resolved from `public/data/nodes.json`.
+
 ## [v0.7.0] - 2026-05-13
 
 This version introduces the use of tags in Selma. You can filter nodes by clicking on individual tags in the toolbox on the main screen.
