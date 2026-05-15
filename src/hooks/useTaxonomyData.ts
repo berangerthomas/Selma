@@ -23,9 +23,18 @@ export function useTaxonomyData(taxonomyId: string) {
         
         // Fetch nodes definitions (cached at module level since it's static)
         if (!cachedNodesDict) {
-          const nodesResponse = await fetch('/data/nodes.json')
-          if (!nodesResponse.ok) throw new Error(`HTTP error! status: ${nodesResponse.status}`)
-          cachedNodesDict = await nodesResponse.json()
+          try {
+            const nodesResponse = await fetch('/data/nodes.json')
+            if (nodesResponse.ok) {
+              cachedNodesDict = await nodesResponse.json()
+            } else {
+              console.warn('nodes.json not found, using empty definitions.')
+              cachedNodesDict = {}
+            }
+          } catch (e) {
+            console.warn('Failed to fetch nodes.json, using empty definitions.', e)
+            cachedNodesDict = {}
+          }
         }
         const nodesDict: Record<string, unknown> = cachedNodesDict!;
 

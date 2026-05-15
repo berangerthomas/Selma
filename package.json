@@ -6,6 +6,7 @@
   "scripts": {
     "predev": "node scripts/generate_taxonomies_registry.mjs",
     "dev": "node node_modules/vite/bin/vite.js",
+    "check-data": "node scripts/check-data.mjs",
     "prebuild": "node scripts/generate_taxonomies_registry.mjs",
     "build": "node node_modules/vite/bin/vite.js build",
     "preview": "node node_modules/vite/bin/vite.js preview"
