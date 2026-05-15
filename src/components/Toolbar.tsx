@@ -71,7 +71,7 @@ const VIEW_ROW_STYLE: React.CSSProperties = {
 
 const TITLE_MARGIN_STYLE: React.CSSProperties = { marginRight: '8px' };
 
-const SELECT_STYLE: React.CSSProperties = { padding: '4px', fontSize: '12px', height: '24px', flex: 1 };
+const SELECT_STYLE: React.CSSProperties = { padding: '4px', fontSize: '12px', height: '28px', flex: 1 };
 
 const SEARCH_BUTTON_WRAPPER_STYLE: React.CSSProperties = { position: 'relative', display: 'inline-block' };
 
@@ -413,6 +413,13 @@ export default function Toolbar({
               )}
             </div>
           </div>
+          {hasResults && (
+            <div className="toolbar-row search-nav">
+              <span className="search-counter">{currentResultIndex + 1}/{totalResults}</span>
+              <button className="btn btn-nav" onClick={onPrevResult} title={t('prev_result', { defaultValue: 'Previous' })}>◀</button>
+              <button className="btn btn-nav" onClick={onNextResult} title={t('next_result', { defaultValue: 'Next' })}>▶</button>
+            </div>
+          )}
           {availableTags && availableTags.length > 0 && (
             <div className="toolbar-row" style={TAGS_SECTION_STYLE}>
               <div className="toolbar-title" style={TAGS_HEADER_STYLE}>
@@ -446,13 +453,6 @@ export default function Toolbar({
                   </button>
                 );
               })}
-            </div>
-          )}
-          {hasResults && (
-            <div className="toolbar-row search-nav">
-              <span className="search-counter">{currentResultIndex + 1}/{totalResults}</span>
-              <button className="btn btn-nav" onClick={onPrevResult} title={t('prev_result', { defaultValue: 'Previous' })}>◀</button>
-              <button className="btn btn-nav" onClick={onNextResult} title={t('next_result', { defaultValue: 'Next' })}>▶</button>
             </div>
           )}
         </div>
