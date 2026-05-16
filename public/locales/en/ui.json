@@ -90,6 +90,8 @@
   "copy_content": "Copy content",
   "belongs_to": "Belongs to:",
   "tags_label": "Tags",
+  "tags_accumulate": "All",
+  "tags_accumulate_title": "Require all selected tags",
   "clear_tags": "Clear all",
   "settings_tab_project": "Project",
   "settings_tab_nodes": "Nodes",

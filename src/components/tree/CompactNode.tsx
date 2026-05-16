@@ -1,3 +1,4 @@
+import React from 'react'
 import { HighlightSVGText } from '../../utils/highlightSVG'
 import type { PrunedNode, DagData } from '../../types'
 import { useI18n } from '../../i18n'
@@ -10,7 +11,7 @@ type Props = {
   hasMultipleParentsFn: (data: DagData, id: string) => boolean
 }
 
-export function CompactNode({ node, color, dagData, searchQuery, hasMultipleParentsFn }: Props) {
+function CompactNode({ node, color, dagData, searchQuery, hasMultipleParentsFn }: Props) {
   const { t } = useI18n()
   const finalIconChar = t(`nodes.${node.id}.iconChar`, { defaultValue: node.iconChar || '' })
   const finalIconFont = t(`nodes.${node.id}.iconFont`, { defaultValue: node.iconFont || 'sans-serif' })
@@ -61,3 +62,5 @@ export function CompactNode({ node, color, dagData, searchQuery, hasMultiplePare
     </g>
   )
 }
+
+export default React.memo(CompactNode)

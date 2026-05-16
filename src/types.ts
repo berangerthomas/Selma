@@ -8,6 +8,8 @@ export interface PrunedNode extends Omit<TreeNode, 'children'> {
 
 export type ViewMode = 'organic' | 'compact' | 'list' | 'columns'
 
+export type TagMatchMode = 'any' | 'all'
+
 export type Attachment = {
   name: string
   path: string

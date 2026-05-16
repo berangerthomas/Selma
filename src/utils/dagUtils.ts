@@ -1,4 +1,4 @@
-import type { DagData, DagNode, CrossEdge, TreeNode, PrunedNode } from '../types';
+import type { DagData, DagNode, CrossEdge, TreeNode, PrunedNode, TagMatchMode } from '../types';
 import { FALLBACK_COLOR } from '../types';
 import * as d3 from 'd3'
 import { nodeMatchesQuery, type TranslateFn } from './searchRegex';
@@ -157,46 +157,6 @@ export function hasCycle(data: DagData): boolean {
   return Object.keys(data.nodes).some(id => !visited.has(id) && dfs(id));
 }
 
-/**
- * Find a path from root to targetId in the DAG.
- * If preferredParentId is provided and the target has multiple parents,
- * prefer the path that goes through preferredParentId.
- */
-export function findDagPath(
-  data: DagData,
-  rootId: string,
-  targetId: string,
-  preferredParentId: string | null = null
-): DagNode[] {
-  const visited = new Set<string>();
-  let preferredResult: DagNode[] | null = null;
-  let firstResult: DagNode[] | null = null;
-
-  function dfs(id: string, path: DagNode[]): boolean {
-    if (visited.has(id)) return false;
-    visited.add(id);
-    const node = data.nodes[id];
-    if (!node) return false;
-    const newPath = [...path, node];
-    if (id === targetId) {
-      if (firstResult === null) firstResult = newPath;
-      // Check if this path goes through the preferred parent
-      if (preferredParentId && newPath.some(n => n.id === preferredParentId)) {
-        preferredResult = newPath;
-        return true; // stop at first preferred match
-      }
-      return false; // keep searching for preferred path
-    }
-    for (const childId of node.children ?? []) {
-      if (dfs(childId, newPath)) return true;
-    }
-    return false;
-  }
-
-  dfs(rootId, []);
-  return preferredResult ?? firstResult ?? [];
-}
-
 export function getAllTags(data: DagData): string[] {
   const tags = new Set<string>();
   for (const node of Object.values(data.nodes)) {
@@ -208,10 +168,10 @@ export function getAllTags(data: DagData): string[] {
 }
 
 /**
- * Filter the DAG to keep only nodes that have at least one of the selected tags,
+ * Filter the DAG to keep only nodes that match the selected tags according to the chosen mode,
  * and their ancestors (to maintain the tree structure).
  */
-export function filterDagByTags(data: DagData, selectedTags: string[]): DagData | null {
+export function filterDagByTags(data: DagData, selectedTags: string[], mode: TagMatchMode = 'any'): DagData {
   if (!selectedTags || selectedTags.length === 0) return data;
 
   const tagSet = new Set(selectedTags);
@@ -227,10 +187,12 @@ export function filterDagByTags(data: DagData, selectedTags: string[]): DagData 
     const node = data.nodes[id];
     if (!node) return false;
 
-    let matches = false;
-    if (node.tags && node.tags.some(t => tagSet.has(t))) {
-      matches = true;
-    }
+    const nodeTags = node.tags ?? [];
+    const matchesTags = mode === 'all'
+      ? selectedTags.every(tag => nodeTags.includes(tag))
+      : nodeTags.some(tag => tagSet.has(tag));
+
+    let matches = matchesTags;
 
     for (const childId of node.children ?? []) {
       if (dfs(childId)) {
@@ -245,7 +207,7 @@ export function filterDagByTags(data: DagData, selectedTags: string[]): DagData 
 
   dfs(data.root);
 
-  if (!keep.has(data.root)) return null;
+  keep.add(data.root);
 
   const newNodes: Record<string, DagNode> = {};
   for (const id of keep) {

@@ -20,23 +20,24 @@ export function useTaxonomyData(taxonomyId: string) {
     async function fetchData() {
       try {
         setLoading(true)
-        
-        // Fetch nodes definitions (cached at module level since it's static)
-        if (!cachedNodesDict) {
+
+        // Fetch nodes definitions (cached at module level since it's static data)
+        if (cachedNodesDict === null) {
           try {
             const nodesResponse = await fetch('/data/nodes.json')
             if (nodesResponse.ok) {
               cachedNodesDict = await nodesResponse.json()
             } else {
-              console.warn('nodes.json not found, using empty definitions.')
-              cachedNodesDict = {}
+              console.warn('nodes.json not found.')
+              // cachedNodesDict stays null — will retry on next taxonomy switch
             }
           } catch (e) {
-            console.warn('Failed to fetch nodes.json, using empty definitions.', e)
-            cachedNodesDict = {}
+            console.warn('Failed to fetch nodes.json.', e)
+            // cachedNodesDict stays null — will retry on next taxonomy switch
           }
         }
-        const nodesDict: Record<string, unknown> = cachedNodesDict!;
+        // If still null after fetch attempt, we cannot resolve node metadata
+        const nodesDict: Record<string, unknown> = cachedNodesDict ?? {};
 
         // Fetch taxonomy structure
         const taxoResponse = await fetch(`/data/taxonomies/${taxonomyId}.json`)

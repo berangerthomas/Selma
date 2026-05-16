@@ -35,3 +35,23 @@ export function nodeMatchesQuery(
   
   return matches;
 }
+
+export function splitByHighlight(text: string, query: string): { text: string; isMatch: boolean }[] {
+  if (!query.trim()) return [{ text, isMatch: false }]
+  const regex = buildHighlightRegex(query)
+  if (!regex) return [{ text, isMatch: false }]
+  const parts: { text: string; isMatch: boolean }[] = []
+  let lastIndex = 0
+  let match: RegExpExecArray | null
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push({ text: text.slice(lastIndex, match.index), isMatch: false })
+    }
+    parts.push({ text: match[0], isMatch: true })
+    lastIndex = regex.lastIndex
+  }
+  if (lastIndex < text.length) {
+    parts.push({ text: text.slice(lastIndex), isMatch: false })
+  }
+  return parts
+}

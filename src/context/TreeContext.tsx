@@ -1,13 +1,13 @@
 import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect, useMemo } from 'react';
-import type { TreeNode, ViewMode, DagData, CrossEdge, TaxonomyDescription } from '../types';
-import { findNodePath } from '../utils/treeUtils';
+import type { TreeNode, ViewMode, DagData, CrossEdge, TaxonomyDescription, TagMatchMode } from '../types';
+import { findNodePathIds } from '../utils/treeUtils';
 import { useTaxonomyData } from '../hooks/useTaxonomyData';
 import { useI18n } from '../i18n';
 import { buildSpanningTree, getAllDagNodeIds, hasMultipleParents, getParents, getAllTags, filterDagByTags } from '../utils/dagUtils';
 import { useUrlSync } from '../hooks/useUrlSync';
 import { useNavigationHistory } from '../hooks/useNavigationHistory';
 import { useSearchEngine } from '../hooks/useSearchEngine';
-import { safeLocalStorageGet, safeLocalStorageSet } from '../utils/storage';
+import { safeLocalStorageGet, safeLocalStorageSet, STORAGE_KEYS } from '../utils/storage';
 
 interface TreeContextType {
   data: TreeNode;
@@ -49,6 +49,8 @@ interface TreeContextType {
 
   selectedTags: string[];
   setSelectedTags: (tags: string[]) => void;
+  tagMatchMode: TagMatchMode;
+  setTagMatchMode: (mode: TagMatchMode) => void;
   availableTags: string[];
 }
 
@@ -91,16 +93,22 @@ export function TreeProvider({ children }: { children: ReactNode }) {
 
   const [selectedTags, setSelectedTags] = useState<string[]>(() => {
     try {
-      const saved = safeLocalStorageGet('selma_selectedTags');
+      const saved = safeLocalStorageGet(STORAGE_KEYS.selectedTags);
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
     }
   });
 
+  const [tagMatchMode, setTagMatchModeState] = useState<TagMatchMode>(() => {
+    const saved = safeLocalStorageGet(STORAGE_KEYS.tagMatchMode);
+    return saved === 'all' ? 'all' : 'any';
+  });
+
   // clear selected tags when taxonomy changes
   useEffect(() => {
     setSelectedTags([]);
+    safeLocalStorageSet(STORAGE_KEYS.selectedTags, JSON.stringify([]));
   }, [activeTaxonomyId]);
 
   const availableTags = useMemo(() => {
@@ -111,8 +119,8 @@ export function TreeProvider({ children }: { children: ReactNode }) {
   const dagData = useMemo(() => {
     if (!rawDagData) return null;
     if (selectedTags.length === 0) return rawDagData;
-    return filterDagByTags(rawDagData, selectedTags) || rawDagData;
-  }, [rawDagData, selectedTags]);
+    return filterDagByTags(rawDagData, selectedTags, tagMatchMode);
+  }, [rawDagData, selectedTags, tagMatchMode]);
 
   const { tree: data, crossEdges } = useMemo(() => {
     if (!dagData) return { tree: null as unknown as TreeNode, crossEdges: [] as CrossEdge[] };
@@ -140,14 +148,17 @@ export function TreeProvider({ children }: { children: ReactNode }) {
 
   const updateSelectedTags = useCallback((tags: string[]) => {
     setSelectedTags(tags);
-    safeLocalStorageSet('selma_selectedTags', JSON.stringify(tags));
+    safeLocalStorageSet(STORAGE_KEYS.selectedTags, JSON.stringify(tags));
     resetView();
   }, [resetView]);
 
-  // Hook 1: URL synchronization
-  useUrlSync(activeId, activeTaxonomyId, data, setExpanded, setActiveId, setForceCenterOnActive);
+  const updateTagMatchMode = useCallback((mode: TagMatchMode) => {
+    setTagMatchModeState(mode);
+    safeLocalStorageSet(STORAGE_KEYS.tagMatchMode, mode);
+    resetView();
+  }, [resetView]);
 
-  // Hook 2: Navigation history
+  // Hook 1: Navigation history (must be called before useUrlSync)
   const {
     pushHistory,
     isNavigatingHistory,
@@ -156,6 +167,9 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     goBack,
     goForward,
   } = useNavigationHistory(data, setExpanded, setActiveId, setForceCenterOnActive);
+
+  // Hook 2: URL synchronization — receives isNavigatingHistory to prevent duplicate pushState
+  useUrlSync(activeId, activeTaxonomyId, data, setExpanded, setActiveId, setForceCenterOnActive, isNavigatingHistory);
 
   // Push to history when activeId changes (excluding navigation restores)
   useEffect(() => {
@@ -171,7 +185,7 @@ export function TreeProvider({ children }: { children: ReactNode }) {
   // Hook 3: Search engine
   const navigateToResult = useCallback((nodeId: string, forceCenter: boolean = true) => {
     if (!data) return;
-    const path = findNodePath(data, nodeId)?.map(n => n.id);
+    const path = findNodePathIds(data, nodeId);
     if (path) {
       setExpanded(new Set(path));
       setActiveId(nodeId);
@@ -216,12 +230,12 @@ export function TreeProvider({ children }: { children: ReactNode }) {
       pathSet = new Set<string>();
       const parents = getParents(dagData, activeId);
       for (const p of parents) {
-        const ppath = findNodePath(data, p)?.map(n => n.id) ?? [];
+        const ppath = findNodePathIds(data, p) ?? [];
         ppath.forEach(id => pathSet.add(id));
       }
       pathSet.add(activeId);
     } else {
-      const path = findNodePath(data, activeId || data.id)?.map(n => n.id) ?? [data.id];
+      const path = findNodePathIds(data, activeId || data.id) ?? [data.id];
       pathSet = new Set(path);
     }
 
@@ -287,6 +301,8 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     availableTaxonomies,
     selectedTags,
     setSelectedTags: updateSelectedTags,
+    tagMatchMode,
+    setTagMatchMode: updateTagMatchMode,
     availableTags,
   }), [
     data,
@@ -323,6 +339,8 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     availableTaxonomies,
     selectedTags,
     updateSelectedTags,
+    tagMatchMode,
+    updateTagMatchMode,
     availableTags,
   ]);
 

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useTree } from '../context/TreeContext';
 import { useI18n } from '../i18n';
 import type { TreeNode } from '../types';
@@ -11,7 +11,7 @@ import { ChevronRight } from './icons/ChevronRight';
 import { NodeIcon } from './NodeIcon';
 import { useSidebar } from '../hooks/useSidebar';
 
-const FileNode = ({ node, depth, parentMap }: { node: TreeNode; depth: number; parentMap: Map<string, string[]> }) => {
+const FileNode = React.memo(({ node, depth, parentMap }: { node: TreeNode; depth: number; parentMap: Map<string, string[]> }) => {
   const { data, dagData, expanded, activeId, setActiveId, toggleNode, requestForceCenter, isFullyExpanded, searchQuery } = useTree();
   const { t } = useI18n();
 
@@ -24,10 +24,9 @@ const FileNode = ({ node, depth, parentMap }: { node: TreeNode; depth: number; p
     if (hasChildren) {
       const willOpen = !isExpanded;
       toggleNode(node.id);
-      setTimeout(() => {
-        setActiveId(node.id);
-        if (willOpen || isFullyExpanded) requestForceCenter();
-      }, 80);
+      // React 18 batches setState in event handlers — no need for setTimeout
+      setActiveId(node.id);
+      if (willOpen || isFullyExpanded) requestForceCenter();
     } else {
       setActiveId(node.id);
     }
@@ -86,9 +85,9 @@ const FileNode = ({ node, depth, parentMap }: { node: TreeNode; depth: number; p
       )}
     </div>
   );
-};
+});
 
-const FileTreeView = ({ ref }: { ref?: React.RefObject<HTMLDivElement | null> }) => {
+export default function FileTreeView({ ref }: { ref?: React.RefObject<HTMLDivElement | null> }) {
   const { data, dagData, activeId } = useTree();
   const { open: sidebarOpen, setOpen: setSidebarOpen, width: sidebarWidth, setWidth: setSidebarWidth } = useSidebar(activeId);
 
@@ -131,6 +130,4 @@ const FileTreeView = ({ ref }: { ref?: React.RefObject<HTMLDivElement | null> })
       />
     </div>
   );
-};
-
-export default FileTreeView;
+}

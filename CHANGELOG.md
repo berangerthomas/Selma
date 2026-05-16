@@ -1,9 +1,37 @@
 # Changelog
 
-## [v0.7.1] - 2026-05-??
+## [v0.7.1] - 2026-05-16
+
+### Added
+- **Validation Terminal Script**: Added the `npm run check-data` CLI workflow (`scripts/check-data.mjs`), which reports directly to the console any data discrepancy: unregistered files within `public/attachments/`, dead attachment paths declared in JSON but missing on disk, and translation coverage gaps per locale.
+- **Tag filtering mode**: Added a compact toggle to switch tag filtering between the default matching mode and cumulative matching.
+- **Cache resilience**: `useTaxonomyData` no longer caches failed `nodes.json` fetches, allowing retry on subsequent taxonomy switches.
+- **Markdown request cancellation**: `Sidebar` now uses `AbortController` to cancel in-flight markdown fetches when the active node changes, preventing stale updates.
+- **History deduplication**: `useNavigationHistory` and `useUrlSync` now coordinate via the shared `isNavigatingHistory` ref to prevent duplicate `pushState` entries when navigating back/forward.
+- **Function memoization**: `findVisibleOrClusterNode`, `linkPath`, and `getDisplayY` in `TreeViz` wrapped in `useCallback`.
+- **`findNodePathIds` helper**: Extracted the 9x-repeated `findNodePath(…).map(n => n.id)` pattern into a single utility in `treeUtils.ts`.
+- **`splitByHighlight` utility**: Shared splitting logic across `HighlightMatch` and `HighlightSVGText` via `searchRegex.ts`.
+- **`openPrintWindowOrToast`**: Unified the "pop-up blocked" pattern across the 3 print hooks into `printWindow.ts`.
+- **Deduplicated `useI18n`**: Removed the redundant second `useI18n()` call in `PrintButton.tsx`.
+- **`STORAGE_KEYS` constants**: Centralized all localStorage key literals into `src/utils/storage.ts`.
+- **`React.memo` on node components**: Wrapped `OrganicNode`, `CompactNode`, `ClusterNode`, and `FileNode` with `React.memo`.
+- **`setTimeout` removal**: Replaced fragile `setTimeout(…, 80)` in `FileTreeView` with direct batchable state updates.
+- **Stricter types**: Replaced `Record<string, any>` with `Record<string, NodeEntry>` and proper locale data types in `useDiagnostics.ts`.
+- **Dead code removal**: Deleted unused `findDagPath` from `dagUtils.ts`.
+- **Toolbar style cleanup**: Replaced 15 inline `const style` objects in `Toolbar.tsx` with direct Tailwind classes.
 
 ### Modified
+- **TreeViz orchestration split**: extracted the zoom, link, and node rendering responsibilities into `useTreeZoom`, `TreeLinks`, and `TreeNodesRenderer` so `TreeViz` now mainly coordinates layout and sidebar state.
+- **Settings Modal Refactoring**: Extracted monolithic business logic from `SettingsModal.tsx` into a dedicated custom hook (`useDiagnostics.ts`).
+- **Settings Modal Component Split**: Decomposed the unified `SettingsModal` into distinct tab sub-components (`ProjectTab`, `NodesTab`, `TranslationsTab`, `AttachmentsTab`) for clarity and maintainability.
+- **Diagnostics**: Fixed a pathing bug causing diagnostic fetches to fail on sub-directories (like GitHub Pages) by strictly relying on `import.meta.env.BASE_URL`.
+- **Diagnostics**: Improved Attachment parsing algorithms to safely prevent partial matches inside filenames from being erroneously processed as language codes.
+- **Diagnostics**: Stopped hard-coding default fallback colors like `#6b7280` when scaffolding unknown nodes.
 - Automatic resolution of leaf nodes from nodes.json. Taxonomy files (`public/data/taxonomies/*.json`) no longer need to define an end node for each font referenced in `children[]`. From now on, any ID that appears in a taxonomy’s `children` array but is not a key in the taxonomy file is automatically resolved from `public/data/nodes.json`.
+
+### Fixed
+- Move up search buttons
+- Correct dropdown menu "Taxonomy" height
 
 ## [v0.7.0] - 2026-05-13
 
@@ -275,3 +303,4 @@ Selma is intended as a starting point for educational or documentation sites dri
 - Included content:
   - Example taxonomy: `public/structured_taxonomy.json`.
   - Example detail pages: `public/details/*` (EN/FR) and translation files in `public/locales/*`.
+- **P3 — Finalisation des types stricts dans useDiagnostics**: Correction des instances restantes de \Record<string, any>\ vers \Record<string, NodeEntry>\ et \Record<string, LocaleFile>\ afin de sécuriser le code asynchrone.

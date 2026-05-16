@@ -2,6 +2,17 @@ import { useEffect, useState } from 'react'
 import { supportedLanguages } from '../utils/localization'
 import type { Attachment, TaxonomyDescription } from '../types'
 
+export type NodeEntry = {
+  name: string
+  color?: string
+  attachments?: Attachment[]
+  [key: string]: unknown
+}
+
+export type LocaleFile = {
+  nodes?: Record<string, { name: string }>
+} | null
+
 export type AttachmentDiscrepancy = {
   nodeId: string
   undeclaredFiles: Partial<Attachment>[]
@@ -24,8 +35,8 @@ export function useDiagnostics() {
   const [error, setError] = useState<string | null>(null)
   
   const [allDiscoveredIds, setAllDiscoveredIds] = useState<string[]>([])
-  const [nodesDict, setNodesDict] = useState<Record<string, any>>({})
-  const [localeData, setLocaleData] = useState<Record<string, any>>({})
+  const [nodesDict, setNodesDict] = useState<Record<string, NodeEntry>>({})
+  const [localeData, setLocaleData] = useState<Record<string, LocaleFile>>({})
   const [taxonomies, setTaxonomies] = useState<TaxonomyDescription[]>([])
   const [attachmentDiscrepancies, setAttachmentDiscrepancies] = useState<AttachmentDiscrepancy[]>([])
 
@@ -65,7 +76,7 @@ export function useDiagnostics() {
         if (mounted) setAllDiscoveredIds(sortedIds)
 
         // 3. Load nodes.json (the source of truth for metadata)
-        let currentNodesDict: Record<string, any> = {}
+        let currentNodesDict: Record<string, NodeEntry> = {}
         try {
           const nodesResp = await fetch(safeUrl('/data/nodes.json'))
           if (nodesResp.ok) {
@@ -142,7 +153,7 @@ export function useDiagnostics() {
 
         // 5. Load Translations
         const langs = supportedLanguages
-        const results: Record<string, any> = {}
+        const results: Record<string, LocaleFile> = {}
         await Promise.all(langs.map(async (lang) => {
           try {
             const r = await fetch(safeUrl(`/locales/${lang}/taxonomy.json`))
@@ -181,7 +192,7 @@ export function useDiagnostics() {
 
   function getTranslationScaffold(lang: string) {
     const existing = (localeData[lang] && localeData[lang].nodes) ? { ...localeData[lang].nodes } : {}
-    const merged: Record<string, any> = { ...existing }
+    const merged: Record<string, { name: string }> = { ...existing }
 
     allDiscoveredIds.forEach((id) => {
       if (!merged[id]) {
@@ -195,7 +206,7 @@ export function useDiagnostics() {
   }
 
   function getNodesScaffold() {
-    const merged = { ...nodesDict }
+    const merged: Record<string, NodeEntry> = { ...nodesDict }
     
     // Add missing IDs, NO DEFAULT COLOR HARDCODED to avoid overriding themes
     allDiscoveredIds.forEach(id => {
@@ -211,9 +222,10 @@ export function useDiagnostics() {
       if (d.undeclaredFiles.length > 0) {
         merged[d.nodeId] = merged[d.nodeId] || { name: d.nodeId }
         merged[d.nodeId].attachments = merged[d.nodeId].attachments || []
+        const attachments = merged[d.nodeId].attachments!
         d.undeclaredFiles.forEach(uf => {
-          if (!merged[d.nodeId].attachments.some((att: any) => att.path === uf.path)) {
-            merged[d.nodeId].attachments.push(uf)
+          if (!attachments.some((att: any) => att.path === uf.path)) {
+            attachments.push(uf as Attachment)
           }
         })
       }

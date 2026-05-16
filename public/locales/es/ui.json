@@ -89,6 +89,8 @@
   "copy_content": "Copiar contenido",
   "belongs_to": "Pertenece a:",
   "tags_label": "Etiquetas",
+  "tags_accumulate": "Todas",
+  "tags_accumulate_title": "Exigir todas las etiquetas seleccionadas",
   "clear_tags": "Borrar todo",
   "settings_tab_project": "Proyecto",
   "settings_tab_nodes": "Nodos",

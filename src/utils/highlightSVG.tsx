@@ -1,19 +1,19 @@
 // highlight SVG functions
-import { buildHighlightRegex } from './searchRegex';
+import { splitByHighlight } from './searchRegex';
 
 export function HighlightSVGText({ text, query }: { text: string; query: string }) {
   if (!query || !text) return <>{text}</>
-  const parts = text.split(buildHighlightRegex(query))
+  const parts = splitByHighlight(text, query)
   return (
     <>
       {parts.map((part, i) =>
-        part.toLowerCase() === query.toLowerCase() ? (
+        part.isMatch ? (
           <tspan key={i} fill="#eab308" fontWeight="bold">
-            {part}
+            {part.text}
           </tspan>
         ) : (
           <tspan key={i} fill="currentColor">
-            {part}
+            {part.text}
           </tspan>
         )
       )}

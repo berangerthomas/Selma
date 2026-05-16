@@ -55,7 +55,6 @@ function ExportImageButton({
 
 export function PrintAndExportButtons({ svgRef, htmlRef, title, className = '' }: PrintAndExportButtonsProps) {
   const { t } = useI18n();
-  const { t: tGlobal } = useI18n();
   const { data, viewMode } = useTree();
   const isSVGMode = viewMode === 'organic' || viewMode === 'compact';
 
@@ -116,7 +115,7 @@ export function PrintAndExportButtons({ svgRef, htmlRef, title, className = '' }
 
   const handleDownloadText = () => {
     if (!data) return;
-    const text = exportTreeAsText(data, tGlobal);
+    const text = exportTreeAsText(data, t);
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
     triggerDownload(blob, `${effectiveTitle}.txt`);
   };

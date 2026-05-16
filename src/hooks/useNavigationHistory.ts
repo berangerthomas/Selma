@@ -1,6 +1,6 @@
 import { useReducer, useCallback, useRef } from 'react';
 import type { TreeNode } from '../types';
-import { findNodePath } from '../utils/treeUtils';
+import { findNodePathIds } from '../utils/treeUtils';
 
 type HistoryState = { stack: string[]; index: number };
 type HistoryAction = 
@@ -53,7 +53,7 @@ export function useNavigationHistory(
     const targetId = historyStack[newIndex];
     isNavigatingHistory.current = true;
     dispatchHistory({ type: direction === 'back' ? 'GO_BACK' : 'GO_FORWARD' });
-    const path = findNodePath(data, targetId)?.map(n => n.id);
+    const path = findNodePathIds(data, targetId);
     if (path) {
       setExpanded(new Set(path));
       setActiveId(targetId);

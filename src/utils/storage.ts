@@ -7,3 +7,12 @@ export function safeLocalStorageSet(key: string, value: string): void {
   try { localStorage.setItem(key, value); }
   catch { /* silently ignore */ }
 }
+
+export const STORAGE_KEYS = {
+  viewMode: 'selma_viewMode',
+  activeTaxonomyId: 'selma_activeTaxonomyId',
+  selectedTags: 'selma_selectedTags',
+  tagMatchMode: 'selma_tagMatchMode',
+  theme: 'theme',
+  textSize: 'selma-text-size',
+} as const;

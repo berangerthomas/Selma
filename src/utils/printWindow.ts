@@ -9,3 +9,12 @@ export function openPrintWindow(html: string): Window | null {
   win.document.close();
   return win;
 }
+
+export function openPrintWindowOrToast(
+  html: string,
+  showToast: (msg: string) => void,
+  blockedMessage = "Pop-up blocked. Please allow pop-ups to print."
+): void {
+  const win = openPrintWindow(html)
+  if (!win) showToast(blockedMessage)
+}

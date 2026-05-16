@@ -40,6 +40,7 @@ export default function Sidebar({ open, onClose, node, initialWidth = 420, minWi
 
   useEffect(() => {
     let mounted = true
+    const abortController = new AbortController()
     async function load() {
       if (!node || !node.id) {
         setMarkdownContent('')
@@ -49,7 +50,7 @@ export default function Sidebar({ open, onClose, node, initialWidth = 420, minWi
       setMarkdownContent(`*${t('loading', { defaultValue: 'Loading...' })}*`)
 
       try {
-        const text = await fetchMarkdownContent(lang, node.id)
+        const text = await fetchMarkdownContent(lang, node.id, abortController.signal)
         if (!mounted) return
         if (text !== null) {
           setMarkdownContent(text)
@@ -63,6 +64,8 @@ export default function Sidebar({ open, onClose, node, initialWidth = 420, minWi
           }
         }
       } catch (err) {
+        // Ignore aborted requests (node changed before fetch completed)
+        if (err instanceof DOMException && err.name === 'AbortError') return
         const title = t(`nodes.${node.id}.name`, { defaultValue: node.name })
         const mdFallback = `# ${title}\n\n*${t('description_not_provided', { defaultValue: 'No description provided.' })}*`
         if (mounted) {
@@ -73,6 +76,7 @@ export default function Sidebar({ open, onClose, node, initialWidth = 420, minWi
     load()
     return () => {
       mounted = false
+      abortController.abort()
     }
   }, [node, lang, t])
 

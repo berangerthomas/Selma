@@ -51,6 +51,10 @@ export function findNodePath(root: TreeNode, targetId: string): TreeNode[] | nul
   return null;
 }
 
+export function findNodePathIds(root: TreeNode, targetId: string): string[] | null {
+  return findNodePath(root, targetId)?.map(n => n.id) ?? null
+}
+
 /**
  * Find and return a specific TreeNode by its ID.
  */

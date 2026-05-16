@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef } from 'react'
 import { supportedLanguages } from '../utils/localization'
 import { useI18n } from '../i18n'
 import type { TranslateFn } from '../utils/searchRegex'
@@ -186,7 +186,7 @@ function NodesTab({ diagnostics, t }: { diagnostics: ReturnType<typeof useDiagno
                     {exists ? [
                       node.color && t('settings_nodes_color', { defaultValue: 'Color' }),
                       node.iconChar && t('settings_nodes_icon', { defaultValue: 'Icon' }),
-                      node.attachments?.length > 0 && `${node.attachments.length} ${t('settings_nodes_attachments', { defaultValue: 'Attachments' })}`
+                      node.attachments && node.attachments.length > 0 && `${node.attachments.length} ${t('settings_nodes_attachments', { defaultValue: 'Attachments' })}`
                     ].filter(Boolean).join(', ') : t('settings_nodes_default_values', { defaultValue: 'Default values will be used' })}
                   </td>
                 </tr>

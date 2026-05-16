@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import type { TreeNode } from '../types';
-import { findNodePath } from '../utils/treeUtils';
+import { findNodePathIds } from '../utils/treeUtils';
 import { safeLocalStorageSet } from '../utils/storage';
 
 export function useUrlSync(
@@ -9,7 +9,8 @@ export function useUrlSync(
   data: TreeNode | null,
   setExpanded: (setter: React.SetStateAction<Set<string>>) => void,
   setActiveId: (id: string) => void,
-  setForceCenterOnActive: (v: boolean) => void
+  setForceCenterOnActive: (v: boolean) => void,
+  isNavigatingHistory?: { readonly current: boolean }
 ) {
   const isInitialMount = useRef(true);
 
@@ -36,7 +37,7 @@ export function useUrlSync(
         const initialNodeId = p.get('node');
         
         if (initialNodeId) {
-          const path = findNodePath(data, initialNodeId)?.map(n => n.id);
+          const path = findNodePathIds(data, initialNodeId);
           if (path) {
             path.forEach(id => next.add(id));
             if (isInitialMount.current) {
@@ -50,7 +51,7 @@ export function useUrlSync(
     }
   }, [data, setExpanded, setActiveId]);
 
-  // Sync activeId to URL
+  // Sync activeId to URL — use replaceState when navigating history to avoid duplicate entries
   useEffect(() => {
     const url = new URL(window.location.href);
     const currentNode = url.searchParams.get('node');
@@ -65,9 +66,13 @@ export function useUrlSync(
 
     if (currentNode !== activeId) {
       url.searchParams.set('node', activeId);
-      window.history.pushState({ nodeId: activeId }, '', url.toString());
+      if (isNavigatingHistory?.current) {
+        window.history.replaceState({ nodeId: activeId }, '', url.toString());
+      } else {
+        window.history.pushState({ nodeId: activeId }, '', url.toString());
+      }
     }
-  }, [activeId]);
+  }, [activeId, isNavigatingHistory]);
 
   // Handle browser back/forward
   useEffect(() => {
@@ -75,7 +80,7 @@ export function useUrlSync(
       const p = new URLSearchParams(window.location.search);
       const nodeId = p.get('node');
       if (nodeId && data) {
-         const path = findNodePath(data, nodeId)?.map(n => n.id);
+         const path = findNodePathIds(data, nodeId);
          if (path) {
            setExpanded(() => new Set(path));
            setActiveId(nodeId);

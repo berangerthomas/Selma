@@ -1,3 +1,4 @@
+import React from 'react'
 import { HighlightSVGText } from '../../utils/highlightSVG'
 import type { PrunedNode } from '../../types'
 import { useI18n } from '../../i18n'
@@ -9,7 +10,7 @@ type Props = {
   hasChildren: boolean
 }
 
-export function OrganicNode({ node, color, searchQuery, hasChildren }: Props) {
+function OrganicNode({ node, color, searchQuery, hasChildren }: Props) {
   const { t } = useI18n()
   const finalIconChar = t(`nodes.${node.id}.iconChar`, { defaultValue: node.iconChar || '' })
   const finalIconFont = t(`nodes.${node.id}.iconFont`, { defaultValue: node.iconFont || 'sans-serif' })
@@ -62,3 +63,5 @@ export function OrganicNode({ node, color, searchQuery, hasChildren }: Props) {
     </g>
   )
 }
+
+export default React.memo(OrganicNode)

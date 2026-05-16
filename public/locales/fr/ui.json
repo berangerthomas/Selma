@@ -90,6 +90,8 @@
   "copy_content": "Copier le contenu",
   "belongs_to": "Appartient à :",
   "tags_label": "Étiquettes",
+  "tags_accumulate": "Cumul",
+  "tags_accumulate_title": "Exiger toutes les étiquettes sélectionnées",
   "clear_tags": "Tout effacer",
   "settings_tab_project": "Projet",
   "settings_tab_nodes": "Nœuds",

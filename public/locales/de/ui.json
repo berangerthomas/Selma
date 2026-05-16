@@ -89,6 +89,8 @@
   "copy_content": "Inhalt kopieren",
   "belongs_to": "Gehört zu:",
   "tags_label": "Tags",
+  "tags_accumulate": "Alle",
+  "tags_accumulate_title": "Alle ausgewählten Tags verlangen",
   "clear_tags": "Alle löschen",
   "settings_tab_project": "Projekt",
   "settings_tab_nodes": "Knoten",
