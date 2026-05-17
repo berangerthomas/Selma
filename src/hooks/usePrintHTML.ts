@@ -1,9 +1,11 @@
 import { RefObject } from 'react';
 import { useToast } from '../context/ToastContext';
+import { useI18n } from '../i18n';
 import { openPrintWindow } from '../utils/printWindow';
 
 export function usePrintHTML(htmlRef: RefObject<HTMLDivElement | null>, landscape: boolean = false) {
   const { showToast } = useToast();
+  const { t } = useI18n();
   const printHTML = (title: string = 'Document') => {
     if (!htmlRef.current) return;
 
@@ -73,7 +75,7 @@ export function usePrintHTML(htmlRef: RefObject<HTMLDivElement | null>, landscap
     `;
     const printWindow = openPrintWindow(html);
     if (!printWindow) {
-      showToast("Pop-up blocked. Please allow pop-ups to print.");
+      showToast(t('print_popup_blocked', { defaultValue: 'Pop-up blocked. Please allow pop-ups to print.' }));
     }
   };
 

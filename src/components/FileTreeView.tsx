@@ -5,7 +5,7 @@ import type { TreeNode } from '../types';
 import Sidebar from './Sidebar';
 import { HighlightMatch } from '../utils/highlight';
 import { findNodeById } from '../utils/treeUtils';
-import { buildParentMap, getParents, hasMultipleParents } from '../utils/dagUtils';
+import { buildParentMap, getParents } from '../utils/dagUtils';
 import AttachmentIcon from './AttachmentIndicator';
 import { ChevronRight } from './icons/ChevronRight';
 import { NodeIcon } from './NodeIcon';
@@ -18,6 +18,8 @@ const FileNode = React.memo(({ node, depth, parentMap }: { node: TreeNode; depth
   const isExpanded = expanded.has(node.id);
   const isActive = activeId === node.id;
   const hasChildren = !!node.children && node.children.length > 0;
+  const parents = dagData ? getParents(dagData, node.id, parentMap) : [];
+  const isMultiParent = parents.length > 1;
 
   const handleToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -61,16 +63,16 @@ const FileNode = React.memo(({ node, depth, parentMap }: { node: TreeNode; depth
         </div>
 
         {/* Multi-parent badge */}
-        {dagData && hasMultipleParents(dagData, node.id, parentMap) && (
+        {dagData && isMultiParent && (
           <button
             onClick={(e) => { e.stopPropagation(); }}
-            title={`Also in: ${getParents(dagData, node.id, parentMap).map(pid => dagData.nodes[pid]?.name ?? pid).join(', ')}`}
+            title={`Also in: ${parents.map(pid => dagData.nodes[pid]?.name ?? pid).join(', ')}`}
             className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/40
                        text-amber-700 dark:text-amber-300 flex-shrink-0 cursor-pointer hover:bg-amber-200
                        dark:hover:bg-amber-800/60 transition-colors"
-            aria-label={`${getParents(dagData, node.id, parentMap).length} parent groups — click to see`}
+            aria-label={`${parents.length} parent groups — click to see`}
           >
-            ×{getParents(dagData, node.id, parentMap).length}
+            ×{parents.length}
           </button>
         )}
       </div>

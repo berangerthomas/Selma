@@ -1,6 +1,6 @@
 import { RefObject } from 'react';
-import { useTranslation } from 'react-i18next';
 import { usePrintMarkdown } from '../hooks/usePrintMarkdown';
+import { useI18n } from '../i18n';
 import PrintIcon from '../assets/icons/print.svg?react';
 
 interface PrintMarkdownButtonProps {
@@ -10,7 +10,7 @@ interface PrintMarkdownButtonProps {
 }
 
 export function PrintMarkdownButton({ contentRef, title, className = '' }: PrintMarkdownButtonProps) {
-  const { t } = useTranslation('ui');
+  const { t } = useI18n();
   const { printContent } = usePrintMarkdown(contentRef);
 
   return (

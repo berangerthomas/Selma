@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import type { TreeNode } from '../types';
-import { findNodePathIds } from '../utils/treeUtils';
-import { safeLocalStorageSet } from '../utils/storage';
+import { safeLocalStorageSet, STORAGE_KEYS } from '../utils/storage';
 
 export function useUrlSync(
   activeId: string,
@@ -9,7 +8,7 @@ export function useUrlSync(
   data: TreeNode | null,
   setExpanded: (setter: React.SetStateAction<Set<string>>) => void,
   setActiveId: (id: string) => void,
-  setForceCenterOnActive: (v: boolean) => void,
+  navigateToResult: (nodeId: string, forceCenter?: boolean) => void,
   isNavigatingHistory?: { readonly current: boolean }
 ) {
   const isInitialMount = useRef(true);
@@ -17,7 +16,7 @@ export function useUrlSync(
   // Sync activeTaxonomyId to URL and localStorage
   useEffect(() => {
     if (activeTaxonomyId) {
-      safeLocalStorageSet('selma_activeTaxonomyId', activeTaxonomyId);
+      safeLocalStorageSet(STORAGE_KEYS.activeTaxonomyId, activeTaxonomyId);
       const url = new URL(window.location.href);
       if (url.searchParams.get('taxonomy') !== activeTaxonomyId) {
         url.searchParams.set('taxonomy', activeTaxonomyId);
@@ -32,24 +31,18 @@ export function useUrlSync(
       setExpanded(prev => {
         const next = new Set(prev);
         next.add(data.id);
-
-        const p = new URLSearchParams(window.location.search);
-        const initialNodeId = p.get('node');
-        
-        if (initialNodeId) {
-          const path = findNodePathIds(data, initialNodeId);
-          if (path) {
-            path.forEach(id => next.add(id));
-            if (isInitialMount.current) {
-              setActiveId(initialNodeId);
-            }
-          }
-        }
         return next;
       });
+
+      const p = new URLSearchParams(window.location.search);
+      const initialNodeId = p.get('node');
+
+      if (initialNodeId && isInitialMount.current) {
+        navigateToResult(initialNodeId, false);
+      }
       isInitialMount.current = false;
     }
-  }, [data, setExpanded, setActiveId]);
+  }, [data, setExpanded, navigateToResult]);
 
   // Sync activeId to URL — use replaceState when navigating history to avoid duplicate entries
   useEffect(() => {
@@ -80,12 +73,7 @@ export function useUrlSync(
       const p = new URLSearchParams(window.location.search);
       const nodeId = p.get('node');
       if (nodeId && data) {
-         const path = findNodePathIds(data, nodeId);
-         if (path) {
-           setExpanded(() => new Set(path));
-           setActiveId(nodeId);
-           setForceCenterOnActive(true);
-         }
+        navigateToResult(nodeId, true);
       } else if (data) {
         setExpanded(() => new Set([data.id]));
         setActiveId('');
@@ -93,5 +81,5 @@ export function useUrlSync(
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [data, setExpanded, setActiveId, setForceCenterOnActive]);
+  }, [data, setExpanded, setActiveId, navigateToResult]);
 }

@@ -73,7 +73,7 @@ export function TreeProvider({ children }: { children: ReactNode }) {
         if (data.length > 0 && !activeTaxonomyId) {
           const p = new URLSearchParams(window.location.search);
           const urlTaxo = p.get('taxonomy');
-          const savedTaxo = urlTaxo || safeLocalStorageGet('selma_activeTaxonomyId');
+          const savedTaxo = urlTaxo || safeLocalStorageGet(STORAGE_KEYS.activeTaxonomyId);
           
           if (savedTaxo && data.find(t => t.id === savedTaxo)) {
             setActiveTaxonomyId(savedTaxo);
@@ -128,13 +128,13 @@ export function TreeProvider({ children }: { children: ReactNode }) {
   }, [dagData]);
 
   const [viewMode, setViewModeState] = useState<ViewMode>(() => {
-    const saved = safeLocalStorageGet('selma_viewMode');
+    const saved = safeLocalStorageGet(STORAGE_KEYS.viewMode);
     return (saved as ViewMode) || 'organic';
   });
 
   const setViewMode = useCallback((mode: ViewMode) => {
     setViewModeState(mode);
-    safeLocalStorageSet('selma_viewMode', mode);
+    safeLocalStorageSet(STORAGE_KEYS.viewMode, mode);
   }, []);
 
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -158,6 +158,16 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     resetView();
   }, [resetView]);
 
+  const navigateToResult = useCallback((nodeId: string, forceCenter: boolean = true) => {
+    if (!data) return;
+    const path = findNodePathIds(data, nodeId);
+    if (path) {
+      setExpanded(new Set(path));
+      setActiveId(nodeId);
+      if (forceCenter) setForceCenterOnActive(true);
+    }
+  }, [data]);
+
   // Hook 1: Navigation history (must be called before useUrlSync)
   const {
     pushHistory,
@@ -166,10 +176,10 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     canGoForward,
     goBack,
     goForward,
-  } = useNavigationHistory(data, setExpanded, setActiveId, setForceCenterOnActive);
+  } = useNavigationHistory(navigateToResult);
 
   // Hook 2: URL synchronization — receives isNavigatingHistory to prevent duplicate pushState
-  useUrlSync(activeId, activeTaxonomyId, data, setExpanded, setActiveId, setForceCenterOnActive, isNavigatingHistory);
+  useUrlSync(activeId, activeTaxonomyId, data, setExpanded, setActiveId, navigateToResult, isNavigatingHistory);
 
   // Push to history when activeId changes (excluding navigation restores)
   useEffect(() => {
@@ -183,16 +193,6 @@ export function TreeProvider({ children }: { children: ReactNode }) {
   }, [activeId, data, pushHistory, isNavigatingHistory]);
 
   // Hook 3: Search engine
-  const navigateToResult = useCallback((nodeId: string, forceCenter: boolean = true) => {
-    if (!data) return;
-    const path = findNodePathIds(data, nodeId);
-    if (path) {
-      setExpanded(new Set(path));
-      setActiveId(nodeId);
-      if (forceCenter) setForceCenterOnActive(true);
-    }
-  }, [data]);
-
   const {
     searchQuery,
     searchResults,

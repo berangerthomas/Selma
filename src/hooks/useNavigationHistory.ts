@@ -1,6 +1,4 @@
 import { useReducer, useCallback, useRef } from 'react';
-import type { TreeNode } from '../types';
-import { findNodePathIds } from '../utils/treeUtils';
 
 type HistoryState = { stack: string[]; index: number };
 type HistoryAction = 
@@ -25,10 +23,7 @@ function historyReducer(state: HistoryState, action: HistoryAction): HistoryStat
 }
 
 export function useNavigationHistory(
-  data: TreeNode | null,
-  setExpanded: (setter: React.SetStateAction<Set<string>>) => void,
-  setActiveId: (id: string) => void,
-  setForceCenterOnActive: (v: boolean) => void
+  navigateToResult: (nodeId: string, forceCenter?: boolean) => void
 ) {
   const [history, dispatchHistory] = useReducer(historyReducer, { stack: [], index: -1 });
   const isNavigatingHistory = useRef(false);
@@ -49,17 +44,12 @@ export function useNavigationHistory(
 
   const navigateHistory = useCallback((direction: 'back' | 'forward') => {
     const newIndex = direction === 'back' ? historyIndex - 1 : historyIndex + 1;
-    if (newIndex < 0 || newIndex >= historyStack.length || !data) return;
+    if (newIndex < 0 || newIndex >= historyStack.length) return;
     const targetId = historyStack[newIndex];
     isNavigatingHistory.current = true;
     dispatchHistory({ type: direction === 'back' ? 'GO_BACK' : 'GO_FORWARD' });
-    const path = findNodePathIds(data, targetId);
-    if (path) {
-      setExpanded(new Set(path));
-      setActiveId(targetId);
-      setForceCenterOnActive(true);
-    }
-  }, [historyIndex, historyStack, data, setExpanded, setActiveId, setForceCenterOnActive]);
+    navigateToResult(targetId, true);
+  }, [historyIndex, historyStack, navigateToResult]);
 
   const goBack = useCallback(() => navigateHistory('back'), [navigateHistory]);
   const goForward = useCallback(() => navigateHistory('forward'), [navigateHistory]);

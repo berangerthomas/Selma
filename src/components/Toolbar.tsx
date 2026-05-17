@@ -1,4 +1,4 @@
-import { useRef, RefObject, useState } from 'react'
+import { useRef, RefObject, useState, useCallback } from 'react'
 import {
   useFloating,
   autoUpdate,
@@ -120,6 +120,15 @@ export default function Toolbar({
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
   const { viewMode, setViewMode, activeTaxonomyId, setActiveTaxonomyId, availableTaxonomies, availableTags, selectedTags, setSelectedTags, tagMatchMode, setTagMatchMode } = useTree()
+
+  const handleTagToggle = useCallback((tag: string) => {
+    const isSelected = selectedTags.includes(tag);
+    if (isSelected) {
+      setSelectedTags(selectedTags.filter(t => t !== tag));
+    } else {
+      setSelectedTags([...selectedTags, tag]);
+    }
+  }, [selectedTags, setSelectedTags]);
 
   const { refs: searchMenuRefs, floatingStyles: searchMenuFloatingStyles, context: searchMenuContext } = useFloating({
     open: searchMenuOpen,
@@ -378,13 +387,7 @@ export default function Toolbar({
                 return (
                   <button
                     key={tag}
-                    onClick={() => {
-                      if (isSelected) {
-                        setSelectedTags(selectedTags.filter(selectedTag => selectedTag !== tag));
-                      } else {
-                        setSelectedTags([...selectedTags, tag]);
-                      }
-                    }}
+                    onClick={() => handleTagToggle(tag)}
                     className={`tag-pill px-2 py-0.5 text-[11px] rounded-xl border cursor-pointer transition-all duration-200 ${isSelected ? 'bg-blue-600 text-white border-blue-600 dark:bg-blue-500' : 'bg-transparent text-gray-700 dark:text-gray-300 border-gray-300 dark:border-neutral-600 hover:bg-black/5 dark:hover:bg-white/10'}`}
                   >
                     {t(`tags.${tag}`, { defaultValue: tag })}

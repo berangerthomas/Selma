@@ -1,5 +1,15 @@
 import { RefObject } from 'react';
+import { useI18n } from '../i18n';
 import { useToast } from '../context/ToastContext';
+
+function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = () => reject(new Error('FileReader failed'));
+    reader.readAsDataURL(blob);
+  });
+}
 
 async function embedFontInSVG(svgString: string): Promise<string> {
   try {
@@ -32,11 +42,7 @@ async function embedFontInSVG(svgString: string): Promise<string> {
             fetchPromises.push(
               fetch(fontUrl)
                 .then(res => res.blob())
-                .then(blob => new Promise<string>((resolve) => {
-                  const reader = new FileReader();
-                  reader.onloadend = () => resolve(reader.result as string);
-                  reader.readAsDataURL(blob);
-                }))
+                .then(blob => blobToBase64(blob))
                 .catch(() => '') // return empty on fail to skip replacing
             );
           }
@@ -83,11 +89,7 @@ async function embedImagesInSVG(svgString: string): Promise<string> {
       try {
         const response = await fetch(href);
         const blob = await response.blob();
-        const base64 = await new Promise<string>((resolve) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.readAsDataURL(blob);
-        });
+        const base64 = await blobToBase64(blob);
         if (img.hasAttribute('href')) {
           img.setAttribute('href', base64);
         }
@@ -272,6 +274,7 @@ import { openPrintWindow } from '../utils/printWindow';
 
 export function usePrintSVG(svgRef: RefObject<SVGSVGElement | null>) {
   const { showToast } = useToast();
+  const { t } = useI18n();
   const prepareSVG = async (svgEl: SVGSVGElement) => {
     const { svgString, width, height } = serializeSVG(svgEl);
     let embedded = await embedFontInSVG(svgString);
@@ -313,7 +316,7 @@ export function usePrintSVG(svgRef: RefObject<SVGSVGElement | null>) {
 
     const printWindow = openPrintWindow(html);
     if (!printWindow) {
-      showToast("Pop-up blocked. Please allow pop-ups to print.");
+      showToast(t('print_popup_blocked', { defaultValue: 'Pop-up blocked. Please allow pop-ups to print.' }));
     }
   };
 

@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { safeLocalStorageGet, safeLocalStorageSet } from '../utils/storage';
+import { safeLocalStorageGet, safeLocalStorageSet, STORAGE_KEYS } from '../utils/storage';
 import type { ProseSize } from '../components/TabbedMarkdown';
 
 const sizes = ['prose-sm', 'prose-base', 'prose-lg', 'prose-xl', 'prose-2xl'] as const satisfies ProseSize[];
-const STORAGE_KEY = 'selma-text-size';
+const STORAGE_KEY = STORAGE_KEYS.textSize;
 const EVENT_NAME = 'selma:text-size'
 
 export function useTextSize() {

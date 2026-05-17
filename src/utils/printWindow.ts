@@ -10,11 +10,5 @@ export function openPrintWindow(html: string): Window | null {
   return win;
 }
 
-export function openPrintWindowOrToast(
-  html: string,
-  showToast: (msg: string) => void,
-  blockedMessage = "Pop-up blocked. Please allow pop-ups to print."
-): void {
-  const win = openPrintWindow(html)
-  if (!win) showToast(blockedMessage)
-}
+// Note: callers should call `openPrintWindow` and handle toasts themselves so
+// the print utility does not depend on i18n or UI concerns.

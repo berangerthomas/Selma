@@ -1,9 +1,11 @@
 import { RefObject } from 'react';
 import { useToast } from '../context/ToastContext';
+import { useI18n } from '../i18n';
 import { openPrintWindow } from '../utils/printWindow';
 
 export function usePrintMarkdown(contentRef: RefObject<HTMLElement | null>) {
   const { showToast } = useToast();
+  const { t } = useI18n();
   const printContent = (title: string = 'Document') => {
     if (!contentRef.current) return;
     const htmlContent = contentRef.current.innerHTML;
@@ -56,7 +58,7 @@ export function usePrintMarkdown(contentRef: RefObject<HTMLElement | null>) {
     `;
     const printWindow = openPrintWindow(html);
     if (!printWindow) {
-      showToast("Pop-up blocked. Please allow pop-ups to print.");
+      showToast(t('print_popup_blocked', { defaultValue: 'Pop-up blocked. Please allow pop-ups to print.' }));
     }
   };
 
