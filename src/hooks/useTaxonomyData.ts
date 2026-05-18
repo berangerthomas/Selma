@@ -2,6 +2,52 @@ import { useState, useEffect } from 'react'
 import type { DagData } from '../types'
 import { hasCycle } from '../utils/dagUtils'
 
+export type TaxoFile = {
+  root?: string;
+  nodes: Record<string, { children?: string[] }>;
+};
+
+/**
+ * Build a DagData object from the taxonomy file and nodes registry.
+ * Throws on invalid format or when the resulting graph contains a cycle.
+ */
+export function buildDagDataFromFiles(taxoFile: TaxoFile, nodesDict: Record<string, any>): DagData {
+  const allIds = new Set<string>();
+  for (const [id, structNode] of Object.entries(taxoFile.nodes)) {
+    allIds.add(id);
+    const struct = structNode as { children?: string[] };
+    for (const childId of struct.children ?? []) {
+      allIds.add(childId);
+    }
+  }
+
+  const dagData: DagData = {
+    root: taxoFile.root as string,
+    nodes: {}
+  };
+
+  for (const id of allIds) {
+    const taxoNode = taxoFile.nodes[id] as { children?: string[] } | undefined;
+    const detailNode = (nodesDict[id] || {}) as Record<string, unknown>;
+    dagData.nodes[id] = {
+      id,
+      name: (detailNode.name as string) || id,
+      children: taxoNode?.children ?? [],
+      ...detailNode
+    };
+  }
+
+  if (!dagData.root || !dagData.nodes) {
+    throw new Error('Invalid taxonomy format. Expected DAG format with "root" and "nodes".');
+  }
+
+  if (hasCycle(dagData)) {
+    throw new Error('Taxonomy contains a cycle — DAG must be acyclic.');
+  }
+
+  return dagData;
+}
+
 interface TaxoStructNode {
   children?: string[];
 }
@@ -44,45 +90,12 @@ export function useTaxonomyData(taxonomyId: string) {
         if (!taxoResponse.ok) throw new Error(`HTTP error! status: ${taxoResponse.status}`)
         const taxoFile = await taxoResponse.json()
 
-        // Collect all IDs: declared keys + every child referenced in children[]
-        const allIds = new Set<string>();
-        for (const [id, structNode] of Object.entries(taxoFile.nodes)) {
-          allIds.add(id);
-          const struct = structNode as TaxoStructNode;
-          for (const childId of struct.children ?? []) {
-            allIds.add(childId);
-          }
-        }
+            const dagData = buildDagDataFromFiles(taxoFile as TaxoFile, nodesDict);
 
-        // Resolve every ID in one pass: declared nodes keep their children,
-        // unreferenced leaf nodes get [] and are enriched from nodes.json.
-        const dagData: DagData = {
-          root: taxoFile.root,
-          nodes: {}
-        };
-        for (const id of allIds) {
-          const taxoNode = taxoFile.nodes[id] as TaxoStructNode | undefined;
-          const detailNode = (nodesDict[id] || {}) as Record<string, unknown>;
-          dagData.nodes[id] = {
-            id,
-            name: (detailNode.name as string) || id,
-            children: taxoNode?.children ?? [],
-            ...detailNode
-          };
-        }
-
-        if (!dagData.root || !dagData.nodes) {
-          throw new Error('Invalid taxonomy format. Expected DAG format with "root" and "nodes".');
-        }
-
-        if (hasCycle(dagData)) {
-          throw new Error(`Taxonomy "${taxonomyId}" contains a cycle — DAG must be acyclic.`);
-        }
-
-        if (mounted) {
-          setData(dagData)
-          setError(null)
-        }
+            if (mounted) {
+              setData(dagData)
+              setError(null)
+            }
       } catch (err) {
         if (mounted) {
           setError(err instanceof Error ? err : new Error('Failed to load data'))
