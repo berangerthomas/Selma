@@ -16,6 +16,13 @@ const resolveAttachmentUrl = (path: string): string => {
   return path
 }
 
+const getAttachmentFileName = (path: string): string => {
+  if (!path) return ''
+  // Extract filename from path, removing any potential query strings
+  const base = path.split('/').pop() || ''
+  return base.split('?')[0]
+}
+
 const humanizeSize = (bytes: number): string => {
   if (bytes < 1024) return bytes + ' B'
   const kb = bytes / 1024
@@ -114,7 +121,7 @@ export default function AttachmentList({ attachments, lang, compact = false }: P
             <li key={`agn-${attachment.path}-${idx}`} className="p-0 m-0">
               <a
                 href={resolveAttachmentUrl(attachment.path)}
-                download={attachment.name}
+                download={getAttachmentFileName(attachment.path)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={`inline-flex items-center gap-1 whitespace-nowrap font-normal no-underline hover:text-blue-600 dark:hover:text-blue-400 transition-colors min-w-0 ${attachmentTextClass}`}>
@@ -129,7 +136,7 @@ export default function AttachmentList({ attachments, lang, compact = false }: P
             <li key={`cur-${attachment.path}-${idx}`} className="p-0 m-0">
               <a
                 href={resolveAttachmentUrl(attachment.path)}
-                download={attachment.name}
+                download={getAttachmentFileName(attachment.path)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={`inline-flex items-center gap-1 whitespace-nowrap font-normal no-underline hover:text-blue-600 dark:hover:text-blue-400 transition-colors min-w-0 ${attachmentTextClass}`}>
@@ -165,7 +172,7 @@ export default function AttachmentList({ attachments, lang, compact = false }: P
                       <li key={`oth-${lk}-${attachment.path}-${idx}`} className="p-0 m-0">
                         <a
                           href={resolveAttachmentUrl(attachment.path)}
-                          download={attachment.name}
+                          download={getAttachmentFileName(attachment.path)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className={`inline-flex items-center gap-1 whitespace-nowrap font-normal no-underline hover:text-blue-600 dark:hover:text-blue-400 transition-colors min-w-0 ${attachmentTextClass}`}>
