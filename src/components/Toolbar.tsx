@@ -298,7 +298,7 @@ export default function Toolbar({
             <select
               value={activeTaxonomyId}
               onChange={(e) => setActiveTaxonomyId(e.target.value)}
-              className="toolbar-search p-1 text-[12px] h-[28px] flex-1"
+              className="toolbar-search px-2 py-1 text-[12px] h-[32px] flex-1"
               aria-label={t('taxonomy', { defaultValue: 'Taxonomy' })}
             >
               {availableTaxonomies.map((taxo) => (
