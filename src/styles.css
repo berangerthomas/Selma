@@ -164,7 +164,7 @@ html.dark .help-toggle-btn:hover {
 }
 
 /* Small centered footer for project attribution */
-.made-with-selma{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:70;display:flex;align-items:center;justify-content:center}
+.made-with-selma{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:10;display:flex;align-items:center;justify-content:center}
 .made-with-selma a{padding:0;color:var(--text-muted);text-decoration:none;font-size:12px;line-height:1;font-weight:500}
 .made-with-selma a:hover{opacity:0.9}
 
