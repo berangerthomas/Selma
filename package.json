@@ -1,6 +1,6 @@
 {
   "name": "selma",
-  "version": "0.6.3",
+  "version": "0.7.2",
   "type": "module",
   "private": true,
   "scripts": {
@@ -15,6 +15,7 @@
   "dependencies": {
     "@floating-ui/react": "^0.27.19",
     "d3": "^7.9.0",
+    "hast-util-sanitize": "^5.0.2",
     "highlight.js": "^11.11.1",
     "i18next": "^26.0.3",
     "i18next-browser-languagedetector": "^8.2.1",
