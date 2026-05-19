@@ -138,7 +138,7 @@ export default function MarkdownRenderer({ content, className = '', sanitize = t
           <div className="relative group">
             <CopyButton 
               textToCopy={getTextToCopy} 
-              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-800 text-slate-300 hover:text-white p-1 rounded z-10" 
+              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-all bg-transparent text-slate-500 hover:bg-slate-200 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-100 p-1 rounded z-10" 
               title="Copier le code" 
             />
             <pre 
