@@ -141,7 +141,11 @@ export default function MarkdownRenderer({ content, className = '', sanitize = t
               className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-800 text-slate-300 hover:text-white p-1 rounded z-10" 
               title="Copier le code" 
             />
-            <pre ref={preRef} {...props} />
+            <pre 
+              ref={preRef} 
+              {...props} 
+              className={`!bg-slate-100 !text-slate-800 dark:!bg-slate-800 dark:!text-slate-200 dark:[&_.hljs-string]:!text-blue-300 dark:[&_.hljs-comment]:!text-slate-400 dark:[&_.hljs-keyword]:!text-pink-400 dark:[&_.hljs-title]:!text-purple-300 dark:[&_.hljs-number]:!text-cyan-300 dark:[&_.hljs-variable]:!text-orange-300 dark:[&_.hljs-built_in]:!text-cyan-300 dark:[&_.hljs-attr]:!text-sky-300 dark:[&_.hljs-name]:!text-green-300 ${props.className || ''}`} 
+            />
           </div>
         );
       }
