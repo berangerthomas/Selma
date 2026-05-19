@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { visit } from 'unist-util-visit';
 import 'react-medium-image-zoom/dist/styles.css';
 import Zoom from 'react-medium-image-zoom';
@@ -7,6 +7,7 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeSanitize from 'rehype-sanitize';
 import { defaultSchema } from 'hast-util-sanitize';
+import CopyButton from './CopyButton';
 
 // Extend the default rehype-sanitize schema to allow KaTeX and Highlight.js classes
 const katexSanitizeSchema = (() => {
@@ -125,6 +126,23 @@ export default function MarkdownRenderer({ content, className = '', sanitize = t
           <Zoom>
             <img {...props} src={src} className="cursor-pointer" />
           </Zoom>
+        );
+      },
+      pre: (props: any) => {
+        const preRef = useRef<HTMLPreElement>(null);
+        const getTextToCopy = () => {
+          return preRef.current?.innerText || '';
+        };
+
+        return (
+          <div className="relative group">
+            <CopyButton 
+              textToCopy={getTextToCopy} 
+              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-800 text-slate-300 hover:text-white p-1 rounded z-10" 
+              title="Copier le code" 
+            />
+            <pre ref={preRef} {...props} />
+          </div>
         );
       }
     };
