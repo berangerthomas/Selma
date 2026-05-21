@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect, useMemo } from 'react';
-import type { TreeNode, ViewMode, DagData, CrossEdge, TaxonomyDescription, TagMatchMode } from '../types';
+import type { TreeNode, ViewMode, NodeShape, DagData, CrossEdge, TaxonomyDescription, TagMatchMode } from '../types';
 import { findNodePathIds } from '../utils/treeUtils';
 import { useTaxonomyData } from '../hooks/useTaxonomyData';
 import { useI18n } from '../i18n';
@@ -21,6 +21,14 @@ interface TreeContextType {
   isFullyExpanded: boolean;
   viewMode: ViewMode;
   setViewMode: (mode: ViewMode) => void;
+  nodeSize: number;
+  setNodeSize: (n: number) => void;
+  hSpacing: number;
+  setHSpacing: (n: number) => void;
+  vSpacing: number;
+  setVSpacing: (n: number) => void;
+  nodeShape: NodeShape;
+  setNodeShape: (s: NodeShape) => void;
   toggleNode: (id: string) => void;
   setExpandedToPath: (pathIds: string[]) => void;
   collapseAll: () => void;
@@ -128,14 +136,47 @@ export function TreeProvider({ children }: { children: ReactNode }) {
   }, [dagData]);
 
   const [viewMode, setViewModeState] = useState<ViewMode>(() => {
-    const saved = safeLocalStorageGet(STORAGE_KEYS.viewMode);
-    return (saved as ViewMode) || 'organic';
+    let saved = safeLocalStorageGet(STORAGE_KEYS.viewMode);
+    if (saved === 'compact') {
+      safeLocalStorageSet(STORAGE_KEYS.viewMode, 'tree');
+      safeLocalStorageSet(STORAGE_KEYS.nodeShape, 'rect');
+      saved = 'tree';
+    }
+    if (saved === 'organic') {
+      safeLocalStorageSet(STORAGE_KEYS.viewMode, 'tree');
+      saved = 'tree';
+    }
+    return (saved as ViewMode) || 'tree';
   });
 
   const setViewMode = useCallback((mode: ViewMode) => {
     setViewModeState(mode);
     safeLocalStorageSet(STORAGE_KEYS.viewMode, mode);
   }, []);
+
+  const [nodeSize, setNodeSizeState] = useState<number>(() => {
+    const saved = safeLocalStorageGet(STORAGE_KEYS.nodeSize);
+    return saved ? Number(saved) : 26;
+  });
+  const setNodeSize = useCallback((n: number) => { setNodeSizeState(n); safeLocalStorageSet(STORAGE_KEYS.nodeSize, String(n)); }, []);
+
+  const [hSpacing, setHSpacingState] = useState<number>(() => {
+    const saved = safeLocalStorageGet(STORAGE_KEYS.hSpacing);
+    return saved ? Number(saved) : 220;
+  });
+  const setHSpacing = useCallback((n: number) => { setHSpacingState(n); safeLocalStorageSet(STORAGE_KEYS.hSpacing, String(n)); }, []);
+
+  const [vSpacing, setVSpacingState] = useState<number>(() => {
+    const saved = safeLocalStorageGet(STORAGE_KEYS.vSpacing);
+    return saved ? Number(saved) : 80;
+  });
+  const setVSpacing = useCallback((n: number) => { setVSpacingState(n); safeLocalStorageSet(STORAGE_KEYS.vSpacing, String(n)); }, []);
+
+  const [nodeShape, setNodeShapeState] = useState<NodeShape>(() => {
+    const saved = safeLocalStorageGet(STORAGE_KEYS.nodeShape);
+    return (saved as NodeShape) || 'circle';
+  });
+  const setNodeShape = useCallback((s: NodeShape) => { setNodeShapeState(s); safeLocalStorageSet(STORAGE_KEYS.nodeShape, s); }, []);
 
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [activeId, setActiveId] = useState<string>('');
@@ -278,6 +319,14 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     isFullyExpanded,
     viewMode,
     setViewMode,
+    nodeSize,
+    setNodeSize,
+    hSpacing,
+    setHSpacing,
+    vSpacing,
+    setVSpacing,
+    nodeShape,
+    setNodeShape,
     toggleNode,
     setExpandedToPath,
     collapseAll,
@@ -316,6 +365,14 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     isFullyExpanded,
     viewMode,
     setViewMode,
+    nodeSize,
+    setNodeSize,
+    hSpacing,
+    setHSpacing,
+    vSpacing,
+    setVSpacing,
+    nodeShape,
+    setNodeShape,
     toggleNode,
     setExpandedToPath,
     collapseAll,

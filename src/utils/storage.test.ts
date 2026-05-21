@@ -2,8 +2,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { safeLocalStorageGet, safeLocalStorageSet, STORAGE_KEYS } from './storage'
 
 describe('storage utils', () => {
-  const realLocalStorage = global.localStorage
-
   beforeEach(() => {
     // provide a simple in-memory localStorage mock
     const store: Record<string, string> = {}
@@ -18,7 +16,7 @@ describe('storage utils', () => {
 
   afterEach(() => {
     vi.restoreAllMocks()
-    global.localStorage = realLocalStorage
+    vi.unstubAllGlobals()
   })
 
   it('reads and writes via safe helpers', () => {

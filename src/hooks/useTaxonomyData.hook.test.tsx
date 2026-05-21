@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
-import React from 'react';
 import { render, screen, waitFor, cleanup } from '@testing-library/react';
-import { vi, describe, it, expect, afterEach } from 'vitest';
+import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest';
 import { useTaxonomyData } from './useTaxonomyData';
 
 function HookTestComponent({ taxonomyId }: { taxonomyId: string }) {
@@ -17,12 +16,14 @@ function HookTestComponent({ taxonomyId }: { taxonomyId: string }) {
 }
 
 describe('useTaxonomyData integration', () => {
-  const realFetch = global.fetch;
+  beforeEach(() => {
+    vi.stubGlobal('fetch', vi.fn());
+  });
 
   afterEach(() => {
     cleanup();
     vi.restoreAllMocks();
-    global.fetch = realFetch;
+    vi.unstubAllGlobals();
   });
 
   it('loads taxonomy and nodes when both are available', async () => {

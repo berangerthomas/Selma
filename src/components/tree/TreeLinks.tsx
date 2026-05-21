@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react'
 import * as d3 from 'd3'
-import type { CrossEdge, PrunedNode, ViewMode } from '../../types'
+import type { CrossEdge, PrunedNode, ViewMode, NodeShape } from '../../types'
 import { ANIMATION_MS, OPACITY_MS } from '../../hooks/useTreeZoom'
 
 type Props = {
@@ -12,6 +12,8 @@ type Props = {
   activePathAndSubtree: Set<string>
   activeDagAncestors: Set<string>
   viewMode: ViewMode
+  nodeShape: NodeShape
+  nodeHalfWidth: number
 }
 
 function TreeLinks({
@@ -22,7 +24,8 @@ function TreeLinks({
   activeId,
   activePathAndSubtree,
   activeDagAncestors,
-  viewMode
+  nodeShape,
+  nodeHalfWidth
 }: Props) {
   const descendants = useMemo(() => layoutRoot.descendants(), [layoutRoot])
 
@@ -37,19 +40,18 @@ function TreeLinks({
   }, [d3NodeMap, descendants])
 
   const getDisplayY = useCallback((node: d3.HierarchyPointNode<PrunedNode>): number => {
-    if (viewMode !== 'compact' || !node.parent) return node.y
-    return node.y - (node.y - node.parent.y) / 3
-  }, [viewMode])
+    return node.y
+  }, [])
 
   const linkPath = useCallback((sourceX: number, sourceY: number, targetX: number, targetY: number) => {
-    if (viewMode === 'compact') {
+    if (nodeShape === 'rect') {
       const midX = sourceX + (targetX - sourceX) / 2
       return `M${sourceX},${sourceY} L${midX},${sourceY} L${midX},${targetY} L${targetX},${targetY}`
     }
 
     const dx = (targetX - sourceX) / 2
     return `M${sourceX},${sourceY}C${sourceX + dx},${sourceY} ${targetX - dx},${targetY} ${targetX},${targetY}`
-  }, [viewMode])
+  }, [nodeShape])
 
   const linkGenerator = useMemo(() => {
     return d3
@@ -70,25 +72,9 @@ function TreeLinks({
           activePathAndSubtree.has(edge.parentId) || activePathAndSubtree.has(edge.childId) ||
           activeDagAncestors.has(edge.parentId) || activeDagAncestors.has(edge.childId)
 
-        if (viewMode !== 'compact') {
-          const path = linkGenerator({ source: src, target: tgt })
-          return (
-            <path
-              key={`cross-${edge.parentId}-${edge.childId}`}
-              d={path ?? ''}
-              stroke="#f59e0b"
-              fill="none"
-              strokeWidth={isHighlighted ? 2 : 1.5}
-              strokeDasharray="6 3"
-              style={{ opacity: isHighlighted ? 0.9 : 0.2, transition: `opacity ${OPACITY_MS}ms` }}
-              aria-label={`Secondary link from ${edge.parentId} to ${edge.childId}`}
-            />
-          )
-        }
-
         const tgtNode = findVisibleOrClusterNode(edge.childId)
         const tgtDisplayY = tgtNode ? getDisplayY(tgtNode) : tgt.y
-        const endX = tgtDisplayY + 8
+        const endX = tgtDisplayY + nodeHalfWidth
 
         return (
           <path
@@ -116,7 +102,15 @@ function TreeLinks({
         const srcD3 = d3NodeMap.get(sourceId)
         const tgtD3 = d3NodeMap.get(targetId)
 
-        if (viewMode !== 'compact' && srcD3 && tgtD3) {
+        const srcNode = srcD3 ?? findVisibleOrClusterNode(sourceId)
+        const tgtNode = tgtD3 ?? findVisibleOrClusterNode(targetId)
+        // Adjust for node width off target if needed? No, wait normal links always connect to centers?
+        // Wait, native links might need it. The instruction just said: 
+        // '- `nodeShape === 'circle'` → bezier (`linkGenerator` D3)
+        //  - `nodeShape === 'rect'` → coude droit (`linkPath` en L)'.
+        // Let's preserve `linkGenerator` for circles just in case D3 has subtle optimizations, OR we can just keep `linkPath` ? 
+        // Let's use linkGenerator for circle:
+        if (nodeShape === 'circle' && srcD3 && tgtD3) {
           const path = linkGenerator({ source: srcD3, target: tgtD3 })
           return (
             <path
@@ -130,8 +124,6 @@ function TreeLinks({
           )
         }
 
-        const srcNode = srcD3 ?? findVisibleOrClusterNode(sourceId)
-        const tgtNode = tgtD3 ?? findVisibleOrClusterNode(targetId)
         const sourceX = srcNode ? getDisplayY(srcNode) : link.source.y
         const targetX = tgtNode ? getDisplayY(tgtNode) : link.target.y
 
@@ -142,7 +134,7 @@ function TreeLinks({
             stroke="#9ca3af"
             fill="none"
             strokeWidth={1}
-            style={{ opacity: dim ? 0.18 : 0.55, transition: `opacity ${OPACITY_MS}ms` }}
+            style={{ opacity: dim ? 0.18 : 0.55, transition: `d ${ANIMATION_MS}ms cubic-bezier(.2,.8,.2,1), opacity ${OPACITY_MS}ms` }}
           />
         )
       })}

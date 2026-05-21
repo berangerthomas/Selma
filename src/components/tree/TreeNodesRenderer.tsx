@@ -1,10 +1,8 @@
 import React, { useCallback, useMemo } from 'react'
 import type * as d3 from 'd3'
-import type { DagData, PrunedNode, ViewMode } from '../../types'
-import { hasMultipleParents } from '../../utils/dagUtils'
+import type { PrunedNode, ViewMode, NodeShape } from '../../types'
 import { NODE_TRANSITION, OPACITY_MS } from '../../hooks/useTreeZoom'
 import ClusterNode from './ClusterNode'
-import CompactNode from './CompactNode'
 import OrganicNode from './OrganicNode'
 
 type Props = {
@@ -13,13 +11,13 @@ type Props = {
   activePathAndSubtree: Set<string>
   activeDagAncestors: Set<string>
   viewMode: ViewMode
-  dagData: DagData | null
-  parentMap: Map<string, string[]>
   searchQuery: string
   onToggleNode: (id: string, shouldSelect?: boolean) => void
   setActiveId: (id: string) => void
   colorFor: (node: d3.HierarchyPointNode<PrunedNode>) => string
   nodeClickGuardRef: React.MutableRefObject<'node' | null>
+  nodeRadius: number
+  nodeShape: NodeShape
 }
 
 function TreeNodesRenderer({
@@ -28,24 +26,19 @@ function TreeNodesRenderer({
   activePathAndSubtree,
   activeDagAncestors,
   viewMode,
-  dagData,
-  parentMap,
   searchQuery,
   onToggleNode,
   setActiveId,
   colorFor,
-  nodeClickGuardRef
+  nodeClickGuardRef,
+  nodeRadius,
+  nodeShape
 }: Props) {
   const visibleNodes = useMemo(() => layoutRoot.descendants(), [layoutRoot])
 
   const getDisplayY = useCallback((node: d3.HierarchyPointNode<PrunedNode>): number => {
-    if (viewMode !== 'compact' || !node.parent) return node.y
-    return node.y - (node.y - node.parent.y) / 3
-  }, [viewMode])
-
-  const hasMultipleParentsFn = useCallback((dag: DagData, id: string) => {
-    return hasMultipleParents(dag, id, parentMap)
-  }, [parentMap])
+    return node.y
+  }, [])
 
   return (
     <g className="nodes">
@@ -83,14 +76,8 @@ function TreeNodesRenderer({
                 onToggle={onToggleNode}
                 setActiveId={setActiveId}
                 nodeClickGuardRef={nodeClickGuardRef}
-              />
-            ) : viewMode === 'compact' ? (
-              <CompactNode
-                node={{ ...node.data, x: pX, y: displayY }}
-                color={color}
-                dagData={dagData}
-                searchQuery={searchQuery}
-                hasMultipleParentsFn={hasMultipleParentsFn}
+                nodeRadius={nodeRadius}
+                nodeShape={nodeShape}
               />
             ) : (
               <OrganicNode
@@ -98,6 +85,8 @@ function TreeNodesRenderer({
                 color={color}
                 searchQuery={searchQuery}
                 hasChildren={!!node.children}
+                nodeRadius={nodeRadius}
+                nodeShape={nodeShape}
               />
             )}
           </g>

@@ -6,9 +6,10 @@ export interface PrunedNode extends Omit<TreeNode, 'children'> {
   children?: PrunedNode[];
 }
 
-export type ViewMode = 'organic' | 'compact' | 'list' | 'columns'
+export type ViewMode = 'tree' | 'list' | 'columns';
+export type NodeShape = 'circle' | 'rect';
 
-export type TagMatchMode = 'any' | 'all'
+export type TagMatchMode = 'any' | 'all';
 
 export type Attachment = {
   name: string

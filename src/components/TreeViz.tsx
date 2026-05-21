@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useMemo, useRef, useCallback } from 'react'
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useCallback, useDeferredValue } from 'react'
 import * as d3 from 'd3'
 import { useI18n } from '../i18n'
 import { useTree } from '../context/TreeContext'
@@ -35,7 +35,11 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
     clearForceCenter,
     toggleNode,
     requestForceCenter,
-    searchQuery
+    searchQuery,
+    nodeSize,
+    hSpacing,
+    vSpacing,
+    nodeShape
   } = useTree()
 
   const parentMap = useMemo(() => {
@@ -50,7 +54,7 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
     if (willOpen || isFullyExpanded) requestForceCenter();
   }, [expanded, toggleNode, setActiveId, isFullyExpanded, requestForceCenter]);
 
-  const { t, lang } = useI18n()
+  const { lang } = useI18n()
   const { open: sidebarOpen, setOpen: setSidebarOpen, width: sidebarWidth, setWidth: setSidebarWidth } = useSidebar(activeId);
 
   const nodeClickGuard = useRef<'node' | null>(null)
@@ -65,31 +69,20 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
     setActiveId('')
   }, [setSidebarOpen, setActiveId])
 
+  const deferredVSpacing = useDeferredValue(vSpacing);
+  const deferredHSpacing = useDeferredValue(hSpacing);
+
   // Build pruned tree and preserve node metadata (color)
   const layoutRoot = useMemo(() => {
     // Build pruned hierarchy first
     const prunedRoot = buildPrunedHierarchy(data as TreeNode, expanded) as d3.HierarchyNode<PrunedNode>
 
-    // Compute dynamic vertical spacing based on longest visible label (approximate)
-    const isCompact = viewMode === 'compact'
-    let verticalSpacing = isCompact ? 32 : 60
-    if (!isCompact) {
-      try {
-        const names = prunedRoot.descendants().map(d => t(`nodes.${d.data.id}.name`, { defaultValue: d.data.name || '' }))
-        const maxLen = Math.max(...names.map(n => (n || '').length), 0)
-        // approximate: 8px per char, clamp between 60 and 140
-        verticalSpacing = Math.max(60, Math.min(140, Math.round(maxLen * 8)))
-      } catch (e) {
-        verticalSpacing = 100
-      }
-    }
-
     const treeLayout = d3.tree<PrunedNode>()
-      .nodeSize(isCompact ? [32, 176] : [verticalSpacing, 220])
-      .separation((a, b) => a.parent === b.parent ? 1 : (isCompact ? 1.1 : 1.4))
+      .nodeSize([deferredVSpacing, deferredHSpacing])
+      .separation((a, b) => a.parent === b.parent ? 1 : 1.4)
 
     return treeLayout(prunedRoot)
-  }, [data, expanded, viewMode, t])
+  }, [data, expanded, deferredVSpacing, deferredHSpacing])
 
   const { positions, d3NodeMap } = useMemo(() => {
     const positions = new Map<string, { x: number; y: number; depth: number }>()
@@ -174,7 +167,7 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
     const p = positions.get(id)
     if (!p) return
     const rect = svgEl.getBoundingClientRect()
-    const transform = computeTransform(p, null, rect, sidebarOpen ? sidebarWidth : 0, scale)
+    const transform = computeTransform(p, null, rect, sidebarOpen ? sidebarWidth : 0, scale, { hSpacing, nodeSize })
     applyTransform(transform)
   }, [positions, sidebarOpen, sidebarWidth, applyTransform, zoomRef])
 
@@ -223,7 +216,7 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
       timers.forEach(clearTimeout)
       // no-op for fontsListener; it's a promise that resolves once
     }
-  }, [positions, lang])
+  }, [positions, lang, nodeSize, nodeShape])
 
   useEffect(() => {
     try {
@@ -293,7 +286,7 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
 
     const extents = { minX, maxX, minY, maxY }
     const rect = svgEl.getBoundingClientRect()
-    const transform = computeTransform(rootPos, extents, rect, sidebarOpen ? sidebarWidth : 0)
+    const transform = computeTransform(rootPos, extents, rect, sidebarOpen ? sidebarWidth : 0, undefined, { hSpacing, nodeSize })
 
     if (duration === 0) {
       applyTransform(transform, true)
@@ -351,6 +344,8 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
 
   const activeNode = d3NodeMap.get(activeId)
 
+  const nodeHalfWidth = nodeShape === 'rect' ? nodeSize * 0.55 : nodeSize;
+
   return (
     <div
       className="viz-container"
@@ -365,6 +360,8 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
             d3NodeMap={d3NodeMap}
             activeId={activeId}
             activePathAndSubtree={activePathAndSubtree}
+            nodeShape={nodeShape}
+            nodeHalfWidth={nodeHalfWidth}
             activeDagAncestors={activeDagAncestors}
             viewMode={viewMode}
           />
@@ -374,13 +371,13 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
             activePathAndSubtree={activePathAndSubtree}
             activeDagAncestors={activeDagAncestors}
             viewMode={viewMode}
-            dagData={dagData}
-            parentMap={parentMap}
             searchQuery={searchQuery}
             onToggleNode={onToggleNode}
             setActiveId={setActiveId}
             colorFor={colorFor}
             nodeClickGuardRef={nodeClickGuard}
+            nodeRadius={nodeSize}
+            nodeShape={nodeShape}
           />
         </g>
       </svg>

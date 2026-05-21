@@ -15,4 +15,8 @@ export const STORAGE_KEYS = {
   tagMatchMode: 'selma_tagMatchMode',
   theme: 'theme',
   textSize: 'selma-text-size',
+  nodeSize: 'selma_nodeSize',
+  hSpacing: 'selma_hSpacing',
+  vSpacing: 'selma_vSpacing',
+  nodeShape: 'selma_nodeShape',
 } as const;

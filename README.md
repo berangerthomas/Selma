@@ -10,7 +10,7 @@ Selma is a React + Vite application for visualizing and navigating hierarchical 
 
 ## Key Features
 
-- **4 Visualization Modes**: Organic (D3 link-node), Compact (orthogonal), List (collapsible tree), and Columns (Miller columns).
+- **4 Visualization Modes**: Graph (Organic/Compact: same layout, different node and link shapes), List (collapsible tree), and Columns (Miller columns).
 - **Multiple Taxonomies**: Switch between different classification lenses on the same dataset (e.g., chronological vs. genealogical).
 - **DAG Support**: Full support for nodes with multiple parents, with dedicated visual indicators.
 - **Native Localization**: Asynchronous loading of UI translations and localized Markdown content.
@@ -20,16 +20,16 @@ Selma is a React + Vite application for visualizing and navigating hierarchical 
 
 Detailed documentation is available in the `docs/` folder or [online](https://berangerthomas.github.io/selma/):
 
-- [Introduction](docs/introduction.md) — Project overview.
-- [Getting Started](docs/getting-started.md) — Requirements and installation.
-- [Taxonomy Data](docs/taxonomy-data.md) — How to structure your JSON data.
-- [Content & Markdown](docs/content-markdown.md) — Writing Markdown for nodes.
-- [Export & Print](docs/export-print.md) — How to export your diagrams.
-- [Configuration](docs/configuration.md) — Customizing themes and behaviors.
-- [Deployment](docs/deployment.md) — Hosting on GitHub Pages, Vercel, etc.
-- [Architecture](docs/architecture.md) — How the app works internally.
-- [Updating Selma](docs/updating-fork.md) — Keeping your fork up to date.
-- [FAQ](docs/faq.md) & [Reference](docs/reference.md) — Technical details and troubleshooting.
+- [Introduction](docs/introduction.md): Project overview.
+- [Getting Started](docs/getting-started.md): Requirements and installation.
+- [Taxonomy Data](docs/taxonomy-data.md): How to structure your JSON data.
+- [Content & Markdown](docs/content-markdown.md): Writing Markdown for nodes.
+- [Export & Print](docs/export-print.md): How to export your diagrams.
+- [Configuration](docs/configuration.md): Customizing themes and behaviors.
+- [Deployment](docs/deployment.md): Hosting on GitHub Pages, Vercel, etc.
+- [Architecture](docs/architecture.md): How the app works internally.
+- [Updating Selma](docs/updating-fork.md): Keeping your fork up to date.
+- [FAQ](docs/faq.md) & [Reference](docs/reference.md): Technical details and troubleshooting.
 
 ## Quick Start
 
@@ -53,11 +53,11 @@ npm run preview
 
 Selma separates application logic from user content to simplify updates. All your data lives in the `public/` folder:
 
-- `public/data/nodes.json` — Global registry of node properties (colors, icons, tags, attachments).
-- `public/data/taxonomies/*.json` — JSON structures defining relationships for each taxonomy.
-- `public/details/<lang>/<nodeId>.md` — Localized Markdown content for each node.
-- `public/locales/<lang>/` — Interface strings (`ui.json`) and taxonomy labels (`taxonomy.json`).
-- `public/assets/` — Your images, fonts, and downloadable attachments.
+- `public/data/nodes.json` - Global registry of node properties (colors, icons, tags, attachments).
+- `public/data/taxonomies/*.json` - JSON structures defining relationships for each taxonomy.
+- `public/details/<lang>/<nodeId>.md` - Localized Markdown content for each node.
+- `public/locales/<lang>/` - Interface strings (`ui.json`) and taxonomy labels (`taxonomy.json`).
+- `public/assets/` - Your images, fonts, and downloadable attachments.
 
 ## DAG Support
 

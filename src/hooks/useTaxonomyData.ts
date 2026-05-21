@@ -48,10 +48,6 @@ export function buildDagDataFromFiles(taxoFile: TaxoFile, nodesDict: Record<stri
   return dagData;
 }
 
-interface TaxoStructNode {
-  children?: string[];
-}
-
 let cachedNodesDict: Record<string, unknown> | null = null;
 
 export function useTaxonomyData(taxonomyId: string) {

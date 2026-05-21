@@ -1,5 +1,32 @@
 # Changelog
 
+## [v0.7.2] - 2026-05-21
+
+### Added
+- **Copy button on code blocks**
+- **Layout sliders**: Three sliders (Node size, H. spacing, V. spacing) in the toolbar let you dynamically adjust the appearance of the graph tree without editing configuration files.
+- **Auto-layout button**: A "magic wand" button automatically computes optimal node size and spacing based on label lengths and node count, then applies them in one click.
+- **Tree view unification**: The former "Organic graph" and "Compact graph" view modes are now two visual variants of a single `tree` view mode — "Organic" uses circular nodes (`nodeShape: 'circle'`) with bezier links, while "Compact" uses rectangular nodes (`nodeShape: 'rect'`) with orthogonal elbow links. Both share the same layout engine and respond to the same sliders.
+
+### Modified
+- **Customize code rendering** to better fit tailwindcss/typography style
+- **Storage keys**: Replaced the remaining raw localStorage key strings with `STORAGE_KEYS` across the tree context and theme/url sync hooks.
+- **Print flow**: Centralized the repeated SVG blob-to-base64 conversion and translated the popup-blocked toast through `useI18n` in the print hooks.
+- **Navigation reuse**: Routed history and URL navigation through the shared node-navigation callback instead of duplicating the path expansion block.
+- **File tree rendering**: Cached multi-parent lookups once per node in `FileTreeView` instead of recomputing them for each badge attribute.
+- **i18n cleanup**: Aligned `PrintMarkdownButton` with the project-wide `useI18n` hook.
+ - **Toolbar**: Extracted tag toggle logic into a `handleTagToggle` callback for clarity and testability.
+ - **Print utility**: Removed the UI-dependent `openPrintWindowOrToast` from `printWindow.ts`; print hooks now display the translated "popup blocked" toast themselves.
+ - **Text size**: `useTextSize` now uses `STORAGE_KEYS.textSize` for persistence consistency.
+ - **View mode switch**: Clicking the Organic or Compact button no longer switches `viewMode`; both set `viewMode` to `'tree'` and differ only by `nodeShape`. The List Tree and Miller Columns remain separate independent view modes.
+
+### Fixed
+- **Attachments**: Fixed a bug where downloaded files were renamed based on the `name` field, causing extension issues if the name contained a dot; files now use their original filename from the `path` for the download attribute.
+- **URL sync**: Preserved full `?taxonomy=...&node=...` URLs during initial hydration and refresh, and added a non-regression test for the `node` query param.
+- **Tests**: Added a small Vitest regression test covering the URL parsing behavior for full taxonomy + node links, and added unit tests for `src/utils/storage.ts` (covering `safeLocalStorageGet`, `safeLocalStorageSet` and `STORAGE_KEYS`).
+- **Dropdown menu height**: modified again to show full text height.
+- **Footer**: Lowered the `Built with Selma` z-index so it appears beneath the Markdown panel.
+
 ## [v0.7.1] - 2026-05-16
 
 ### Added

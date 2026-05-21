@@ -56,7 +56,7 @@ function ExportImageButton({
 export function PrintAndExportButtons({ svgRef, htmlRef, title, className = '' }: PrintAndExportButtonsProps) {
   const { t } = useI18n();
   const { data, viewMode } = useTree();
-  const isSVGMode = viewMode === 'organic' || viewMode === 'compact';
+  const isSVGMode = viewMode === 'tree';
 
   const effectiveTitle = title || t('export_default_title', { defaultValue: 'Selma — Taxonomy' });
   const [isOpen, setOpen] = useState(false);

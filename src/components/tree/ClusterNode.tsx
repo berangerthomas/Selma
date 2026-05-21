@@ -6,18 +6,19 @@ import { useI18n } from '../../i18n'
 type Props = {
   node: PrunedNode & { x: number; y: number }
   color: string
-  viewMode: 'organic' | 'compact' | 'list' | 'columns'
+  viewMode: 'tree' | 'list' | 'columns'
   searchQuery: string
   onToggle: (id: string) => void
   setActiveId?: (id: string) => void
   nodeClickGuardRef?: React.MutableRefObject<'node' | null>
+  nodeRadius: number
+  nodeShape: 'circle' | 'rect'
 }
 
-function ClusterNode({ node, color, viewMode, searchQuery, onToggle, setActiveId, nodeClickGuardRef }: Props) {
+function ClusterNode({ node, color, searchQuery, onToggle, setActiveId, nodeClickGuardRef, nodeRadius, nodeShape }: Props) {
   const { t } = useI18n()
   const count = node.__cluster_count ?? 2
-  const isCompact = viewMode === 'compact'
-  const r = isCompact ? 14 : 18
+  const r = nodeRadius * 0.65
 
   return (
     <g
@@ -33,18 +34,18 @@ function ClusterNode({ node, color, viewMode, searchQuery, onToggle, setActiveId
       }}
       style={{ cursor: 'pointer' }}
     >
-      {isCompact ? (
+      {nodeShape === 'rect' ? (
         <rect x={-r} y={-r} width={r * 2} height={r * 2} rx={4} fill={color} opacity={0.6} stroke="#fff" strokeWidth={1.5} />
       ) : (
         <circle r={r} fill={color} opacity={0.6} stroke="#fff" strokeWidth={2} />
       )}
-      <text x={0} y={5} textAnchor="middle" fill="white" fontSize={isCompact ? 11 : 14} fontWeight="bold" style={{ pointerEvents: 'none', userSelect: 'none' }}>
+      <text x={0} y={5} textAnchor="middle" fill="white" fontSize={12} fontWeight="bold" style={{ pointerEvents: 'none', userSelect: 'none' }}>
         +{count}
       </text>
       <text
-        x={isCompact ? r + 8 : r + 6}
-        y={isCompact ? 4 : 5}
-        fontSize={isCompact ? 11 : 13}
+        x={nodeShape === 'rect' ? r + 8 : r + 6}
+        y={5}
+        fontSize={13}
         textAnchor="start"
         style={{ userSelect: 'none', paintOrder: 'stroke', stroke: 'var(--panel-bg)', fill: 'var(--text-main)', strokeWidth: 3, strokeLinecap: 'round', strokeLinejoin: 'round' }}
       >

@@ -51,7 +51,7 @@ export default function App() {
         onGoForward={goForward}
       />
       <Suspense fallback={<div className="viz-loading">{t('loading', { defaultValue: 'Loading...' })}</div>}>
-        {(viewMode === 'organic' || viewMode === 'compact') && <TreeViz forwardedSvgRef={svgRef} />}
+        {viewMode === 'tree' && <TreeViz forwardedSvgRef={svgRef} />}
         {viewMode === 'list' && <FileTreeView ref={htmlRef} />}
         {viewMode === 'columns' && <MillerColumnsView ref={htmlRef} />}
       </Suspense>

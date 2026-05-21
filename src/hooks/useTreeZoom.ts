@@ -30,7 +30,8 @@ export function computeTransform(
   subtreeExtents: { minX: number; maxX: number; minY: number; maxY: number } | null,
   svgRect: DOMRect | { width: number; height: number },
   sidebarOffset: number,
-  forcedScale?: number
+  forcedScale?: number,
+  layoutParams?: { hSpacing: number; nodeSize: number }
 ): d3.ZoomTransform {
   const topOcclusion = 30; // Toolbar on top
   const bottomOcclusion = 40; // Breadcrumb on bottom
@@ -44,9 +45,11 @@ export function computeTransform(
 
   if (subtreeExtents && !forcedScale) {
     const visualMinY = subtreeExtents.minY - 40;
-    const visualMaxY = subtreeExtents.maxY + 350;
+    const labelMarginRight = layoutParams ? Math.round(layoutParams.hSpacing * 1.6) : 350;
+    const labelMarginBottom = layoutParams ? Math.round(layoutParams.nodeSize * 5) : 140;
+    const visualMaxY = subtreeExtents.maxY + labelMarginRight;
     const visualMinX = subtreeExtents.minX - 30;
-    const visualMaxX = subtreeExtents.maxX + 140;
+    const visualMaxX = subtreeExtents.maxX + labelMarginBottom;
 
     const treeWidth = Math.max(1, visualMaxY - visualMinY);
     const treeHeight = Math.max(1, visualMaxX - visualMinX);

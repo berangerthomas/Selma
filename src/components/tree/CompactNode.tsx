@@ -23,17 +23,17 @@ function CompactNode({ node, color, dagData, searchQuery, hasMultipleParentsFn }
       {dagData && hasMultipleParentsFn(dagData, node.id) && (
         <circle r={8} fill="none" stroke="#f59e0b" strokeWidth={1.5} strokeDasharray="2 1.5" opacity={0.7} />
       )}
-      <rect x={-8} y={-10} width={16} height={20} rx={4} fill={color} stroke="#fff" strokeWidth={1.5} />
+      <rect x={-8} y={-12} width={16} height={24} rx={4} fill={color} stroke="#fff" strokeWidth={1.5} />
       {node.image ? (
         <image className="icon-img" href={node.image} x={-6} y={-6} width={12} height={12} />
       ) : finalIconChar ? (
         <text
           className="icon-char"
           x={0}
-          y={3.5}
+          y={5.5}
           textAnchor="middle"
           fill="white"
-          fontSize={11}
+          fontSize={9.5}
           fontFamily={finalIconFont}
           style={{ pointerEvents: 'none', userSelect: 'none' }}
           aria-hidden="true"
@@ -41,7 +41,7 @@ function CompactNode({ node, color, dagData, searchQuery, hasMultipleParentsFn }
           {finalIconChar}
         </text>
       ) : null}
-      <text x={14} y={4} fontSize={13} textAnchor="start" style={{ userSelect: 'none', paintOrder: 'stroke', stroke: 'var(--panel-bg)', fill: 'var(--text-main)', strokeWidth: 3, strokeLinecap: 'round', strokeLinejoin: 'round' }}>
+      <text x={14} y={4.5} fontSize={11} textAnchor="start" style={{ userSelect: 'none', paintOrder: 'stroke', stroke: 'var(--panel-bg)', fill: 'var(--text-main)', strokeWidth: 2.5, strokeLinecap: 'round', strokeLinejoin: 'round' }}>
         <HighlightSVGText
           text={t(`nodes.${node.id}.name`, { defaultValue: node.name || '' })}
           query={searchQuery}

@@ -31,9 +31,27 @@ import OrganicIcon from '../assets/icons/organic.svg?react'
 import CompactIcon from '../assets/icons/compact.svg?react'
 import FileTreeIcon from '../assets/icons/filetree.svg?react'
 import MillerIcon from '../assets/icons/miller.svg?react'
+import MagicWandIcon from '../assets/icons/magic-wand.svg?react'
 
 interface ToolbarIconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   label: string
+}
+
+function LayoutSlider({ label, value, min, max, step, onChange }: {
+  label: string; value: number; min: number; max: number; step: number;
+  onChange: (n: number) => void
+}) {
+  return (
+    <div className="flex items-center gap-2 w-full py-[2px]">
+      <span className="toolbar-title shrink-0 w-[72px] text-[11px]">{label}</span>
+      <input type="range" min={min} max={max} step={step} value={value}
+        onChange={e => onChange(Number(e.target.value))}
+        className="flex-1 h-[3px] accent-blue-600 cursor-pointer"
+        onMouseDown={e => e.stopPropagation()}
+      />
+      <span className="text-[11px] w-7 text-right tabular-nums text-[var(--text-muted)]">{value}</span>
+    </div>
+  )
 }
 
 function ViewModeButton({
@@ -119,7 +137,12 @@ export default function Toolbar({
   const { isDark, toggleTheme } = useTheme()
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
-  const { viewMode, setViewMode, activeTaxonomyId, setActiveTaxonomyId, availableTaxonomies, availableTags, selectedTags, setSelectedTags, tagMatchMode, setTagMatchMode } = useTree()
+  const { 
+    viewMode, setViewMode, activeTaxonomyId, setActiveTaxonomyId, availableTaxonomies, 
+    availableTags, selectedTags, setSelectedTags, tagMatchMode, setTagMatchMode,
+    nodeSize, setNodeSize, hSpacing, setHSpacing, vSpacing, setVSpacing, nodeShape, setNodeShape,
+    dagData, data
+  } = useTree()
 
   const handleTagToggle = useCallback((tag: string) => {
     const isSelected = selectedTags.includes(tag);
@@ -287,10 +310,99 @@ export default function Toolbar({
           </div>
           <div className="toolbar-row flex gap-1 border-t border-[var(--border-color)] pt-1.5 mt-[2px] items-center">
             <div className="toolbar-title mr-2">{t('view', { defaultValue: 'View' })}</div>
-            <ViewModeButton mode="organic" current={viewMode} label={t('view_organic', { defaultValue: 'Organic Graph' })} icon={OrganicIcon} onClick={() => setViewMode('organic')} />
-            <ViewModeButton mode="compact" current={viewMode} label={t('view_compact', { defaultValue: 'Compact Graph' })} icon={CompactIcon} onClick={() => setViewMode('compact')} />
+            {/* Organic tree view */}
+            <ToolbarIconButton
+              label={t('view_organic', { defaultValue: 'Organic graph' })}
+              onClick={() => { setViewMode('tree'); setNodeShape('circle'); }}
+              className={`p-[6px] rounded transition-colors ${viewMode === 'tree' && nodeShape === 'circle' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'bg-transparent hover:bg-black/5 dark:hover:bg-white/10'}`}
+            >
+              <OrganicIcon className="w-[18px] h-[18px] block" />
+            </ToolbarIconButton>
+            {/* Compact tree view */}
+            <ToolbarIconButton
+              label={t('view_compact', { defaultValue: 'Rectangular graph' })}
+              onClick={() => { setViewMode('tree'); setNodeShape('rect'); }}
+              className={`p-[6px] rounded transition-colors ${viewMode === 'tree' && nodeShape === 'rect' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'bg-transparent hover:bg-black/5 dark:hover:bg-white/10'}`}
+            >
+              <CompactIcon className="w-[18px] h-[18px] block" />
+            </ToolbarIconButton>
             <ViewModeButton mode="list" current={viewMode} label={t('view_list', { defaultValue: 'List Tree' })} icon={FileTreeIcon} onClick={() => setViewMode('list')} />
             <ViewModeButton mode="columns" current={viewMode} label={t('view_columns', { defaultValue: 'Miller Columns' })} icon={MillerIcon} onClick={() => setViewMode('columns')} />
+            <div className="flex-1"></div>
+          </div>
+
+          <div className="flex flex-col gap-1 border-t border-[var(--border-color)] pt-1.5 mt-[2px]">
+            <LayoutSlider label={t('node_size', {defaultValue: 'Node'})} value={nodeSize} min={10} max={50} step={1}
+              onChange={setNodeSize} />
+            <LayoutSlider label={t('h_spacing', {defaultValue: 'H. space'})} value={hSpacing} min={80} max={400} step={10}
+              onChange={setHSpacing} />
+            <LayoutSlider label={t('v_spacing', {defaultValue: 'V. space'})} value={vSpacing}
+              min={Math.max(12, Math.round(nodeSize * 0.8))} max={200} step={2}
+              onChange={setVSpacing} />
+            <div className="flex justify-center pt-1">
+              <ToolbarIconButton
+                label={t('auto_layout', { defaultValue: 'Auto layout' })}
+                onClick={() => {
+                  try {
+                    // Collect all node labels
+                    const labels: string[] = []
+                    if (dagData && dagData.nodes) {
+                      for (const id in dagData.nodes) labels.push(dagData.nodes[id].name || '')
+                    } else if (data) {
+                      const walk = (n: any) => { labels.push(n.name || ''); n.children?.forEach(walk) }
+                      walk(data)
+                    }
+                    if (labels.length === 0) return
+
+                    const canvas = document.createElement('canvas')
+                    const ctx = canvas.getContext('2d')
+                    if (!ctx) return
+
+                    // Use the actual rendering font to measure text widths
+                    const baseFont = 14
+                    ctx.font = `${baseFont}px sans-serif`
+                    
+                    // Compute label metrics: longest label, total chars, average length
+                    let maxWidth = 0
+                    let totalChars = 0
+                    const widths: number[] = []
+                    for (const l of labels) {
+                      const w = ctx.measureText(l).width
+                      widths.push(w)
+                      if (w > maxWidth) maxWidth = w
+                      totalChars += l.length
+                    }
+                    const avgWidth = widths.reduce((a, b) => a + b, 0) / widths.length
+                    const labelCount = labels.length
+
+                    // --- Node size: proportional to text height + slight padding ---
+                    // Base node size from font metrics: text ~14px high, need ~4px padding
+                    const baseNodeSize = 18
+                    // Scale up slightly if there are many long labels
+                    const scaleFactor = Math.min(1.6, Math.max(0.8, maxWidth / 80))
+                    const idealNodeSize = Math.round(Math.max(12, Math.min(50, baseNodeSize * scaleFactor)))
+
+                    // --- Horizontal spacing: based on widest label + node size + padding ---
+                    // The widest label needs room: nodeSize/2 on each side + label width + comfort margin
+                    const comfortMargin = Math.max(40, Math.min(100, Math.round(avgWidth * 0.5)))
+                    const idealHSpacing = Math.max(80, Math.min(400, Math.round(maxWidth + idealNodeSize + comfortMargin)))
+
+                    // --- Vertical spacing: based on node size, with density consideration ---
+                    // Many nodes → tighter spacing; few nodes → roomier
+                    const densityFactor = Math.max(0.6, Math.min(1.4, 20 / Math.max(1, Math.log(labelCount + 1) * 4)))
+                    const idealVSpacing = Math.max(12, Math.min(200, Math.round((idealNodeSize * 1.2 + 10) * densityFactor)))
+
+                    setNodeSize(idealNodeSize)
+                    setHSpacing(idealHSpacing)
+                    setVSpacing(idealVSpacing)
+                    setViewMode('tree')
+                    setTimeout(() => { onResetView?.() }, 50)
+                  } catch (e) { /* fail silently */ }
+                }}
+              >
+                <MagicWandIcon className="w-[18px] h-[18px] block" />
+              </ToolbarIconButton>
+            </div>
           </div>
           
           <div className="toolbar-row flex gap-1 border-t border-[var(--border-color)] pt-1.5 mt-[2px] items-center">

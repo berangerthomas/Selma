@@ -8,9 +8,11 @@ type Props = {
   color: string
   searchQuery: string
   hasChildren: boolean
+  nodeRadius: number
+  nodeShape: 'circle' | 'rect'
 }
 
-function OrganicNode({ node, color, searchQuery, hasChildren }: Props) {
+function OrganicNode({ node, color, searchQuery, hasChildren, nodeRadius, nodeShape }: Props) {
   const { t } = useI18n()
   const finalIconChar = t(`nodes.${node.id}.iconChar`, { defaultValue: node.iconChar || '' })
   const finalIconFont = t(`nodes.${node.id}.iconFont`, { defaultValue: node.iconFont || 'sans-serif' })
@@ -18,17 +20,29 @@ function OrganicNode({ node, color, searchQuery, hasChildren }: Props) {
   // No transform here — the parent <g> in TreeViz already handles translate(displayY, p.x)
   return (
     <g className="node">
-      <circle r={26} fill={color} stroke="#fff" strokeWidth={2} />
+      {nodeShape === 'circle' ? (
+        <circle r={nodeRadius} fill={color} stroke="#fff" strokeWidth={2} />
+      ) : (
+        (() => {
+          const rectW = nodeRadius * 2.0
+          const rectH = nodeRadius * 1.1
+          const rx = Math.max(4, Math.round(nodeRadius * 0.12))
+          return (
+            <rect x={-rectW / 2} y={-rectH / 2} width={rectW} height={rectH} rx={rx} fill={color} stroke="#fff" strokeWidth={2} />
+          )
+        })()
+      )}
       {node.image ? (
-        <image className="icon-img" href={node.image} x={0} y={0} width={32} height={32} />
+        <image className="icon-img" href={node.image} x={-(nodeRadius * 1.2) / 2} y={-(nodeRadius * 1.2) / 2} width={nodeRadius * 1.2} height={nodeRadius * 1.2} />
       ) : finalIconChar ? (
         <text
           className="icon-char"
           x={0}
           y={0}
-          textAnchor="start"
+          textAnchor="middle"
+          dominantBaseline="central"
           fill="white"
-          fontSize={28}
+          fontSize={nodeShape === 'rect' ? nodeRadius * 0.9 : nodeRadius * 1.1}
           fontFamily={finalIconFont}
           style={{ pointerEvents: 'none', userSelect: 'none' }}
           aria-hidden="true"
@@ -37,8 +51,8 @@ function OrganicNode({ node, color, searchQuery, hasChildren }: Props) {
         </text>
       ) : null}
       <text
-        x={hasChildren ? 0 : 36}
-        y={hasChildren ? -34 : 6}
+        x={hasChildren ? 0 : nodeShape === 'rect' ? nodeRadius + 4 : nodeRadius + 10}
+        y={hasChildren ? -(nodeRadius + 8) : nodeRadius * 0.2}
         fontSize={14}
         textAnchor={hasChildren ? 'middle' : 'start'}
         style={{ userSelect: 'none', paintOrder: 'stroke', stroke: 'var(--panel-bg)', fill: 'var(--text-main)', strokeWidth: 4, strokeLinecap: 'round', strokeLinejoin: 'round' }}
@@ -49,7 +63,7 @@ function OrganicNode({ node, color, searchQuery, hasChildren }: Props) {
         />
       </text>
       {node.attachments && node.attachments.length > 0 && (
-        <g transform="translate(20, 20)">
+        <g transform={`translate(${nodeRadius * 0.8}, ${nodeRadius * 0.8})`}>
           <path
             d="M-4.5,-6 H1 L4.5,-2.5 V6 H-4.5 Z M1,-6 V-2.5 H4.5"
             fill="#fff"
