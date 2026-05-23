@@ -32,6 +32,7 @@ import CompactIcon from '../assets/icons/compact.svg?react'
 import FileTreeIcon from '../assets/icons/filetree.svg?react'
 import MillerIcon from '../assets/icons/miller.svg?react'
 import MagicWandIcon from '../assets/icons/magic-wand.svg?react'
+import RotateIcon from '../assets/icons/rotate.svg?react'
 
 interface ToolbarIconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   label: string
@@ -141,6 +142,7 @@ export default function Toolbar({
     viewMode, setViewMode, activeTaxonomyId, setActiveTaxonomyId, availableTaxonomies, 
     availableTags, selectedTags, setSelectedTags, tagMatchMode, setTagMatchMode,
     nodeSize, setNodeSize, hSpacing, setHSpacing, vSpacing, setVSpacing, nodeShape, setNodeShape,
+    orientation, setOrientation,
     dagData, data
   } = useTree()
 
@@ -328,6 +330,19 @@ export default function Toolbar({
             </ToolbarIconButton>
             <ViewModeButton mode="list" current={viewMode} label={t('view_list', { defaultValue: 'List Tree' })} icon={FileTreeIcon} onClick={() => setViewMode('list')} />
             <ViewModeButton mode="columns" current={viewMode} label={t('view_columns', { defaultValue: 'Miller Columns' })} icon={MillerIcon} onClick={() => setViewMode('columns')} />
+            {viewMode === 'tree' && (
+              <ToolbarIconButton
+                label={t('toggle_orientation', { defaultValue: 'Toggle orientation' })}
+                onClick={() => setOrientation(orientation === 'horizontal' ? 'vertical' : 'horizontal')}
+                className={`p-[6px] rounded transition-colors ${
+                  orientation === 'vertical'
+                    ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                    : 'bg-transparent hover:bg-black/5 dark:hover:bg-white/10'
+                }`}
+              >
+                  <RotateIcon className="w-[18px] h-[18px] block" />
+              </ToolbarIconButton>
+            )}
             <div className="flex-1"></div>
           </div>
 
@@ -363,38 +378,36 @@ export default function Toolbar({
                     ctx.font = `${baseFont}px sans-serif`
                     
                     // Compute label metrics: longest label, total chars, average length
-                    let maxWidth = 0
+                    let maxTextWidth = 0
                     let totalChars = 0
                     const widths: number[] = []
                     for (const l of labels) {
                       const w = ctx.measureText(l).width
                       widths.push(w)
-                      if (w > maxWidth) maxWidth = w
+                      if (w > maxTextWidth) maxTextWidth = w
                       totalChars += l.length
                     }
                     const avgWidth = widths.reduce((a, b) => a + b, 0) / widths.length
                     const labelCount = labels.length
 
                     // --- Node size: proportional to text height + slight padding ---
-                    // Base node size from font metrics: text ~14px high, need ~4px padding
                     const baseNodeSize = 18
-                    // Scale up slightly if there are many long labels
-                    const scaleFactor = Math.min(1.6, Math.max(0.8, maxWidth / 80))
+                    const scaleFactor = Math.min(1.6, Math.max(0.8, maxTextWidth / 80))
                     const idealNodeSize = Math.round(Math.max(12, Math.min(50, baseNodeSize * scaleFactor)))
 
-                    // --- Horizontal spacing: based on widest label + node size + padding ---
-                    // The widest label needs room: nodeSize/2 on each side + label width + comfort margin
+                    // In horizontal mode: hSpacing = depth (label width matters), vSpacing = orthogonal
+                    // In vertical mode:   hSpacing = orthogonal, vSpacing = depth (label width matters)
                     const comfortMargin = Math.max(40, Math.min(100, Math.round(avgWidth * 0.5)))
-                    const idealHSpacing = Math.max(80, Math.min(400, Math.round(maxWidth + idealNodeSize + comfortMargin)))
-
-                    // --- Vertical spacing: based on node size, with density consideration ---
-                    // Many nodes → tighter spacing; few nodes → roomier
+                    const depthSpacing = Math.max(80, Math.min(400, Math.round(maxTextWidth + idealNodeSize + comfortMargin)))
                     const densityFactor = Math.max(0.6, Math.min(1.4, 20 / Math.max(1, Math.log(labelCount + 1) * 4)))
-                    const idealVSpacing = Math.max(12, Math.min(200, Math.round((idealNodeSize * 1.2 + 10) * densityFactor)))
+                    const orthogonalSpacing = Math.max(12, Math.min(200, Math.round((idealNodeSize * 1.2 + 10) * densityFactor)))
+
+                    const finalH = orientation === 'horizontal' ? depthSpacing : orthogonalSpacing
+                    const finalV = orientation === 'horizontal' ? orthogonalSpacing : depthSpacing
 
                     setNodeSize(idealNodeSize)
-                    setHSpacing(idealHSpacing)
-                    setVSpacing(idealVSpacing)
+                    setHSpacing(finalH)
+                    setVSpacing(finalV)
                     setViewMode('tree')
                     setTimeout(() => { onResetView?.() }, 50)
                   } catch (e) { /* fail silently */ }

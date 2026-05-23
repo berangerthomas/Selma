@@ -8,6 +8,7 @@ export interface PrunedNode extends Omit<TreeNode, 'children'> {
 
 export type ViewMode = 'tree' | 'list' | 'columns';
 export type NodeShape = 'circle' | 'rect';
+export type Orientation = 'horizontal' | 'vertical';
 
 export type TagMatchMode = 'any' | 'all';
 

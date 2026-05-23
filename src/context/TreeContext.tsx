@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect, useMemo } from 'react';
-import type { TreeNode, ViewMode, NodeShape, DagData, CrossEdge, TaxonomyDescription, TagMatchMode } from '../types';
+import type { TreeNode, ViewMode, NodeShape, Orientation, DagData, CrossEdge, TaxonomyDescription, TagMatchMode } from '../types';
 import { findNodePathIds } from '../utils/treeUtils';
 import { useTaxonomyData } from '../hooks/useTaxonomyData';
 import { useI18n } from '../i18n';
@@ -29,6 +29,8 @@ interface TreeContextType {
   setVSpacing: (n: number) => void;
   nodeShape: NodeShape;
   setNodeShape: (s: NodeShape) => void;
+  orientation: Orientation;
+  setOrientation: (o: Orientation) => void;
   toggleNode: (id: string) => void;
   setExpandedToPath: (pathIds: string[]) => void;
   collapseAll: () => void;
@@ -177,6 +179,12 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     return (saved as NodeShape) || 'circle';
   });
   const setNodeShape = useCallback((s: NodeShape) => { setNodeShapeState(s); safeLocalStorageSet(STORAGE_KEYS.nodeShape, s); }, []);
+
+  const [orientation, setOrientationState] = useState<Orientation>(() => {
+    const saved = safeLocalStorageGet(STORAGE_KEYS.orientation);
+    return (saved as Orientation) || 'horizontal';
+  });
+  const setOrientation = useCallback((o: Orientation) => { setOrientationState(o); safeLocalStorageSet(STORAGE_KEYS.orientation, o); }, []);
 
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [activeId, setActiveId] = useState<string>('');
@@ -327,6 +335,8 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     setVSpacing,
     nodeShape,
     setNodeShape,
+    orientation,
+    setOrientation,
     toggleNode,
     setExpandedToPath,
     collapseAll,
@@ -373,6 +383,8 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     setVSpacing,
     nodeShape,
     setNodeShape,
+    orientation,
+    setOrientation,
     toggleNode,
     setExpandedToPath,
     collapseAll,

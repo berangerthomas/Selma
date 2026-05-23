@@ -39,7 +39,8 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
     nodeSize,
     hSpacing,
     vSpacing,
-    nodeShape
+    nodeShape,
+    orientation
   } = useTree()
 
   const parentMap = useMemo(() => {
@@ -77,12 +78,18 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
     // Build pruned hierarchy first
     const prunedRoot = buildPrunedHierarchy(data as TreeNode, expanded) as d3.HierarchyNode<PrunedNode>
 
+    // Swap nodeSize based on orientation:
+    // - horizontal: d3.x = vertical spacing, d3.y = horizontal spacing (root→right)
+    // - vertical:   d3.x = horizontal spacing, d3.y = vertical spacing   (root→down)
+    const sizeX = orientation === 'horizontal' ? deferredVSpacing : deferredHSpacing
+    const sizeY = orientation === 'horizontal' ? deferredHSpacing : deferredVSpacing
+
     const treeLayout = d3.tree<PrunedNode>()
-      .nodeSize([deferredVSpacing, deferredHSpacing])
+      .nodeSize([sizeX, sizeY])
       .separation((a, b) => a.parent === b.parent ? 1 : 1.4)
 
     return treeLayout(prunedRoot)
-  }, [data, expanded, deferredVSpacing, deferredHSpacing])
+  }, [data, expanded, deferredVSpacing, deferredHSpacing, orientation])
 
   const { positions, d3NodeMap } = useMemo(() => {
     const positions = new Map<string, { x: number; y: number; depth: number }>()
@@ -147,12 +154,13 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
     const p = positions.get(id)
     if (!p) return false
     const t = d3.zoomTransform(svgEl)
-    const screenX = p.y * t.k + t.x
-    const screenY = p.x * t.k + t.y
+    // depth → screen X, orthogonal → screen Y
+    const screenX = (orientation === 'vertical' ? p.x : p.y) * t.k + t.x
+    const screenY = (orientation === 'vertical' ? p.y : p.x) * t.k + t.y
     const { width, height } = svgEl.getBoundingClientRect()
     const effectiveWidth = width - (sidebarOpen ? sidebarWidth : 0)
     return screenX >= margin && screenX <= effectiveWidth - margin && screenY >= margin && screenY <= height - margin
-  }, [positions, sidebarOpen, sidebarWidth, svgRef])
+  }, [positions, sidebarOpen, sidebarWidth, svgRef, orientation])
 
   const activeIdRef = useRef<string>(activeId)
   useLayoutEffect(() => {
@@ -167,9 +175,9 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
     const p = positions.get(id)
     if (!p) return
     const rect = svgEl.getBoundingClientRect()
-    const transform = computeTransform(p, null, rect, sidebarOpen ? sidebarWidth : 0, scale, { hSpacing, nodeSize })
+    const transform = computeTransform(p, null, rect, sidebarOpen ? sidebarWidth : 0, scale, { hSpacing, nodeSize }, orientation)
     applyTransform(transform)
-  }, [positions, sidebarOpen, sidebarWidth, applyTransform, zoomRef])
+  }, [positions, sidebarOpen, sidebarWidth, applyTransform, zoomRef, orientation])
 
   useLayoutEffect(() => {
     const svgEl = svgRef.current
@@ -286,7 +294,7 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
 
     const extents = { minX, maxX, minY, maxY }
     const rect = svgEl.getBoundingClientRect()
-    const transform = computeTransform(rootPos, extents, rect, sidebarOpen ? sidebarWidth : 0, undefined, { hSpacing, nodeSize })
+    const transform = computeTransform(rootPos, extents, rect, sidebarOpen ? sidebarWidth : 0, undefined, { hSpacing, nodeSize }, orientation)
 
     if (duration === 0) {
       applyTransform(transform, true)
@@ -364,6 +372,7 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
             nodeHalfWidth={nodeHalfWidth}
             activeDagAncestors={activeDagAncestors}
             viewMode={viewMode}
+            orientation={orientation}
           />
           <TreeNodesRenderer
             layoutRoot={layoutRoot}
@@ -378,6 +387,7 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
             nodeClickGuardRef={nodeClickGuard}
             nodeRadius={nodeSize}
             nodeShape={nodeShape}
+            orientation={orientation}
           />
         </g>
       </svg>

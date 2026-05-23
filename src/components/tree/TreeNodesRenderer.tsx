@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react'
 import type * as d3 from 'd3'
-import type { PrunedNode, ViewMode, NodeShape } from '../../types'
+import type { PrunedNode, ViewMode, NodeShape, Orientation } from '../../types'
 import { NODE_TRANSITION, OPACITY_MS } from '../../hooks/useTreeZoom'
 import ClusterNode from './ClusterNode'
 import OrganicNode from './OrganicNode'
@@ -18,6 +18,7 @@ type Props = {
   nodeClickGuardRef: React.MutableRefObject<'node' | null>
   nodeRadius: number
   nodeShape: NodeShape
+  orientation: Orientation
 }
 
 function TreeNodesRenderer({
@@ -32,7 +33,8 @@ function TreeNodesRenderer({
   colorFor,
   nodeClickGuardRef,
   nodeRadius,
-  nodeShape
+  nodeShape,
+  orientation
 }: Props) {
   const visibleNodes = useMemo(() => layoutRoot.descendants(), [layoutRoot])
 
@@ -49,12 +51,17 @@ function TreeNodesRenderer({
         const color = colorFor(node)
         const isCluster = Boolean(node.data.__cluster_for)
 
+        // orientation 'horizontal': node.y → translate X (left-right), node.x → translate Y (top-bottom)
+        // orientation 'vertical': node.x → translate X (left-right), node.y → translate Y (top-bottom)
+        const tx = orientation === 'horizontal' ? displayY : pX
+        const ty = orientation === 'horizontal' ? pX : displayY
+
         return (
           <g
             key={node.data.id}
             className={`node ${isCluster ? 'cluster' : ''}`}
             style={{
-              transform: `translate(${displayY}px, ${pX}px)`,
+              transform: `translate(${tx}px, ${ty}px)`,
               transition: `${NODE_TRANSITION}, opacity ${OPACITY_MS}ms`,
               opacity: dim ? 0.25 : 1,
               cursor: 'pointer'
@@ -87,6 +94,7 @@ function TreeNodesRenderer({
                 hasChildren={!!node.children}
                 nodeRadius={nodeRadius}
                 nodeShape={nodeShape}
+                orientation={orientation}
               />
             )}
           </g>

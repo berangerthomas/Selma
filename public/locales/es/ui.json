@@ -59,6 +59,7 @@
   "view_columns": "Columnas de Miller",
   "node_size": "Nodo",
   "h_spacing": "Esp. H.",
+  "toggle_orientation": "Cambiar orientación",
   "v_spacing": "Esp. V.",
   "settings_modal_status": "Estado",
   "settings_modal_action": "Acción",

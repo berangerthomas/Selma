@@ -19,4 +19,5 @@ export const STORAGE_KEYS = {
   hSpacing: 'selma_hSpacing',
   vSpacing: 'selma_vSpacing',
   nodeShape: 'selma_nodeShape',
+  orientation: 'selma_orientation',
 } as const;

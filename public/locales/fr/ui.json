@@ -59,6 +59,7 @@
   "view_list": "Arbre en liste",
   "view_columns": "Colonnes de Miller",
   "node_size": "Nœud",
+  "toggle_orientation": "Basculer l'orientation",
   "h_spacing": "Espace H.",
   "v_spacing": "Espace V.",
   "settings_modal_status": "Statut",

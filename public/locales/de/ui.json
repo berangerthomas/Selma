@@ -59,6 +59,7 @@
   "view_columns": "Miller-Spalten",
   "node_size": "Knoten",
   "h_spacing": "H. Abstand",
+  "toggle_orientation": "Ausrichtung umschalten",
   "v_spacing": "V. Abstand",
   "settings_modal_status": "Status",
   "settings_modal_action": "Aktion",

@@ -31,7 +31,8 @@ export function computeTransform(
   svgRect: DOMRect | { width: number; height: number },
   sidebarOffset: number,
   forcedScale?: number,
-  layoutParams?: { hSpacing: number; nodeSize: number }
+  layoutParams?: { hSpacing: number; nodeSize: number },
+  orientation?: 'horizontal' | 'vertical'
 ): d3.ZoomTransform {
   const topOcclusion = 30; // Toolbar on top
   const bottomOcclusion = 40; // Breadcrumb on bottom
@@ -43,13 +44,19 @@ export function computeTransform(
 
   let targetScale = forcedScale || 1;
 
+  // In horizontal mode: d3.y = depth (screen X), d3.x = vertical (screen Y)
+  // In vertical mode:   d3.x = depth (screen X), d3.y = horizontal (screen Y)
+  // So we map depth → screenX coord, orthogonal → screenY coord
+  const depthPos = orientation === 'vertical' ? nodePos.x : nodePos.y
+  const orthoPos = orientation === 'vertical' ? nodePos.y : nodePos.x
+
   if (subtreeExtents && !forcedScale) {
-    const visualMinY = subtreeExtents.minY - 40;
+    const visualMinY = orientation === 'vertical' ? subtreeExtents.minX - 40 : subtreeExtents.minY - 40;
     const labelMarginRight = layoutParams ? Math.round(layoutParams.hSpacing * 1.6) : 350;
     const labelMarginBottom = layoutParams ? Math.round(layoutParams.nodeSize * 5) : 140;
-    const visualMaxY = subtreeExtents.maxY + labelMarginRight;
-    const visualMinX = subtreeExtents.minX - 30;
-    const visualMaxX = subtreeExtents.maxX + labelMarginBottom;
+    const visualMaxY = orientation === 'vertical' ? subtreeExtents.maxX + labelMarginRight : subtreeExtents.maxY + labelMarginRight;
+    const visualMinX = orientation === 'vertical' ? subtreeExtents.minY - 30 : subtreeExtents.minX - 30;
+    const visualMaxX = orientation === 'vertical' ? subtreeExtents.maxY + labelMarginBottom : subtreeExtents.maxX + labelMarginBottom;
 
     const treeWidth = Math.max(1, visualMaxY - visualMinY);
     const treeHeight = Math.max(1, visualMaxX - visualMinX);
@@ -68,8 +75,8 @@ export function computeTransform(
     return d3.zoomIdentity.translate(tx, ty).scale(targetScale);
   }
 
-  const tx = leftOcclusion + effectiveWidth * NODE_CENTER_RATIO - nodePos.y * targetScale;
-  const ty = topOcclusion + availableHeight / 2 - nodePos.x * targetScale;
+  const tx = leftOcclusion + effectiveWidth * NODE_CENTER_RATIO - depthPos * targetScale;
+  const ty = topOcclusion + availableHeight / 2 - orthoPos * targetScale;
 
   return d3.zoomIdentity.translate(tx, ty).scale(targetScale);
 }
