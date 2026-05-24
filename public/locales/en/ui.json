@@ -58,6 +58,7 @@
   "view_compact": "Rectangular graph",
   "view_list": "List tree",
   "view_columns": "Miller columns",
+  "geometry": "Geometry",
   "node_size": "Node",
   "toggle_orientation": "Toggle orientation",
   "h_spacing": "H. space",

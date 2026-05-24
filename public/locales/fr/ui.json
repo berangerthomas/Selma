@@ -58,6 +58,7 @@
   "view_compact": "Graphe rectangulaire",
   "view_list": "Arbre en liste",
   "view_columns": "Colonnes de Miller",
+  "geometry": "Géométrie",
   "node_size": "Nœud",
   "toggle_orientation": "Basculer l'orientation",
   "h_spacing": "Espace H.",

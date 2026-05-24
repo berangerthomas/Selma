@@ -57,6 +57,7 @@
   "view_compact": "Grafo rectangular",
   "view_list": "Árbol en lista",
   "view_columns": "Columnas de Miller",
+  "geometry": "Geometría",
   "node_size": "Nodo",
   "h_spacing": "Esp. H.",
   "toggle_orientation": "Cambiar orientación",

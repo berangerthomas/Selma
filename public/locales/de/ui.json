@@ -57,6 +57,7 @@
   "view_compact": "Rechteckiger Graph",
   "view_list": "Listenbaum",
   "view_columns": "Miller-Spalten",
+  "geometry": "Geometrie",
   "node_size": "Knoten",
   "h_spacing": "H. Abstand",
   "toggle_orientation": "Ausrichtung umschalten",

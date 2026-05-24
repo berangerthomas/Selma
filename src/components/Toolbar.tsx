@@ -24,7 +24,6 @@ import SettingsModal from './SettingsModal'
 import ExpandIcon from '../assets/icons/expand.svg?react'
 import CollapseIcon from '../assets/icons/collapse.svg?react'
 import ArrowRightIcon from '../assets/icons/arrow-right.svg?react'
-import ArrowLeftIcon from '../assets/icons/arrow-left.svg?react'
 import FitView from '../assets/icons/fit-view.svg?react'
 import SettingsIcon from '../assets/icons/settings.svg?react'
 import OrganicIcon from '../assets/icons/organic.svg?react'
@@ -95,6 +94,54 @@ function ToolbarIconButton({ label, children, onClick, disabled, className, ...r
   )
 }
 
+function ToolbarSection({
+  title,
+  open,
+  onToggle,
+  onHeaderMouseDown,
+  rightContent,
+  children,
+  first = false,
+}: {
+  title: string
+  open: boolean
+  onToggle: () => void
+  onHeaderMouseDown?: (e: React.MouseEvent) => void
+  rightContent?: React.ReactNode
+  children: React.ReactNode
+  first?: boolean
+}) {
+  return (
+    <div className={`${first ? '' : 'border-t border-[var(--border-color)]'} pt-1.5 mt-[2px]`}>
+      <div
+        className="toolbar-row flex justify-between cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+        onMouseDown={onHeaderMouseDown}
+        onClick={onToggle}
+      >
+        <div className="flex items-center gap-2">
+          <button
+            className={`help-toggle-btn bg-none border-none cursor-pointer p-1 flex items-center justify-center transition-transform duration-200 text-[var(--text-muted)] ${open ? 'rotate-90' : 'rotate-0'}`}
+            title={title}
+          >
+            <span className="text-[10px]">▶</span>
+          </button>
+          <div className="toolbar-title">{title}</div>
+        </div>
+        {rightContent && (
+          <div
+            className="flex items-center gap-[2px]"
+            onClick={e => e.stopPropagation()}
+            onMouseDown={e => e.stopPropagation()}
+          >
+            {rightContent}
+          </div>
+        )}
+      </div>
+      {open && children}
+    </div>
+  )
+}
+
 type Props = {
   onCollapseAll: () => void
   onExpandAll?: () => void
@@ -106,10 +153,6 @@ type Props = {
   onResetView?: () => void
   svgRef?: RefObject<SVGSVGElement | null>
   htmlRef?: RefObject<HTMLDivElement | null>
-  canGoBack?: boolean
-  canGoForward?: boolean
-  onGoBack?: () => void
-  onGoForward?: () => void
 }
 
 export default function Toolbar({ 
@@ -122,11 +165,7 @@ export default function Toolbar({
   currentResultIndex = -1, 
   totalResults = 0, 
   svgRef,
-  htmlRef,
-  canGoBack = false,
-  canGoForward = false,
-  onGoBack,
-  onGoForward
+  htmlRef
 }: Props) {
   const { lang, setLang, t } = useI18n()
   const [pos, setPos] = useState({ left: 12, top: 12 })
@@ -134,10 +173,14 @@ export default function Toolbar({
   const startRef = useRef({ x: 0, y: 0, left: 12, top: 12 })
   const [query, setQuery] = useState('')
   const [searchMenuOpen, setSearchMenuOpen] = useState(false)
+  const [taxonomyMenuOpen, setTaxonomyMenuOpen] = useState(false)
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const { isDark, toggleTheme } = useTheme()
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
+  const [geometryOpen, setGeometryOpen] = useState(false)
+  const [toolsOpen, setToolsOpen] = useState(false)
+  const [tagsOpen, setTagsOpen] = useState(false)
   const { 
     viewMode, setViewMode, activeTaxonomyId, setActiveTaxonomyId, availableTaxonomies, 
     availableTags, selectedTags, setSelectedTags, tagMatchMode, setTagMatchMode,
@@ -178,6 +221,31 @@ export default function Toolbar({
     searchMenuDismiss,
     searchMenuRole
   ]);
+
+  const { refs: taxonomyMenuRefs, floatingStyles: taxonomyMenuFloatingStyles, context: taxonomyMenuContext } = useFloating({
+    open: taxonomyMenuOpen,
+    onOpenChange: setTaxonomyMenuOpen,
+    placement: 'bottom-start',
+    whileElementsMounted: autoUpdate,
+    middleware: [
+      offset(4),
+      flip({ fallbackAxisSideDirection: 'end' }),
+      shift({ padding: 8 })
+    ]
+  });
+
+  const taxonomyMenuDismiss = useDismiss(taxonomyMenuContext)
+  const taxonomyMenuRole = useRole(taxonomyMenuContext, { role: 'menu' })
+
+  const { getFloatingProps: getTaxonomyMenuFloatingProps } = useInteractions([
+    taxonomyMenuDismiss,
+    taxonomyMenuRole
+  ])
+
+  const activeTaxonomy = availableTaxonomies.find((taxo) => taxo.id === activeTaxonomyId)
+  const activeTaxonomyLabel = activeTaxonomy
+    ? t(`taxonomy_${activeTaxonomy.id}`, { defaultValue: activeTaxonomy.label })
+    : t('taxonomy', { defaultValue: 'Taxonomy' })
 
   function onHeaderPointerDown(e: React.MouseEvent) {
     e.preventDefault()
@@ -226,16 +294,22 @@ export default function Toolbar({
         role="region"
         aria-label={t('project_title', { defaultValue: 'Selma' })}
       >
-        <div className="toolbar-row border-b border-[var(--border-color)] px-2 py-1.5 flex items-center gap-2">
-          <button 
-            onClick={() => setHelpOpen(!helpOpen)}
-            className={`help-toggle-btn bg-none border-none cursor-pointer p-1 flex items-center justify-center transition-transform duration-200 text-[var(--text-muted)] ${helpOpen ? 'rotate-90' : 'rotate-0'}`}
-            title={t('help', { defaultValue: 'Help' })}
-          >
-            <span className="text-[10px]">▶</span>
-          </button>
-          <div className="project-main-title font-bold text-[14px] flex-1">
-            {t('project_title', { defaultValue: 'Selma' })}
+        <div className="toolbar-row border-b border-[var(--border-color)] px-2 py-1.5 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <button
+              onClick={() => setHelpOpen(!helpOpen)}
+              className={`help-toggle-btn bg-none border-none cursor-pointer p-1 flex items-center justify-center transition-transform duration-200 text-[var(--text-muted)] ${helpOpen ? 'rotate-90' : 'rotate-0'}`}
+              title={t('help', { defaultValue: 'Help' })}
+            >
+              <span className="text-[10px]">▶</span>
+            </button>
+            <div className="project-main-title font-bold text-[14px] min-w-0 truncate">
+              {t('project_title', { defaultValue: 'Selma' })}
+            </div>
+          </div>
+          <div className="flex items-center justify-end gap-[2px] shrink-0">
+            {supportedLanguages.length > 1 && <div className="shrink-0"><LangMenu lang={lang} supportedLanguages={supportedLanguages} onSelect={setLang} /></div>}
+            <ToolbarIconButton label={t('toggle_theme', { defaultValue: 'Toggle Theme' })} onClick={toggleTheme} className="shrink-0"><ThemeIcon isDark={isDark} /></ToolbarIconButton>
           </div>
         </div>
         {helpOpen && (
@@ -243,284 +317,203 @@ export default function Toolbar({
             {t('project_help', { defaultValue: '' })}
           </div>
         )}
-        <div className="toolbar-header flex justify-between" onMouseDown={onHeaderPointerDown}>
-          <div className="toolbar-title">{t('toolbar_title', { defaultValue: 'Tools' })}</div>
-          <div className="flex items-center gap-[2px]">
-            <div className="flex items-center gap-[2px] mr-1.5 border-r border-[var(--border-color)] pr-1.5">
-              <ToolbarIconButton
-                label={t('go_back', { defaultValue: 'Previous' })}
-                onClick={canGoBack ? onGoBack : undefined}
-                disabled={!canGoBack}
-              >
-                <ArrowLeftIcon className="w-[18px] h-[18px] block" />
-              </ToolbarIconButton>
-              <ToolbarIconButton
-                label={t('go_forward', { defaultValue: 'Next' })}
-                onClick={canGoForward ? onGoForward : undefined}
-                disabled={!canGoForward}
-              >
-                <ArrowRightIcon className="w-[18px] h-[18px] block" />
-              </ToolbarIconButton>
-            </div>
-
-            {supportedLanguages.length > 1 && (
-              <LangMenu 
-                lang={lang} 
-                supportedLanguages={supportedLanguages} 
-                onSelect={setLang} 
-              />
-            )}
-            <ToolbarIconButton 
-              label={t('toggle_theme', { defaultValue: 'Toggle Theme' })} 
-              onClick={toggleTheme}
-            >
-              <ThemeIcon isDark={isDark} />
-            </ToolbarIconButton>
-          </div>
-        </div>
-        <div className="toolbar-body">
-          <div className="toolbar-row flex gap-1">
-            <ToolbarIconButton 
-              label={t('fit_view', { defaultValue: 'Fit view' })} 
-              onClick={onResetView}
-            >
-              <FitView className="w-[18px] h-[18px] block" />
-            </ToolbarIconButton>
-            {onExpandAll && (
-              <ToolbarIconButton 
-                label={t('expand_all', { defaultValue: 'Expand all' })} 
-                onClick={() => onExpandAll()}
-              >
-                <ExpandIcon className="w-[18px] h-[18px] block" />
-              </ToolbarIconButton>
-            )}
-            <ToolbarIconButton 
-              label={t('collapse_toggle', { defaultValue: 'Collapse / Collapse all' })} 
-              onClick={() => onCollapseAll()}
-            >
-              <CollapseIcon className="w-[18px] h-[18px] block" />
-            </ToolbarIconButton>
-            {(svgRef || htmlRef) && <PrintAndExportButtons svgRef={svgRef} htmlRef={htmlRef} />}
-            {import.meta.env.DEV && (
-              <ToolbarIconButton
-                label={t('settings', { defaultValue: 'Settings' })}
-                onClick={() => setSettingsOpen(true)}
-              >
-                <SettingsIcon className="w-[18px] h-[18px] block" aria-hidden="true" />
-              </ToolbarIconButton>
-            )}
-          </div>
-          <div className="toolbar-row flex gap-1 border-t border-[var(--border-color)] pt-1.5 mt-[2px] items-center">
-            <div className="toolbar-title mr-2">{t('view', { defaultValue: 'View' })}</div>
-            {/* Organic tree view */}
-            <ToolbarIconButton
-              label={t('view_organic', { defaultValue: 'Organic graph' })}
-              onClick={() => { setViewMode('tree'); setNodeShape('circle'); }}
-              className={`p-[6px] rounded transition-colors ${viewMode === 'tree' && nodeShape === 'circle' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'bg-transparent hover:bg-black/5 dark:hover:bg-white/10'}`}
-            >
-              <OrganicIcon className="w-[18px] h-[18px] block" />
-            </ToolbarIconButton>
-            {/* Compact tree view */}
-            <ToolbarIconButton
-              label={t('view_compact', { defaultValue: 'Rectangular graph' })}
-              onClick={() => { setViewMode('tree'); setNodeShape('rect'); }}
-              className={`p-[6px] rounded transition-colors ${viewMode === 'tree' && nodeShape === 'rect' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'bg-transparent hover:bg-black/5 dark:hover:bg-white/10'}`}
-            >
-              <CompactIcon className="w-[18px] h-[18px] block" />
-            </ToolbarIconButton>
-            <ViewModeButton mode="list" current={viewMode} label={t('view_list', { defaultValue: 'List Tree' })} icon={FileTreeIcon} onClick={() => setViewMode('list')} />
-            <ViewModeButton mode="columns" current={viewMode} label={t('view_columns', { defaultValue: 'Miller Columns' })} icon={MillerIcon} onClick={() => setViewMode('columns')} />
-            {viewMode === 'tree' && (
-              <ToolbarIconButton
-                label={t('toggle_orientation', { defaultValue: 'Toggle orientation' })}
-                onClick={() => setOrientation(orientation === 'horizontal' ? 'vertical' : 'horizontal')}
-                className={`p-[6px] rounded transition-colors ${
-                  orientation === 'vertical'
-                    ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
-                    : 'bg-transparent hover:bg-black/5 dark:hover:bg-white/10'
-                }`}
-              >
-                  <RotateIcon className="w-[18px] h-[18px] block" />
-              </ToolbarIconButton>
-            )}
-            <div className="flex-1"></div>
-          </div>
-
-          <div className="flex flex-col gap-1 border-t border-[var(--border-color)] pt-1.5 mt-[2px]">
-            <LayoutSlider label={t('node_size', {defaultValue: 'Node'})} value={nodeSize} min={10} max={50} step={1}
-              onChange={setNodeSize} />
-            <LayoutSlider label={t('h_spacing', {defaultValue: 'H. space'})} value={hSpacing} min={80} max={400} step={10}
-              onChange={setHSpacing} />
-            <LayoutSlider label={t('v_spacing', {defaultValue: 'V. space'})} value={vSpacing}
-              min={Math.max(12, Math.round(nodeSize * 0.8))} max={200} step={2}
-              onChange={setVSpacing} />
-            <div className="flex justify-center pt-1">
-              <ToolbarIconButton
-                label={t('auto_layout', { defaultValue: 'Auto layout' })}
-                onClick={() => {
-                  try {
-                    // Collect all node labels
-                    const labels: string[] = []
-                    if (dagData && dagData.nodes) {
-                      for (const id in dagData.nodes) labels.push(dagData.nodes[id].name || '')
-                    } else if (data) {
-                      const walk = (n: any) => { labels.push(n.name || ''); n.children?.forEach(walk) }
-                      walk(data)
-                    }
-                    if (labels.length === 0) return
-
-                    const canvas = document.createElement('canvas')
-                    const ctx = canvas.getContext('2d')
-                    if (!ctx) return
-
-                    // Use the actual rendering font to measure text widths
-                    const baseFont = 14
-                    ctx.font = `${baseFont}px sans-serif`
-                    
-                    // Compute label metrics: longest label, total chars, average length
-                    let maxTextWidth = 0
-                    let totalChars = 0
-                    const widths: number[] = []
-                    for (const l of labels) {
-                      const w = ctx.measureText(l).width
-                      widths.push(w)
-                      if (w > maxTextWidth) maxTextWidth = w
-                      totalChars += l.length
-                    }
-                    const avgWidth = widths.reduce((a, b) => a + b, 0) / widths.length
-                    const labelCount = labels.length
-
-                    // --- Node size: proportional to text height + slight padding ---
-                    const baseNodeSize = 18
-                    const scaleFactor = Math.min(1.6, Math.max(0.8, maxTextWidth / 80))
-                    const idealNodeSize = Math.round(Math.max(12, Math.min(50, baseNodeSize * scaleFactor)))
-
-                    // In horizontal mode: hSpacing = depth (label width matters), vSpacing = orthogonal
-                    // In vertical mode:   hSpacing = orthogonal, vSpacing = depth (label width matters)
-                    const comfortMargin = Math.max(40, Math.min(100, Math.round(avgWidth * 0.5)))
-                    const depthSpacing = Math.max(80, Math.min(400, Math.round(maxTextWidth + idealNodeSize + comfortMargin)))
-                    const densityFactor = Math.max(0.6, Math.min(1.4, 20 / Math.max(1, Math.log(labelCount + 1) * 4)))
-                    const orthogonalSpacing = Math.max(12, Math.min(200, Math.round((idealNodeSize * 1.2 + 10) * densityFactor)))
-
-                    const finalH = orientation === 'horizontal' ? depthSpacing : orthogonalSpacing
-                    const finalV = orientation === 'horizontal' ? orthogonalSpacing : depthSpacing
-
-                    setNodeSize(idealNodeSize)
-                    setHSpacing(finalH)
-                    setVSpacing(finalV)
-                    setViewMode('tree')
-                    setTimeout(() => { onResetView?.() }, 50)
-                  } catch (e) { /* fail silently */ }
-                }}
-              >
-                <MagicWandIcon className="w-[18px] h-[18px] block" />
-              </ToolbarIconButton>
-            </div>
-          </div>
-          
-          <div className="toolbar-row flex gap-1 border-t border-[var(--border-color)] pt-1.5 mt-[2px] items-center">
-            <div className="toolbar-title mr-2">{t('taxonomy', { defaultValue: 'Taxonomy' })}</div>
-            <select
-              value={activeTaxonomyId}
-              onChange={(e) => setActiveTaxonomyId(e.target.value)}
-              className="toolbar-search px-2 py-1 text-[12px] h-[32px] flex-1"
+        <div className="toolbar-row flex gap-1 items-center border-b border-[var(--border-color)] px-2 py-1.5">
+          <div className="toolbar-title mr-2">{t('taxonomy', { defaultValue: 'Taxonomy' })}</div>
+          <div className="relative flex-1 min-w-0">
+            <button
+              ref={taxonomyMenuRefs.setReference}
+              type="button"
+              onClick={() => setTaxonomyMenuOpen((open) => !open)}
+              className="w-full h-[32px] px-3 py-1.5 rounded-lg border border-[var(--input-border)] bg-[var(--panel-bg)] text-left text-[12px] text-[var(--text-main)] shadow-sm hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex items-center justify-between gap-3"
+              aria-haspopup="menu"
+              aria-expanded={taxonomyMenuOpen}
               aria-label={t('taxonomy', { defaultValue: 'Taxonomy' })}
             >
-              {availableTaxonomies.map((taxo) => (
-                <option key={taxo.id} value={taxo.id}>
-                  {t(`taxonomy_${taxo.id}`, { defaultValue: taxo.label })}
-                </option>
-              ))}
-            </select>
+              <span className="truncate">{activeTaxonomyLabel}</span>
+              <span className={`text-[10px] text-[var(--text-muted)] transition-transform ${taxonomyMenuOpen ? 'rotate-180' : 'rotate-0'}`}>▾</span>
+            </button>
+            {taxonomyMenuOpen && (
+              <div
+                ref={taxonomyMenuRefs.setFloating}
+                style={{ ...taxonomyMenuFloatingStyles, zIndex: 1000 }}
+                {...getTaxonomyMenuFloatingProps()}
+                className="search-mode-menu min-w-[220px] max-w-[280px]"
+                role="menu"
+                aria-label={t('taxonomy', { defaultValue: 'Taxonomy' })}
+              >
+                {availableTaxonomies.map((taxo) => {
+                  const isActive = taxo.id === activeTaxonomyId
+                  return (
+                    <button
+                      key={taxo.id}
+                      role="menuitemradio"
+                      aria-checked={isActive}
+                      onClick={() => {
+                        setActiveTaxonomyId(taxo.id)
+                        setTaxonomyMenuOpen(false)
+                      }}
+                      className={`w-full text-left px-3 py-2 rounded-md text-[12px] transition-colors ${isActive ? 'bg-blue-600 text-white' : 'hover:bg-neutral-100 dark:hover:bg-neutral-700 text-[var(--text-main)]'}`}
+                    >
+                      <span className="block font-medium truncate">
+                        {t(`taxonomy_${taxo.id}`, { defaultValue: taxo.label })}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
           </div>
+        </div>
 
-          <div className="toolbar-row">
+        <div className="toolbar-body">
+          <ToolbarSection
+            first
+            title={t('geometry', { defaultValue: 'Geometry' })}
+            open={geometryOpen}
+            onToggle={() => setGeometryOpen(!geometryOpen)}
+            onHeaderMouseDown={onHeaderPointerDown}
+          >
+            <div className="flex flex-col gap-1">
+              <div className="toolbar-row flex gap-1 items-center mt-1">
+                <div className="toolbar-title mr-2">{t('view', { defaultValue: 'View' })}</div>
+                <ToolbarIconButton label={t('view_organic', { defaultValue: 'Organic graph' })} onClick={() => { setViewMode('tree'); setNodeShape('circle'); }} className={`p-[6px] rounded transition-colors ${viewMode === 'tree' && nodeShape === 'circle' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'bg-transparent hover:bg-black/5 dark:hover:bg-white/10'}`}><OrganicIcon className="w-[18px] h-[18px] block" /></ToolbarIconButton>
+                <ToolbarIconButton label={t('view_compact', { defaultValue: 'Rectangular graph' })} onClick={() => { setViewMode('tree'); setNodeShape('rect'); }} className={`p-[6px] rounded transition-colors ${viewMode === 'tree' && nodeShape === 'rect' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'bg-transparent hover:bg-black/5 dark:hover:bg-white/10'}`}><CompactIcon className="w-[18px] h-[18px] block" /></ToolbarIconButton>
+                <ViewModeButton mode="list" current={viewMode} label={t('view_list', { defaultValue: 'List Tree' })} icon={FileTreeIcon} onClick={() => setViewMode('list')} />
+                <ViewModeButton mode="columns" current={viewMode} label={t('view_columns', { defaultValue: 'Miller Columns' })} icon={MillerIcon} onClick={() => setViewMode('columns')} />
+                {viewMode === 'tree' && <ToolbarIconButton label={t('toggle_orientation', { defaultValue: 'Toggle orientation' })} onClick={() => setOrientation(orientation === 'horizontal' ? 'vertical' : 'horizontal')} className={`p-[6px] rounded transition-colors ${orientation === 'vertical' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'bg-transparent hover:bg-black/5 dark:hover:bg-white/10'}`}><RotateIcon className="w-[18px] h-[18px] block" /></ToolbarIconButton>}
+                <div className="flex-1" />
+              </div>
+
+              <LayoutSlider label={t('node_size', {defaultValue: 'Node'})} value={nodeSize} min={10} max={50} step={1} onChange={setNodeSize} />
+              <LayoutSlider label={t('h_spacing', {defaultValue: 'H. space'})} value={hSpacing} min={80} max={400} step={10} onChange={setHSpacing} />
+              <LayoutSlider label={t('v_spacing', {defaultValue: 'V. space'})} value={vSpacing} min={Math.max(12, Math.round(nodeSize * 0.8))} max={200} step={2} onChange={setVSpacing} />
+              <div className="toolbar-row flex flex-wrap gap-1 justify-start pt-1">
+                <ToolbarIconButton
+                  label={t('auto_layout', { defaultValue: 'Auto layout' })}
+                  onClick={() => {
+                    try {
+                      const labels: string[] = []
+                      if (dagData && dagData.nodes) {
+                        for (const id in dagData.nodes) labels.push(dagData.nodes[id].name || '')
+                      } else if (data) {
+                        const walk = (n: any) => { labels.push(n.name || ''); n.children?.forEach(walk) }
+                        walk(data)
+                      }
+                      if (labels.length === 0) return
+
+                      const canvas = document.createElement('canvas')
+                      const ctx = canvas.getContext('2d')
+                      if (!ctx) return
+
+                      const baseFont = 14
+                      ctx.font = `${baseFont}px sans-serif`
+                      let maxTextWidth = 0
+                      const widths: number[] = []
+                      for (const l of labels) {
+                        const w = ctx.measureText(l).width
+                        widths.push(w)
+                        if (w > maxTextWidth) maxTextWidth = w
+                      }
+                      const avgWidth = widths.reduce((a, b) => a + b, 0) / widths.length
+                      const labelCount = labels.length
+                      const baseNodeSize = 18
+                      const scaleFactor = Math.min(1.6, Math.max(0.8, maxTextWidth / 80))
+                      const idealNodeSize = Math.round(Math.max(12, Math.min(50, baseNodeSize * scaleFactor)))
+                      const comfortMargin = Math.max(40, Math.min(100, Math.round(avgWidth * 0.5)))
+                      const depthSpacing = Math.max(80, Math.min(400, Math.round(maxTextWidth + idealNodeSize + comfortMargin)))
+                      const densityFactor = Math.max(0.6, Math.min(1.4, 20 / Math.max(1, Math.log(labelCount + 1) * 4)))
+                      const orthogonalSpacing = Math.max(12, Math.min(200, Math.round((idealNodeSize * 1.2 + 10) * densityFactor)))
+                      const finalH = orientation === 'horizontal' ? depthSpacing : orthogonalSpacing
+                      const finalV = orientation === 'horizontal' ? orthogonalSpacing : depthSpacing
+                      setNodeSize(idealNodeSize)
+                      setHSpacing(finalH)
+                      setVSpacing(finalV)
+                      setViewMode('tree')
+                      setTimeout(() => { onResetView?.() }, 50)
+                    } catch {
+                      // noop
+                    }
+                  }}
+                >
+                  <MagicWandIcon className="w-[18px] h-[18px] block" />
+                </ToolbarIconButton>
+                <ToolbarIconButton
+                  label={t('fit_view', { defaultValue: 'Fit view' })}
+                  onClick={onResetView}
+                >
+                  <FitView className="w-[18px] h-[18px] block" />
+                </ToolbarIconButton>
+                {onExpandAll && (
+                  <ToolbarIconButton
+                    label={t('expand_all', { defaultValue: 'Expand all' })}
+                    onClick={() => onExpandAll()}
+                  >
+                    <ExpandIcon className="w-[18px] h-[18px] block" />
+                  </ToolbarIconButton>
+                )}
+                <ToolbarIconButton
+                  label={t('collapse_toggle', { defaultValue: 'Collapse / Collapse all' })}
+                  onClick={() => onCollapseAll()}
+                >
+                  <CollapseIcon className="w-[18px] h-[18px] block" />
+                </ToolbarIconButton>
+              </div>
+            </div>
+          </ToolbarSection>
+
+          <ToolbarSection
+            title={t('toolbar_title', { defaultValue: 'Tools' })}
+            open={toolsOpen}
+            onToggle={() => setToolsOpen(!toolsOpen)}
+          >
+            <div className="toolbar-row flex gap-1">
+              {(svgRef || htmlRef) && <PrintAndExportButtons svgRef={svgRef} htmlRef={htmlRef} />}
+              {import.meta.env.DEV && <ToolbarIconButton label={t('settings', { defaultValue: 'Settings' })} onClick={() => setSettingsOpen(true)}><SettingsIcon className="w-[18px] h-[18px] block" aria-hidden="true" /></ToolbarIconButton>}
+            </div>
+          </ToolbarSection>
+
+          {availableTags && availableTags.length > 0 && (
+            <ToolbarSection title={t('tags_label', { defaultValue: 'Tags' })} open={tagsOpen} onToggle={() => setTagsOpen(!tagsOpen)}>
+              <div className="toolbar-row flex flex-wrap gap-1 px-2 py-1.5">
+                <div className="w-full mb-[2px] text-[12px] font-semibold flex flex-wrap items-center justify-between gap-2">
+                  <span />
+                  <div className="flex flex-wrap items-center justify-end gap-2 text-[11px] font-normal">
+                    <label className="flex items-center gap-1 whitespace-nowrap cursor-pointer select-none text-[var(--text-muted)]" title={t('tags_accumulate_title', { defaultValue: 'Require all selected tags' })}>
+                      <input type="checkbox" checked={tagMatchMode === 'all'} onChange={(e) => setTagMatchMode(e.target.checked ? 'all' : 'any')} aria-label={t('tags_accumulate_title', { defaultValue: 'Require all selected tags' })} />
+                      <span>{t('tags_accumulate', { defaultValue: 'All' })}</span>
+                    </label>
+                    {selectedTags.length > 0 && <button onClick={() => setSelectedTags([])} className="text-blue-600 dark:text-blue-400 hover:underline text-[10px] bg-none border-none cursor-pointer p-0">{t('clear_tags', { defaultValue: 'Clear all' })}</button>}
+                  </div>
+                </div>
+                {availableTags.map(tag => {
+                  const isSelected = selectedTags.includes(tag)
+                  return <button key={tag} onClick={() => handleTagToggle(tag)} className={`tag-pill px-2 py-0.5 text-[11px] rounded-xl border cursor-pointer transition-all duration-200 ${isSelected ? 'bg-blue-600 text-white border-blue-600 dark:bg-blue-500' : 'bg-transparent text-gray-700 dark:text-gray-300 border-gray-300 dark:border-neutral-600 hover:bg-black/5 dark:hover:bg-white/10'}`}>{t(`tags.${tag}`, { defaultValue: tag })}</button>
+                })}
+              </div>
+            </ToolbarSection>
+          )}
+
+          <div className="border-t border-[var(--border-color)] pt-1.5 mt-[2px]">
+            <div className="toolbar-row">
               <input
                 className="toolbar-search"
                 placeholder={t('search_placeholder', { defaultValue: 'Go to a node (id or name)...' })}
                 value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleSearch()
-              }}
-              aria-label={t('search_placeholder', { defaultValue: 'Go to a node (id or name)...' })}
-            />
-            <div className="relative inline-block">
-              <div ref={searchMenuRefs.setReference} {...getSearchMenuReferenceProps()} className="inline-block">
-                <ToolbarIconButton
-                  label={t('go', { defaultValue: 'Go' })}
-                  onClick={() => handleSearch()}
-                >
-                  <ArrowRightIcon className="w-[18px] h-[18px] block" />
-                </ToolbarIconButton>
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleSearch() }}
+                aria-label={t('search_placeholder', { defaultValue: 'Go to a node (id or name)...' })}
+              />
+              <div className="relative inline-block">
+                <div ref={searchMenuRefs.setReference} {...getSearchMenuReferenceProps()} className="inline-block"><ToolbarIconButton label={t('go', { defaultValue: 'Go' })} onClick={() => handleSearch()}><ArrowRightIcon className="w-[18px] h-[18px] block" /></ToolbarIconButton></div>
+                {searchMenuOpen && (
+                  <div ref={searchMenuRefs.setFloating} style={{ ...searchMenuFloatingStyles, zIndex: 1000 }} {...getSearchMenuFloatingProps()} className="search-mode-menu min-w-max bg-white dark:bg-neutral-800 rounded-lg shadow-lg border border-neutral-200 dark:border-neutral-700 text-sm overflow-hidden py-1" role="menu" aria-label={t('search_mode_menu', { defaultValue: 'Search mode' })}>
+                    <button className="search-mode-item w-full text-left px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 whitespace-nowrap transition-colors" onClick={() => { handleSearch('deep'); }}>{t('search_deep', { defaultValue: 'Recherche approfondie' })}</button>
+                  </div>
+                )}
               </div>
-              {searchMenuOpen && (
-                <div
-                  ref={searchMenuRefs.setFloating}
-                  style={{ ...searchMenuFloatingStyles, zIndex: 1000 }}
-                  {...getSearchMenuFloatingProps()}
-                  className="search-mode-menu min-w-max bg-white dark:bg-neutral-800 rounded-lg shadow-lg border border-neutral-200 dark:border-neutral-700 text-sm overflow-hidden py-1"
-                  role="menu"
-                  aria-label={t('search_mode_menu', { defaultValue: 'Search mode' })}
-                >
-                  <button
-                    className="search-mode-item w-full text-left px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 whitespace-nowrap transition-colors"
-                    onClick={() => { handleSearch('deep'); }}
-                  >
-                    {t('search_deep', { defaultValue: 'Recherche approfondie' })}
-                  </button>
-                </div>
-              )}
             </div>
+            {hasResults && <div className="toolbar-row search-nav"><span className="search-counter">{currentResultIndex + 1}/{totalResults}</span><button className="btn btn-nav" onClick={onPrevResult} title={t('prev_result', { defaultValue: 'Previous' })}>◀</button><button className="btn btn-nav" onClick={onNextResult} title={t('next_result', { defaultValue: 'Next' })}>▶</button></div>}
           </div>
-          {hasResults && (
-            <div className="toolbar-row search-nav">
-              <span className="search-counter">{currentResultIndex + 1}/{totalResults}</span>
-              <button className="btn btn-nav" onClick={onPrevResult} title={t('prev_result', { defaultValue: 'Previous' })}>◀</button>
-              <button className="btn btn-nav" onClick={onNextResult} title={t('next_result', { defaultValue: 'Next' })}>▶</button>
-            </div>
-          )}
-          {availableTags && availableTags.length > 0 && (
-            <div className="toolbar-row flex flex-wrap gap-1 px-2 py-1.5 border-t border-[var(--border-color)]">
-              <div className="w-full mb-[2px] text-[12px] font-semibold flex flex-wrap items-center justify-between gap-2">
-                <span>{t('tags_label', { defaultValue: 'Tags' })}</span>
-                <div className="flex flex-wrap items-center justify-end gap-2 text-[11px] font-normal">
-                  <label
-                    className="flex items-center gap-1 whitespace-nowrap cursor-pointer select-none text-[var(--text-muted)]"
-                    title={t('tags_accumulate_title', { defaultValue: 'Require all selected tags' })}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={tagMatchMode === 'all'}
-                      onChange={(e) => setTagMatchMode(e.target.checked ? 'all' : 'any')}
-                      aria-label={t('tags_accumulate_title', { defaultValue: 'Require all selected tags' })}
-                    />
-                    <span>{t('tags_accumulate', { defaultValue: 'All' })}</span>
-                  </label>
-                  {selectedTags.length > 0 && (
-                    <button 
-                      onClick={() => setSelectedTags([])}
-                      className="text-blue-600 dark:text-blue-400 hover:underline text-[10px] bg-none border-none cursor-pointer p-0"
-                    >
-                      {t('clear_tags', { defaultValue: 'Clear all' })}
-                    </button>
-                  )}
-                </div>
-              </div>
-              {availableTags.map(tag => {
-                const isSelected = selectedTags.includes(tag);
-                return (
-                  <button
-                    key={tag}
-                    onClick={() => handleTagToggle(tag)}
-                    className={`tag-pill px-2 py-0.5 text-[11px] rounded-xl border cursor-pointer transition-all duration-200 ${isSelected ? 'bg-blue-600 text-white border-blue-600 dark:bg-blue-500' : 'bg-transparent text-gray-700 dark:text-gray-300 border-gray-300 dark:border-neutral-600 hover:bg-black/5 dark:hover:bg-white/10'}`}
-                  >
-                    {t(`tags.${tag}`, { defaultValue: tag })}
-                  </button>
-                );
-              })}
-            </div>
-          )}
         </div>
       </div>
       {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
