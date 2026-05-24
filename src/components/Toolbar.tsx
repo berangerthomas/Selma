@@ -306,7 +306,7 @@ export default function Toolbar({
         style={{ left: pos.left, top: pos.top }}
         onMouseDown={(e) => e.stopPropagation()}
         role="region"
-        aria-label={t('project_title', { defaultValue: 'Selma' })}
+        aria-label={t('project_title', { defaultValue: 'Taxonomy' })}
       >
         <div className="toolbar-row border-b border-[var(--border-color)] px-2 py-1.5 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -318,7 +318,7 @@ export default function Toolbar({
               <span className="text-[10px]">▶</span>
             </button>
             <div className="project-main-title font-bold text-[14px] min-w-0 truncate">
-              {t('project_title', { defaultValue: 'Selma' })}
+              {t('project_title', { defaultValue: 'Taxonomy' })}
             </div>
           </div>
           <div className="flex items-center justify-end gap-[2px] shrink-0">
@@ -438,7 +438,13 @@ export default function Toolbar({
             onToggle={() => setOpenSections(prev => ({ ...prev, tools: !prev.tools }))}
           >
             <div className="toolbar-row flex gap-1">
-              {(svgRef || htmlRef) && <PrintAndExportButtons svgRef={svgRef} htmlRef={htmlRef} />}
+              {(svgRef || htmlRef) && (
+                <PrintAndExportButtons
+                  svgRef={svgRef}
+                  htmlRef={htmlRef}
+                  title={t('project_title', { defaultValue: 'Taxonomy' })}
+                />
+              )}
               {import.meta.env.DEV && <ToolbarIconButton label={t('settings', { defaultValue: 'Settings' })} onClick={() => setSettingsOpen(true)}><SettingsIcon className="w-[18px] h-[18px] block" aria-hidden="true" /></ToolbarIconButton>}
             </div>
           </ToolbarSection>

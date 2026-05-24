@@ -58,7 +58,7 @@ export function PrintAndExportButtons({ svgRef, htmlRef, title, className = '' }
   const { data, viewMode } = useTree();
   const isSVGMode = viewMode === 'tree';
 
-  const effectiveTitle = title || t('export_default_title', { defaultValue: 'Selma — Taxonomy' });
+  const effectiveTitle = title || t('project_title', { defaultValue: 'Taxonomy' });
   const [isOpen, setOpen] = useState(false);
   const [loadingType, setLoadingType] = useState<string | null>(null);
 

@@ -1,4 +1,4 @@
-import React, { Suspense, useRef } from 'react'
+import React, { Suspense, useEffect, useRef } from 'react'
 import { useI18n } from './i18n'
 const TreeViz = React.lazy(() => import('./components/TreeViz'))
 const FileTreeView = React.lazy(() => import('./components/FileTreeView'))
@@ -12,6 +12,10 @@ export default function App() {
   const svgRef = useRef<SVGSVGElement>(null)
   const htmlRef = useRef<HTMLDivElement>(null)
   const { t } = useI18n()
+
+  useEffect(() => {
+    document.title = t('project_title', { defaultValue: 'Selma' })
+  }, [t])
   
   const {
     data,
