@@ -14,7 +14,7 @@ export default function App() {
   const { t } = useI18n()
 
   useEffect(() => {
-    document.title = t('project_title', { defaultValue: 'Selma' })
+    document.title = t('project_title', { defaultValue: 'Taxonomy visualization' })
   }, [t])
   
   const {
