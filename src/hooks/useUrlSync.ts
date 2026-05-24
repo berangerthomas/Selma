@@ -16,9 +16,8 @@ export function syncTaxonomyInUrl(currentHref: string, activeTaxonomyId: string)
 
 export function syncNodeInUrl(
   currentHref: string,
-  activeId: string,
-  isNavigatingHistory: boolean = false
-): { href: string; method: 'none' | 'push' | 'replace' } {
+  activeId: string
+): { href: string; method: 'none' | 'push' } {
   const url = new URL(currentHref);
   const currentNode = url.searchParams.get('node');
 
@@ -38,7 +37,7 @@ export function syncNodeInUrl(
   url.searchParams.set('node', activeId);
   return {
     href: url.toString(),
-    method: isNavigatingHistory ? 'replace' : 'push',
+    method: 'push',
   };
 }
 
@@ -52,8 +51,7 @@ export function useUrlSync(
   data: TreeNode | null,
   setExpanded: (setter: React.SetStateAction<Set<string>>) => void,
   setActiveId: (id: string) => void,
-  navigateToResult: (nodeId: string, forceCenter?: boolean) => void,
-  isNavigatingHistory?: { readonly current: boolean }
+  navigateToResult: (nodeId: string, forceCenter?: boolean) => void
 ) {
   const isInitialMount = useRef(true);
   const suppressEmptyActiveIdSync = useRef(
@@ -95,24 +93,20 @@ export function useUrlSync(
     }
   }, [activeId]);
 
-  // Sync activeId to URL — use replaceState when navigating history to avoid duplicate entries
+  // Sync activeId to URL
   useEffect(() => {
     if (suppressEmptyActiveIdSync.current && !activeId) {
       return;
     }
 
-    const next = syncNodeInUrl(window.location.href, activeId, isNavigatingHistory?.current);
+    const next = syncNodeInUrl(window.location.href, activeId);
 
     if (next.method === 'none') {
       return;
     }
 
-    if (next.method === 'replace') {
-      window.history.replaceState({ nodeId: activeId }, '', next.href);
-    } else {
-      window.history.pushState({ nodeId: activeId }, '', next.href);
-    }
-  }, [activeId, isNavigatingHistory]);
+    window.history.pushState({ nodeId: activeId }, '', next.href);
+  }, [activeId]);
 
   // Handle browser back/forward
   useEffect(() => {

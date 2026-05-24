@@ -25,11 +25,7 @@ export default function App() {
     searchResults,
     currentResultIndex,
     viewMode,
-    resetView,
-    canGoBack,
-    canGoForward,
-    goBack,
-    goForward
+    resetView
   } = useTree()
 
   return (
@@ -45,10 +41,6 @@ export default function App() {
         totalResults={searchResults.length}
         svgRef={svgRef}
         htmlRef={htmlRef}
-        canGoBack={canGoBack}
-        canGoForward={canGoForward}
-        onGoBack={goBack}
-        onGoForward={goForward}
       />
       <Suspense fallback={<div className="viz-loading">{t('loading', { defaultValue: 'Loading...' })}</div>}>
         {viewMode === 'tree' && <TreeViz forwardedSvgRef={svgRef} />}

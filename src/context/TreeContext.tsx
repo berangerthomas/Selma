@@ -5,7 +5,6 @@ import { useTaxonomyData } from '../hooks/useTaxonomyData';
 import { useI18n } from '../i18n';
 import { buildSpanningTree, getAllDagNodeIds, hasMultipleParents, getParents, getAllTags, filterDagByTags } from '../utils/dagUtils';
 import { useUrlSync } from '../hooks/useUrlSync';
-import { useNavigationHistory } from '../hooks/useNavigationHistory';
 import { useSearchEngine } from '../hooks/useSearchEngine';
 import { safeLocalStorageGet, safeLocalStorageSet, STORAGE_KEYS } from '../utils/storage';
 
@@ -43,12 +42,6 @@ interface TreeContextType {
   requestForceCenter: () => void;
   resetViewTrigger: number;
   resetView: () => void;
-
-  // Custom navigation history
-  canGoBack: boolean;
-  canGoForward: boolean;
-  goBack: () => void;
-  goForward: () => void;
 
   activeTaxonomyId: string;
   setActiveTaxonomyId: (id: string) => void;
@@ -217,31 +210,10 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     }
   }, [data]);
 
-  // Hook 1: Navigation history (must be called before useUrlSync)
-  const {
-    pushHistory,
-    isNavigatingHistory,
-    canGoBack,
-    canGoForward,
-    goBack,
-    goForward,
-  } = useNavigationHistory(navigateToResult);
+  // Hook 1: URL synchronization
+  useUrlSync(activeId, activeTaxonomyId, data, setExpanded, setActiveId, navigateToResult);
 
-  // Hook 2: URL synchronization — receives isNavigatingHistory to prevent duplicate pushState
-  useUrlSync(activeId, activeTaxonomyId, data, setExpanded, setActiveId, navigateToResult, isNavigatingHistory);
-
-  // Push to history when activeId changes (excluding navigation restores)
-  useEffect(() => {
-    if (activeId && data) {
-      if (isNavigatingHistory.current) {
-        isNavigatingHistory.current = false;
-        return;
-      }
-      pushHistory(activeId);
-    }
-  }, [activeId, data, pushHistory, isNavigatingHistory]);
-
-  // Hook 3: Search engine
+  // Hook 2: Search engine
   const {
     searchQuery,
     searchResults,
@@ -349,10 +321,6 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     requestForceCenter,
     resetViewTrigger,
     resetView,
-    canGoBack,
-    canGoForward,
-    goBack,
-    goForward,
     searchQuery,
     activeSearchType,
     activeTaxonomyId,
@@ -397,10 +365,6 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     requestForceCenter,
     resetViewTrigger,
     resetView,
-    canGoBack,
-    canGoForward,
-    goBack,
-    goForward,
     searchQuery,
     activeSearchType,
     activeTaxonomyId,
