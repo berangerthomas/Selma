@@ -54,7 +54,9 @@ export function useSearchEngine(
     setSearchQuery(trimmed);
     performDeepSearch(trimmed).then((results: string[]) => {
       if (results.length === 0) {
-        console.debug('No node matched deep search:', trimmed);
+        if (import.meta.env.DEV) {
+          console.debug('No node matched deep search:', trimmed);
+        }
         setSearchResults([]);
         setCurrentResultIndex(-1);
         prevSearchStateRef.current = { query: trimmed, type: 'deep' };
@@ -91,7 +93,9 @@ export function useSearchEngine(
 
     const results = findMatchingIds(dagData, searchQuery, t);
     if (results.length === 0) {
-      console.debug('No node matched search:', searchQuery);
+      if (import.meta.env.DEV) {
+        console.debug('No node matched search:', searchQuery);
+      }
       setSearchResults([]);
       setCurrentResultIndex(-1);
       prevSearchStateRef.current = { query: searchQuery, type: 'simple' };

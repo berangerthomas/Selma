@@ -17,7 +17,8 @@ import { useTheme } from '../hooks/useTheme'
 import { useTree } from '../context/TreeContext'
 import { supportedLanguages } from '../utils/localization'
 import { PrintAndExportButtons } from './PrintButton'
-import type { ViewMode } from '../types'
+import type { ViewMode, TreeNode } from '../types'
+import { computeAutoLayout } from '../utils/autoLayout'
 import ThemeIcon from './icons/ThemeIcon'
 import LangMenu from './LangMenu'
 import SettingsModal from './SettingsModal'
@@ -174,13 +175,9 @@ export default function Toolbar({
   const [query, setQuery] = useState('')
   const [searchMenuOpen, setSearchMenuOpen] = useState(false)
   const [taxonomyMenuOpen, setTaxonomyMenuOpen] = useState(false)
-  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const { isDark, toggleTheme } = useTheme()
   const [settingsOpen, setSettingsOpen] = useState(false)
-  const [helpOpen, setHelpOpen] = useState(false)
-  const [geometryOpen, setGeometryOpen] = useState(false)
-  const [toolsOpen, setToolsOpen] = useState(false)
-  const [tagsOpen, setTagsOpen] = useState(false)
+  const [openSections, setOpenSections] = useState<Record<'help'|'geometry'|'tools'|'tags', boolean>>({ help: false, geometry: false, tools: false, tags: false })
   const { 
     viewMode, setViewMode, activeTaxonomyId, setActiveTaxonomyId, availableTaxonomies, 
     availableTags, selectedTags, setSelectedTags, tagMatchMode, setTagMatchMode,
@@ -197,6 +194,28 @@ export default function Toolbar({
       setSelectedTags([...selectedTags, tag]);
     }
   }, [selectedTags, setSelectedTags]);
+
+  const handleAutoLayout = useCallback(() => {
+    try {
+      const labels: string[] = []
+      if (dagData && dagData.nodes) {
+        for (const id in dagData.nodes) labels.push(dagData.nodes[id].name || '')
+      } else if (data) {
+        const walk = (n: TreeNode) => { labels.push(n.name || ''); n.children?.forEach(walk) }
+        walk(data)
+      }
+      if (labels.length === 0) return
+
+      const { nodeSize: idealNodeSize, hSpacing: finalH, vSpacing: finalV } = computeAutoLayout(labels, orientation)
+      setNodeSize(idealNodeSize)
+      setHSpacing(finalH)
+      setVSpacing(finalV)
+      setViewMode('tree')
+      setTimeout(() => { onResetView?.() }, 50)
+    } catch {
+      // noop
+    }
+  }, [dagData, data, orientation, setNodeSize, setHSpacing, setVSpacing, setViewMode, onResetView])
 
   const { refs: searchMenuRefs, floatingStyles: searchMenuFloatingStyles, context: searchMenuContext } = useFloating({
     open: searchMenuOpen,
@@ -274,11 +293,6 @@ export default function Toolbar({
     const q = query.trim()
     if (!q) return
     const m = mode || 'simple'
-    // clear any pending close timer and close menu
-    if (closeTimerRef.current) {
-      clearTimeout(closeTimerRef.current)
-      closeTimerRef.current = null
-    }
     onSearch(q, m)
     setSearchMenuOpen(false)
   }
@@ -297,8 +311,8 @@ export default function Toolbar({
         <div className="toolbar-row border-b border-[var(--border-color)] px-2 py-1.5 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0 flex-1">
             <button
-              onClick={() => setHelpOpen(!helpOpen)}
-              className={`help-toggle-btn bg-none border-none cursor-pointer p-1 flex items-center justify-center transition-transform duration-200 text-[var(--text-muted)] ${helpOpen ? 'rotate-90' : 'rotate-0'}`}
+              onClick={() => setOpenSections(prev => ({ ...prev, help: !prev.help }))}
+              className={`help-toggle-btn bg-none border-none cursor-pointer p-1 flex items-center justify-center transition-transform duration-200 text-[var(--text-muted)] ${openSections.help ? 'rotate-90' : 'rotate-0'}`}
               title={t('help', { defaultValue: 'Help' })}
             >
               <span className="text-[10px]">▶</span>
@@ -312,7 +326,7 @@ export default function Toolbar({
             <ToolbarIconButton label={t('toggle_theme', { defaultValue: 'Toggle Theme' })} onClick={toggleTheme} className="shrink-0"><ThemeIcon isDark={isDark} /></ToolbarIconButton>
           </div>
         </div>
-        {helpOpen && (
+        {openSections.help && (
           <div className="toolbar-help-content px-3 py-2 text-[12px] border-b border-[var(--border-color)] bg-black/5 text-[var(--text-muted)] leading-[1.4]">
             {t('project_help', { defaultValue: '' })}
           </div>
@@ -367,12 +381,12 @@ export default function Toolbar({
 
         <div className="toolbar-body">
           <ToolbarSection
-            first
-            title={t('geometry', { defaultValue: 'Geometry' })}
-            open={geometryOpen}
-            onToggle={() => setGeometryOpen(!geometryOpen)}
-            onHeaderMouseDown={onHeaderPointerDown}
-          >
+              first
+              title={t('geometry', { defaultValue: 'Geometry' })}
+              open={openSections.geometry}
+              onToggle={() => setOpenSections(prev => ({ ...prev, geometry: !prev.geometry }))}
+              onHeaderMouseDown={onHeaderPointerDown}
+            >
             <div className="flex flex-col gap-1">
               <div className="toolbar-row flex gap-1 items-center mt-1">
                 <div className="toolbar-title mr-2">{t('view', { defaultValue: 'View' })}</div>
@@ -390,50 +404,7 @@ export default function Toolbar({
               <div className="toolbar-row flex flex-wrap gap-1 justify-start pt-1">
                 <ToolbarIconButton
                   label={t('auto_layout', { defaultValue: 'Auto layout' })}
-                  onClick={() => {
-                    try {
-                      const labels: string[] = []
-                      if (dagData && dagData.nodes) {
-                        for (const id in dagData.nodes) labels.push(dagData.nodes[id].name || '')
-                      } else if (data) {
-                        const walk = (n: any) => { labels.push(n.name || ''); n.children?.forEach(walk) }
-                        walk(data)
-                      }
-                      if (labels.length === 0) return
-
-                      const canvas = document.createElement('canvas')
-                      const ctx = canvas.getContext('2d')
-                      if (!ctx) return
-
-                      const baseFont = 14
-                      ctx.font = `${baseFont}px sans-serif`
-                      let maxTextWidth = 0
-                      const widths: number[] = []
-                      for (const l of labels) {
-                        const w = ctx.measureText(l).width
-                        widths.push(w)
-                        if (w > maxTextWidth) maxTextWidth = w
-                      }
-                      const avgWidth = widths.reduce((a, b) => a + b, 0) / widths.length
-                      const labelCount = labels.length
-                      const baseNodeSize = 18
-                      const scaleFactor = Math.min(1.6, Math.max(0.8, maxTextWidth / 80))
-                      const idealNodeSize = Math.round(Math.max(12, Math.min(50, baseNodeSize * scaleFactor)))
-                      const comfortMargin = Math.max(40, Math.min(100, Math.round(avgWidth * 0.5)))
-                      const depthSpacing = Math.max(80, Math.min(400, Math.round(maxTextWidth + idealNodeSize + comfortMargin)))
-                      const densityFactor = Math.max(0.6, Math.min(1.4, 20 / Math.max(1, Math.log(labelCount + 1) * 4)))
-                      const orthogonalSpacing = Math.max(12, Math.min(200, Math.round((idealNodeSize * 1.2 + 10) * densityFactor)))
-                      const finalH = orientation === 'horizontal' ? depthSpacing : orthogonalSpacing
-                      const finalV = orientation === 'horizontal' ? orthogonalSpacing : depthSpacing
-                      setNodeSize(idealNodeSize)
-                      setHSpacing(finalH)
-                      setVSpacing(finalV)
-                      setViewMode('tree')
-                      setTimeout(() => { onResetView?.() }, 50)
-                    } catch {
-                      // noop
-                    }
-                  }}
+                  onClick={handleAutoLayout}
                 >
                   <MagicWandIcon className="w-[18px] h-[18px] block" />
                 </ToolbarIconButton>
@@ -463,8 +434,8 @@ export default function Toolbar({
 
           <ToolbarSection
             title={t('toolbar_title', { defaultValue: 'Tools' })}
-            open={toolsOpen}
-            onToggle={() => setToolsOpen(!toolsOpen)}
+            open={openSections.tools}
+            onToggle={() => setOpenSections(prev => ({ ...prev, tools: !prev.tools }))}
           >
             <div className="toolbar-row flex gap-1">
               {(svgRef || htmlRef) && <PrintAndExportButtons svgRef={svgRef} htmlRef={htmlRef} />}
@@ -472,8 +443,8 @@ export default function Toolbar({
             </div>
           </ToolbarSection>
 
-          {availableTags && availableTags.length > 0 && (
-            <ToolbarSection title={t('tags_label', { defaultValue: 'Tags' })} open={tagsOpen} onToggle={() => setTagsOpen(!tagsOpen)}>
+            {availableTags && availableTags.length > 0 && (
+            <ToolbarSection title={t('tags_label', { defaultValue: 'Tags' })} open={openSections.tags} onToggle={() => setOpenSections(prev => ({ ...prev, tags: !prev.tags }))}>
               <div className="toolbar-row flex flex-wrap gap-1 px-2 py-1.5">
                 <div className="w-full mb-[2px] text-[12px] font-semibold flex flex-wrap items-center justify-between gap-2">
                   <span />

@@ -7,6 +7,7 @@ import { buildSpanningTree, getAllDagNodeIds, hasMultipleParents, getParents, ge
 import { useUrlSync } from '../hooks/useUrlSync';
 import { useSearchEngine } from '../hooks/useSearchEngine';
 import { safeLocalStorageGet, safeLocalStorageSet, STORAGE_KEYS } from '../utils/storage';
+import usePersistedState from '../hooks/usePersistedState';
 
 interface TreeContextType {
   data: TreeNode;
@@ -94,24 +95,29 @@ export function TreeProvider({ children }: { children: ReactNode }) {
   const { data: rawDagData, loading, error } = useTaxonomyData(activeTaxonomyId);
   const { t, lang } = useI18n();
 
-  const [selectedTags, setSelectedTags] = useState<string[]>(() => {
-    try {
-      const saved = safeLocalStorageGet(STORAGE_KEYS.selectedTags);
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
+  const [selectedTags, setSelectedTags] = usePersistedState<string[]>(
+    STORAGE_KEYS.selectedTags,
+    [],
+    (v) => JSON.stringify(v),
+    (s) => {
+      try {
+        return JSON.parse(s) as string[];
+      } catch {
+        return [];
+      }
     }
-  });
+  );
 
-  const [tagMatchMode, setTagMatchModeState] = useState<TagMatchMode>(() => {
-    const saved = safeLocalStorageGet(STORAGE_KEYS.tagMatchMode);
-    return saved === 'all' ? 'all' : 'any';
-  });
+  const [tagMatchMode, setTagMatchModeState] = usePersistedState<TagMatchMode>(
+    STORAGE_KEYS.tagMatchMode,
+    'any',
+    (v) => v,
+    (s) => (s === 'all' ? 'all' : 'any')
+  );
 
   // clear selected tags when taxonomy changes
   useEffect(() => {
     setSelectedTags([]);
-    safeLocalStorageSet(STORAGE_KEYS.selectedTags, JSON.stringify([]));
   }, [activeTaxonomyId]);
 
   const availableTags = useMemo(() => {
@@ -130,54 +136,67 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     return buildSpanningTree(dagData);
   }, [dagData]);
 
-  const [viewMode, setViewModeState] = useState<ViewMode>(() => {
-    let saved = safeLocalStorageGet(STORAGE_KEYS.viewMode);
-    if (saved === 'compact') {
-      safeLocalStorageSet(STORAGE_KEYS.viewMode, 'tree');
-      safeLocalStorageSet(STORAGE_KEYS.nodeShape, 'rect');
-      saved = 'tree';
+  const [viewMode, setViewModeState] = usePersistedState<ViewMode>(
+    STORAGE_KEYS.viewMode,
+    'tree',
+    (v) => v,
+    (s) => {
+      if (s === 'compact') {
+        safeLocalStorageSet(STORAGE_KEYS.viewMode, 'tree');
+        safeLocalStorageSet(STORAGE_KEYS.nodeShape, 'rect');
+        return 'tree';
+      }
+      if (s === 'organic') {
+        safeLocalStorageSet(STORAGE_KEYS.viewMode, 'tree');
+        return 'tree';
+      }
+      return s as ViewMode;
     }
-    if (saved === 'organic') {
-      safeLocalStorageSet(STORAGE_KEYS.viewMode, 'tree');
-      saved = 'tree';
-    }
-    return (saved as ViewMode) || 'tree';
-  });
+  );
 
   const setViewMode = useCallback((mode: ViewMode) => {
     setViewModeState(mode);
-    safeLocalStorageSet(STORAGE_KEYS.viewMode, mode);
   }, []);
 
-  const [nodeSize, setNodeSizeState] = useState<number>(() => {
-    const saved = safeLocalStorageGet(STORAGE_KEYS.nodeSize);
-    return saved ? Number(saved) : 26;
-  });
-  const setNodeSize = useCallback((n: number) => { setNodeSizeState(n); safeLocalStorageSet(STORAGE_KEYS.nodeSize, String(n)); }, []);
+  const [nodeSize, setNodeSizeState] = usePersistedState<number>(
+    STORAGE_KEYS.nodeSize,
+    26,
+    (v) => String(v),
+    (s) => Number(s)
+  );
+  const setNodeSize = useCallback((n: number) => { setNodeSizeState(n); }, []);
 
-  const [hSpacing, setHSpacingState] = useState<number>(() => {
-    const saved = safeLocalStorageGet(STORAGE_KEYS.hSpacing);
-    return saved ? Number(saved) : 220;
-  });
-  const setHSpacing = useCallback((n: number) => { setHSpacingState(n); safeLocalStorageSet(STORAGE_KEYS.hSpacing, String(n)); }, []);
+  const [hSpacing, setHSpacingState] = usePersistedState<number>(
+    STORAGE_KEYS.hSpacing,
+    220,
+    (v) => String(v),
+    (s) => Number(s)
+  );
+  const setHSpacing = useCallback((n: number) => { setHSpacingState(n); }, []);
 
-  const [vSpacing, setVSpacingState] = useState<number>(() => {
-    const saved = safeLocalStorageGet(STORAGE_KEYS.vSpacing);
-    return saved ? Number(saved) : 80;
-  });
-  const setVSpacing = useCallback((n: number) => { setVSpacingState(n); safeLocalStorageSet(STORAGE_KEYS.vSpacing, String(n)); }, []);
+  const [vSpacing, setVSpacingState] = usePersistedState<number>(
+    STORAGE_KEYS.vSpacing,
+    80,
+    (v) => String(v),
+    (s) => Number(s)
+  );
+  const setVSpacing = useCallback((n: number) => { setVSpacingState(n); }, []);
 
-  const [nodeShape, setNodeShapeState] = useState<NodeShape>(() => {
-    const saved = safeLocalStorageGet(STORAGE_KEYS.nodeShape);
-    return (saved as NodeShape) || 'circle';
-  });
-  const setNodeShape = useCallback((s: NodeShape) => { setNodeShapeState(s); safeLocalStorageSet(STORAGE_KEYS.nodeShape, s); }, []);
+  const [nodeShape, setNodeShapeState] = usePersistedState<NodeShape>(
+    STORAGE_KEYS.nodeShape,
+    'circle',
+    (v) => v,
+    (s) => (s as NodeShape) || 'circle'
+  );
+  const setNodeShape = useCallback((s: NodeShape) => { setNodeShapeState(s); }, []);
 
-  const [orientation, setOrientationState] = useState<Orientation>(() => {
-    const saved = safeLocalStorageGet(STORAGE_KEYS.orientation);
-    return (saved as Orientation) || 'horizontal';
-  });
-  const setOrientation = useCallback((o: Orientation) => { setOrientationState(o); safeLocalStorageSet(STORAGE_KEYS.orientation, o); }, []);
+  const [orientation, setOrientationState] = usePersistedState<Orientation>(
+    STORAGE_KEYS.orientation,
+    'horizontal',
+    (v) => v,
+    (s) => (s as Orientation) || 'horizontal'
+  );
+  const setOrientation = useCallback((o: Orientation) => { setOrientationState(o); }, []);
 
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [activeId, setActiveId] = useState<string>('');

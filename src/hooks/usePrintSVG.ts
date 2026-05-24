@@ -306,7 +306,6 @@ export function usePrintSVG(svgRef: RefObject<SVGSVGElement | null>) {
             window.onload = () => {
               setTimeout(() => {
                 window.print();
-                // window.close(); // Optional: close after printing
               }, 300);
             };
           </script>

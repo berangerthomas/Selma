@@ -12,6 +12,11 @@ export type TaxoFile = {
  * Throws on invalid format or when the resulting graph contains a cycle.
  */
 export function buildDagDataFromFiles(taxoFile: TaxoFile, nodesDict: Record<string, any>): DagData {
+  // validate shape early to avoid building invalid structures
+  if (!taxoFile || !taxoFile.root || !taxoFile.nodes) {
+    throw new Error('Invalid taxonomy format. Expected DAG format with "root" and "nodes".');
+  }
+
   const allIds = new Set<string>();
   for (const [id, structNode] of Object.entries(taxoFile.nodes)) {
     allIds.add(id);
@@ -37,10 +42,6 @@ export function buildDagDataFromFiles(taxoFile: TaxoFile, nodesDict: Record<stri
     };
   }
 
-  if (!dagData.root || !dagData.nodes) {
-    throw new Error('Invalid taxonomy format. Expected DAG format with "root" and "nodes".');
-  }
-
   if (hasCycle(dagData)) {
     throw new Error('Taxonomy contains a cycle — DAG must be acyclic.');
   }
@@ -48,7 +49,14 @@ export function buildDagDataFromFiles(taxoFile: TaxoFile, nodesDict: Record<stri
   return dagData;
 }
 
+// Module-level cache for nodes.json. Kept for performance but exposed a clear function
+// so tests or dev tooling can reset it. This avoids hidden, hard-to-reset state
+// while retaining simple caching for the app.
 let cachedNodesDict: Record<string, unknown> | null = null;
+
+export function clearNodesDictCache() {
+  cachedNodesDict = null;
+}
 
 export function useTaxonomyData(taxonomyId: string) {
   const [data, setData] = useState<DagData | null>(null)

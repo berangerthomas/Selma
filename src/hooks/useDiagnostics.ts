@@ -62,9 +62,10 @@ export function useDiagnostics() {
               const data = await resp.json()
               if (data.root) discoveredIds.add(data.root)
               if (data.nodes) {
-                Object.entries(data.nodes).forEach(([id, node]: [string, any]) => {
+                Object.entries(data.nodes).forEach(([id, node]) => {
                   discoveredIds.add(id)
-                  if (node.children) node.children.forEach((cId: string) => discoveredIds.add(cId))
+                  const structNode = node as { children?: string[] }
+                  if (structNode.children) structNode.children.forEach((cId: string) => discoveredIds.add(cId))
                 })
               }
             }
@@ -170,9 +171,9 @@ export function useDiagnostics() {
           setLocaleData(results)
           setLoading(false)
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (mounted) {
-          setError(err?.message || String(err))
+          setError(err instanceof Error ? err.message : String(err))
           setLoading(false)
         }
       }
@@ -224,7 +225,7 @@ export function useDiagnostics() {
         merged[d.nodeId].attachments = merged[d.nodeId].attachments || []
         const attachments = merged[d.nodeId].attachments!
         d.undeclaredFiles.forEach(uf => {
-          if (!attachments.some((att: any) => att.path === uf.path)) {
+          if (!attachments.some((att: Attachment) => att.path === uf.path)) {
             attachments.push(uf as Attachment)
           }
         })
