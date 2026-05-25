@@ -30,8 +30,9 @@ function CompactNode({ node, color, dagData, searchQuery, hasMultipleParentsFn }
         <text
           className="icon-char"
           x={0}
-          y={5.5}
+          y={0}
           textAnchor="middle"
+          dominantBaseline="central"
           fill="white"
           fontSize={9.5}
           fontFamily={finalIconFont}
@@ -41,7 +42,7 @@ function CompactNode({ node, color, dagData, searchQuery, hasMultipleParentsFn }
           {finalIconChar}
         </text>
       ) : null}
-      <text x={14} y={4.5} fontSize={11} textAnchor="start" style={{ userSelect: 'none', paintOrder: 'stroke', stroke: 'var(--panel-bg)', fill: 'var(--text-main)', strokeWidth: 2.5, strokeLinecap: 'round', strokeLinejoin: 'round' }}>
+      <text x={14} y={0} dominantBaseline="central" fontSize={11} textAnchor="start" style={{ userSelect: 'none', paintOrder: 'stroke', stroke: 'var(--panel-bg)', fill: 'var(--text-main)', strokeWidth: 2.5, strokeLinecap: 'round', strokeLinejoin: 'round' }}>
         <HighlightSVGText
           text={t(`nodes.${node.id}.name`, { defaultValue: node.name || '' })}
           query={searchQuery}

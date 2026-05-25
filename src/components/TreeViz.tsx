@@ -179,53 +179,6 @@ export default function TreeViz({ forwardedSvgRef }: Props) {
     applyTransform(transform)
   }, [positions, sidebarOpen, sidebarWidth, applyTransform, zoomRef, orientation])
 
-  useLayoutEffect(() => {
-    const svgEl = svgRef.current
-    if (!svgEl) return
-
-    const centerIcons = () => {
-      const icons = svgEl.querySelectorAll('text.icon-char, image.icon-img, svg.icon-svg, g.icon-svg') as NodeListOf<SVGElement>
-      icons.forEach((el) => {
-        try {
-          el.removeAttribute('transform')
-          const bbox = (el as unknown as SVGGraphicsElement).getBBox()
-          const cx = bbox.x + bbox.width / 2
-          const cy = bbox.y + bbox.height / 2
-          el.setAttribute('transform', `translate(${-cx}, ${-cy})`)
-        } catch (err) {
-          // getBBox may throw if element not ready; ignore and rely on retries/listeners
-        }
-      })
-    }
-
-    // Initial attempt
-    centerIcons()
-
-    // Re-run after fonts are available (helps icon fonts)
-    if (document.fonts?.ready) {
-      document.fonts.ready.then(() => centerIcons()).catch(() => {})
-    }
-
-    // Re-run when SVG <image> elements load
-    const imgs = svgEl.querySelectorAll('image.icon-img') as NodeListOf<SVGImageElement>
-    const onImgLoad = () => centerIcons()
-    imgs.forEach((img) => img.addEventListener('load', onImgLoad))
-
-    // Also re-run on window load and provide timed retries for late-loaded resources
-    window.addEventListener('load', onImgLoad)
-    const timers: number[] = []
-    timers.push(window.setTimeout(centerIcons, 250))
-    timers.push(window.setTimeout(centerIcons, 800))
-    timers.push(window.setTimeout(centerIcons, 2000))
-
-    return () => {
-      imgs.forEach((img) => img.removeEventListener('load', onImgLoad))
-      window.removeEventListener('load', onImgLoad)
-      timers.forEach(clearTimeout)
-      // no-op for fontsListener; it's a promise that resolves once
-    }
-  }, [positions, lang, nodeSize, nodeShape])
-
   useEffect(() => {
     try {
       document.documentElement.style.setProperty('--anim-ms', `${ANIMATION_MS}ms`)

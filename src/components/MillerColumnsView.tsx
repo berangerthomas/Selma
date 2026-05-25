@@ -134,16 +134,15 @@ const MillerColumnsView = React.forwardRef<HTMLDivElement>((_props, ref) => {
       prevColsRef.current = columns;
 
       if (containerRef.current) {
-        // Use a tiny timeout to let the DOM append the new column before calculating scrollWidth
-        const timer = setTimeout(() => {
+        // Use requestAnimationFrame to sync scrolling after the DOM append is painted
+        requestAnimationFrame(() => {
           if (containerRef.current) {
             containerRef.current.scrollTo({
               left: containerRef.current.scrollWidth,
               behavior: 'smooth'
             });
           }
-        }, 50);
-        return () => clearTimeout(timer);
+        });
       }
     }
   }, [columns, activeId, sidebarOpen]);

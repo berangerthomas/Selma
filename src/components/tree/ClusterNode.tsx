@@ -39,12 +39,13 @@ function ClusterNode({ node, color, searchQuery, onToggle, setActiveId, nodeClic
       ) : (
         <circle r={r} fill={color} opacity={0.6} stroke="#fff" strokeWidth={2} />
       )}
-      <text x={0} y={5} textAnchor="middle" fill="white" fontSize={12} fontWeight="bold" style={{ pointerEvents: 'none', userSelect: 'none' }}>
+      <text x={0} y={0} textAnchor="middle" dominantBaseline="central" fill="white" fontSize={12} fontWeight="bold" style={{ pointerEvents: 'none', userSelect: 'none' }}>
         +{count}
       </text>
       <text
         x={nodeShape === 'rect' ? r + 8 : r + 6}
-        y={5}
+        y={0}
+        dominantBaseline="central"
         fontSize={13}
         textAnchor="start"
         style={{ userSelect: 'none', paintOrder: 'stroke', stroke: 'var(--panel-bg)', fill: 'var(--text-main)', strokeWidth: 3, strokeLinecap: 'round', strokeLinejoin: 'round' }}

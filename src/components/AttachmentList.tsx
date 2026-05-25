@@ -32,6 +32,27 @@ const humanizeSize = (bytes: number): string => {
   return (mb / 1024).toFixed(1) + ' GB'
 }
 
+type AttachmentLinkProps = {
+  attachment: Attachment
+  className: string
+}
+
+function AttachmentLink({ attachment, className }: AttachmentLinkProps) {
+  return (
+    <a
+      href={resolveAttachmentUrl(attachment.path)}
+      download={getAttachmentFileName(attachment.path)}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`inline-flex items-center gap-1 whitespace-nowrap font-normal no-underline hover:text-blue-600 dark:hover:text-blue-400 transition-colors min-w-0 ${className}`}>
+      <DownloadIcon className="w-[1em] h-[1em] flex-shrink-0 opacity-70" />
+      <span className="uppercase font-semibold text-neutral-500 tracking-wider">{attachment.format}</span>
+      <span className="underline decoration-1 underline-offset-2 min-w-0">{attachment.name}</span>
+      {attachment.size && <span className="text-neutral-500 font-normal ml-0.5">({humanizeSize(attachment.size)})</span>}
+    </a>
+  )
+}
+
 type Props = {
   attachments?: Attachment[]
   lang?: string
@@ -81,14 +102,25 @@ export default function AttachmentList({ attachments, lang, compact = false }: P
 
     const update = () => {
       const anchors = Array.from(el.querySelectorAll('a')) as HTMLElement[]
+      
+      // Batch writes
+      anchors.forEach((a) => {
+        a.dataset.prevWhiteSpace = a.style.whiteSpace || ''
+        a.style.whiteSpace = 'nowrap'
+      })
+
+      // Batch reads
       let total = 0
       anchors.forEach((a) => {
-        const prev = a.style.whiteSpace
-        a.style.whiteSpace = 'nowrap'
         total += a.scrollWidth
-        a.style.whiteSpace = prev
       })
       const avail = el.clientWidth || 0
+
+      // Batch writes
+      anchors.forEach((a) => {
+        a.style.whiteSpace = a.dataset.prevWhiteSpace || ''
+      })
+
       setForceSingleRow(total <= avail)
     }
 
@@ -119,32 +151,12 @@ export default function AttachmentList({ attachments, lang, compact = false }: P
         <ul ref={listRef} className={`list-none pl-0 m-0 flex ${forceSingleRow ? 'flex-nowrap' : 'flex-wrap'} items-center gap-x-5 gap-y-1`}>
           {agnostic.map((attachment, idx) => (
             <li key={`agn-${attachment.path}-${idx}`} className="p-0 m-0">
-              <a
-                href={resolveAttachmentUrl(attachment.path)}
-                download={getAttachmentFileName(attachment.path)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`inline-flex items-center gap-1 whitespace-nowrap font-normal no-underline hover:text-blue-600 dark:hover:text-blue-400 transition-colors min-w-0 ${attachmentTextClass}`}>
-                <DownloadIcon className="w-[1em] h-[1em] flex-shrink-0 opacity-70" />
-                <span className="uppercase font-semibold text-neutral-500 tracking-wider">{attachment.format}</span>
-                <span className="underline decoration-1 underline-offset-2 min-w-0">{attachment.name}</span>
-                {attachment.size && <span className="text-neutral-500 font-normal ml-0.5">({humanizeSize(attachment.size)})</span>}
-              </a>
+              <AttachmentLink attachment={attachment} className={attachmentTextClass} />
             </li>
           ))}
           {currentLangList.map((attachment, idx) => (
             <li key={`cur-${attachment.path}-${idx}`} className="p-0 m-0">
-              <a
-                href={resolveAttachmentUrl(attachment.path)}
-                download={getAttachmentFileName(attachment.path)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`inline-flex items-center gap-1 whitespace-nowrap font-normal no-underline hover:text-blue-600 dark:hover:text-blue-400 transition-colors min-w-0 ${attachmentTextClass}`}>
-                <DownloadIcon className="w-[1em] h-[1em] flex-shrink-0 opacity-70" />
-                <span className="uppercase font-semibold text-neutral-500 tracking-wider">{attachment.format}</span>
-                <span className="underline decoration-1 underline-offset-2 min-w-0">{attachment.name}</span>
-                {attachment.size && <span className="text-neutral-500 font-normal ml-0.5">({humanizeSize(attachment.size)})</span>}
-              </a>
+              <AttachmentLink attachment={attachment} className={attachmentTextClass} />
             </li>
           ))}
         </ul>
@@ -170,17 +182,7 @@ export default function AttachmentList({ attachments, lang, compact = false }: P
                   <ul className="list-none pl-0 m-0 flex flex-wrap items-center gap-x-5 gap-y-1">
                     {othersByLang[lk].map((attachment, idx) => (
                       <li key={`oth-${lk}-${attachment.path}-${idx}`} className="p-0 m-0">
-                        <a
-                          href={resolveAttachmentUrl(attachment.path)}
-                          download={getAttachmentFileName(attachment.path)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={`inline-flex items-center gap-1 whitespace-nowrap font-normal no-underline hover:text-blue-600 dark:hover:text-blue-400 transition-colors min-w-0 ${attachmentTextClass}`}>
-                          <DownloadIcon className="w-[1em] h-[1em] flex-shrink-0 opacity-70" />
-                          <span className="uppercase font-semibold text-neutral-500 tracking-wider">{attachment.format}</span>
-                          <span className="underline decoration-1 underline-offset-2 min-w-0">{attachment.name}</span>
-                          {attachment.size && <span className="text-neutral-500 font-normal ml-0.5">({humanizeSize(attachment.size)})</span>}
-                        </a>
+                        <AttachmentLink attachment={attachment} className={attachmentTextClass} />
                       </li>
                     ))}
                   </ul>

@@ -37,35 +37,68 @@ export function findAllPathsByQuery(
   return results;
 }
 
+const pathIndexCache = new WeakMap<TreeNode, Map<string, TreeNode[]>>();
+
+function buildPathIndex(root: TreeNode): Map<string, TreeNode[]> {
+  let index = pathIndexCache.get(root);
+  if (index) return index;
+
+  index = new Map<string, TreeNode[]>();
+  function walk(n: TreeNode, currentPath: TreeNode[]) {
+    const newPath = [...currentPath, n];
+    if (!index!.has(n.id)) {
+      index!.set(n.id, newPath);
+    }
+    if (n.children) {
+      for (const c of n.children) {
+        walk(c, newPath);
+      }
+    }
+  }
+  walk(root, []);
+  pathIndexCache.set(root, index);
+  return index;
+}
+
 /**
  * Return an array of TreeNodes representing the full node path from root to the target node ID.
  * Useful for building breadcrumbs or resolving node IDs.
  */
 export function findNodePath(root: TreeNode, targetId: string): TreeNode[] | null {
-  if (root.id === targetId) return [root];
-  if (!root.children) return null;
-  for (const child of root.children) {
-    const sub = findNodePath(child, targetId);
-    if (sub) return [root, ...sub];
-  }
-  return null;
+  return buildPathIndex(root).get(targetId) || null;
 }
 
 export function findNodePathIds(root: TreeNode, targetId: string): string[] | null {
   return findNodePath(root, targetId)?.map(n => n.id) ?? null
 }
 
+const nodeIndexCache = new WeakMap<TreeNode, Map<string, TreeNode>>();
+
+function buildNodeIndex(root: TreeNode): Map<string, TreeNode> {
+  let index = nodeIndexCache.get(root);
+  if (index) return index;
+
+  index = new Map<string, TreeNode>();
+  function walk(n: TreeNode) {
+    if (!index!.has(n.id)) {
+      index!.set(n.id, n);
+    }
+    if (n.children) {
+      for (const c of n.children) {
+        walk(c);
+      }
+    }
+  }
+  walk(root);
+  nodeIndexCache.set(root, index);
+  return index;
+}
+
 /**
  * Find and return a specific TreeNode by its ID.
  */
 export function findNodeById(root: TreeNode, id: string): TreeNode | null {
-  if (root.id === id) return root;
-  if (!root.children) return null;
-  for (const c of root.children) {
-    const res = findNodeById(c, id);
-    if (res) return res;
-  }
-  return null;
+  return buildNodeIndex(root).get(id) || null;
 }
 
 /**

@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useDeferredValue } from 'react';
 import type { TreeNode, DagData } from '../types';
 import { findMatchingIds } from '../utils/dagUtils';
 import { useDeepSearch } from './useDeepSearch';
@@ -13,16 +13,11 @@ export function useSearchEngine(
   navigateToResult: (nodeId: string, forceCenter?: boolean) => void
 ) {
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const deferredSearchQuery = useDeferredValue(searchQuery);
   const [searchResults, setSearchResults] = useState<string[]>([]);
   const [activeSearchType, setActiveSearchType] = useState<'simple' | 'deep' | null>(null);
   const prevSearchStateRef = useRef<{ query: string; type: 'simple' | 'deep' | null }>({ query: '', type: null });
   const [currentResultIndex, setCurrentResultIndex] = useState<number>(-1);
-
-  const currentResultIndexRef = useRef(currentResultIndex);
-  const searchResultsRef = useRef(searchResults);
-
-  useEffect(() => { currentResultIndexRef.current = currentResultIndex; }, [currentResultIndex]);
-  useEffect(() => { searchResultsRef.current = searchResults; }, [searchResults]);
 
   const { performDeepSearch } = useDeepSearch(data, lang, t);
 
@@ -70,12 +65,12 @@ export function useSearchEngine(
     });
   }, [data, performDeepSearch, navigateToResult]);
 
-  // Effect: run simple search when query changes
+  // Effect: run simple search when deferred query changes
   useEffect(() => {
     if (!dagData) return;
 
     if (activeSearchType === 'deep') {
-      if (!searchQuery) {
+      if (!deferredSearchQuery) {
         setSearchResults([]);
         setCurrentResultIndex(-1);
         prevSearchStateRef.current = { query: '', type: null };
@@ -84,48 +79,48 @@ export function useSearchEngine(
       return;
     }
 
-    if (!searchQuery) {
+    if (!deferredSearchQuery) {
       setSearchResults([]);
       setCurrentResultIndex(-1);
       prevSearchStateRef.current = { query: '', type: null };
       return;
     }
 
-    const results = findMatchingIds(dagData, searchQuery, t);
+    const results = findMatchingIds(dagData, deferredSearchQuery, t);
     if (results.length === 0) {
       if (import.meta.env.DEV) {
-        console.debug('No node matched search:', searchQuery);
+        console.debug('No node matched search:', deferredSearchQuery);
       }
       setSearchResults([]);
       setCurrentResultIndex(-1);
-      prevSearchStateRef.current = { query: searchQuery, type: 'simple' };
+      prevSearchStateRef.current = { query: deferredSearchQuery, type: 'simple' };
       return;
     }
 
-    setSearchResults(results);
+    const isNewQuery = prevSearchStateRef.current.query !== deferredSearchQuery || prevSearchStateRef.current.type !== activeSearchType;
+    prevSearchStateRef.current = { query: deferredSearchQuery, type: 'simple' };
 
-    const isNewQuery = prevSearchStateRef.current.query !== searchQuery || prevSearchStateRef.current.type !== activeSearchType;
-    prevSearchStateRef.current = { query: searchQuery, type: 'simple' };
+    setSearchResults(prevResults => {
+      setCurrentResultIndex(prevIdx => {
+        if (!isNewQuery && prevIdx >= 0 && prevResults[prevIdx]) {
+          const activeItem = prevResults[prevIdx];
+          const newIndex = results.indexOf(activeItem);
+          if (newIndex >= 0) {
+            return newIndex;
+          }
+        }
+        if (!isNewQuery) return -1;
+        
+        // Schedule side-effect outside the render phase
+        queueMicrotask(() => {
+          navigateToResult(results[0], true);
+        });
+        return 0;
+      });
+      return results;
+    });
 
-    const curIdx = currentResultIndexRef.current;
-    const curResults = searchResultsRef.current;
-    if (!isNewQuery && curIdx >= 0 && curResults[curIdx]) {
-      const activeItem = curResults[curIdx];
-      const newIndex = results.indexOf(activeItem);
-      if (newIndex >= 0) {
-        setCurrentResultIndex(newIndex);
-        return;
-      }
-    }
-
-    if (!isNewQuery) {
-      setCurrentResultIndex(-1);
-      return;
-    }
-
-    setCurrentResultIndex(0);
-    navigateToResult(results[0], true);
-  }, [searchQuery, lang, dagData, t, navigateToResult, activeSearchType]);
+  }, [deferredSearchQuery, lang, dagData, t, navigateToResult, activeSearchType]);
 
   const goToNextResult = useCallback(() => {
     if (searchResults.length === 0) return;

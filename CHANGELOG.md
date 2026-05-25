@@ -1,5 +1,27 @@
 # Changelog
 
+## [v0.7.3] - 2026-05-25
+
+### Added
+- **Graph orientation toggle**: A new button (↻ icon) in the "View" toolbar row lets you switch the tree graph between horizontal (root on the left) and vertical (root on top) layout. The orientation is persisted in localStorage.
+
+### Modified
+- **Performance Fix (Layout Thrashing)**: Corrected layout thrashing in `TreeViz.tsx` by replacing DOM mutation calculations with declarative SVG alignments for texts and icons (`text-anchor="middle"` and `dominant-baseline="central"`).
+- **Refactoring (AttachmentList)**: Factored repeated attachment link definitions into a DRY `AttachmentLink` component, and corrected synchronous layout calculations in ResizeObserver to prevent unneeded reflows.
+- **Scroll Sync (MillerColumns)**: Replaced arbitrary 50ms `setTimeout` with `requestAnimationFrame` for a more reliable horizontal scroll animation during column insertions in the Miller view.
+- **Performance (Search)**: Introduced `useDeferredValue` for the user's search query, making the UI highly responsive by placing the heavy filtering calculation in the background. Cleaned up ref synchronization in `useSearchEngine`.
+- **Optimization (Tree Traversals)**: Drastically optimized node path and node lookup traversals in `findNodeById` & `findNodePath` (O(N) to O(1)) by implementing `WeakMap` cached indexes inside `treeUtils.ts`.
+- **Unify project title** webpage title, filename for exports now use `project_title` variable, located in the public\locales\en\taxonomy.json file.
+- **Improved Toolbar Layout** and **Collapsible Toolbar Sections**: To make the interface more compact, the toolbox now features retractable sections for "Geometry", "Tools" and "Tags". Each section header is clickable to toggle visibility, and states are maintained within the session.
+ **Refactor: usePersistedState**: Added the `usePersistedState` hook and replaced persisted local state in `TreeContext.tsx` to centralize `localStorage` logic.
+ **Toolbar cleanup**: Removed unused `closeTimerRef`, consolidated section state into a single `openSections`, and extracted the auto-layout handler into `src/utils/autoLayout.ts`.
+ **Taxonomy data improvements**: Made the `nodes.json` cache resettable via `clearNodesDictCache()` (useful for tests/HMR) and moved format validation to the start of `buildDagDataFromFiles`.
+ **Debug logs gated**: Guarded `console.debug` calls for empty search results behind `import.meta.env.DEV` in `useSearchEngine`.
+ **Typing fixes**: Replaced avoidable `any` usages in `Toolbar.tsx` and `useDiagnostics.ts`.
+ **Storage keys**: Documented inconsistency in `STORAGE_KEYS` and added `migrateThemeKeyToSelma()` helper for manual theme-key migration.
+ **Dead code removed**: Removed the commented `window.close()` from the SVG export flow.
+
+
 ## [v0.7.2] - 2026-05-21
 
 ### Added
