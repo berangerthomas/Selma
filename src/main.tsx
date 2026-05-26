@@ -28,6 +28,13 @@ function showErrorOverlay(err: unknown) {
 }
 
 window.addEventListener('error', (ev: ErrorEvent) => {
+  if (
+    ev.message === 'ResizeObserver loop completed with undelivered notifications.' ||
+    ev.message === 'ResizeObserver loop limit exceeded'
+  ) {
+    ev.stopImmediatePropagation()
+    return
+  }
   showErrorOverlay(ev.error ?? ev.message ?? String(ev))
 })
 window.addEventListener('unhandledrejection', (ev: PromiseRejectionEvent) => {

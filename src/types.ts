@@ -9,8 +9,10 @@ export interface PrunedNode extends Omit<TreeNode, 'children'> {
 export type ViewMode = 'tree' | 'list' | 'columns';
 export type NodeShape = 'circle' | 'rect';
 export type Orientation = 'horizontal' | 'vertical';
+export type LabelPosition = 'smart' | 'top' | 'bottom' | 'right' | 'left';
 
-export type TagMatchMode = 'any' | 'all';
+export type TagState = 'neutral' | 'include' | 'exclude';
+export type TagStates = Record<string, TagState>;
 
 export type Attachment = {
   name: string

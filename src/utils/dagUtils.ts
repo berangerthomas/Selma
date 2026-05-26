@@ -1,42 +1,6 @@
-import type { DagData, DagNode, CrossEdge, TreeNode, PrunedNode, TagMatchMode } from '../types';
+import type { DagData, DagNode, CrossEdge, TreeNode, TagStates } from '../types';
 import { FALLBACK_COLOR } from '../types';
-import * as d3 from 'd3'
 import { nodeMatchesQuery, type TranslateFn } from './searchRegex';
-
-// Prune tree -> produce a D3 hierarchy suitable for layout (adds optional cluster nodes)
-export function buildPrunedHierarchy(root: TreeNode, expanded: Set<string> | null) {
-  function totalCount(n: TreeNode): number {
-    if (!n || !n.children || n.children.length === 0) return 0
-    return n.children.length
-  }
-
-  function prune(node: TreeNode, depth = 0): PrunedNode | null {
-    const hasChildren = Array.isArray(node.children) && node.children.length > 0
-    const base: PrunedNode = { id: node.id, name: node.name }
-    if (node.color) base.color = node.color
-    if (node.image) base.image = node.image
-    if (node.attachments) base.attachments = node.attachments
-    if (node.iconChar) {
-      base.iconChar = node.iconChar
-      base.iconFont = node.iconFont
-    }
-
-    if (!hasChildren) return base
-
-    if (depth >= 1 && !(expanded && expanded.has(node.id))) {
-      const count = totalCount(node)
-      const cluster: PrunedNode = { id: `${node.id}__cluster`, name: '', __cluster_for: node.id, __cluster_count: count }
-      return { ...base, children: [cluster] }
-    }
-
-    const children = (node.children || []).map((c: TreeNode) => prune(c, depth + 1)).filter((c): c is PrunedNode => c !== null)
-    if (children.length === 0) return base
-    return { ...base, children }
-  }
-
-  const pruned = prune(root, 0)
-  return d3.hierarchy(pruned as PrunedNode)
-}
 
 /**
  * Build spanning tree (nested TreeNode) from DagData via BFS.
@@ -171,10 +135,12 @@ export function getAllTags(data: DagData): string[] {
  * Filter the DAG to keep only nodes that match the selected tags according to the chosen mode,
  * and their ancestors (to maintain the tree structure).
  */
-export function filterDagByTags(data: DagData, selectedTags: string[], mode: TagMatchMode = 'any'): DagData {
-  if (!selectedTags || selectedTags.length === 0) return data;
+export function filterDagByTags(data: DagData, tagStates: TagStates): DagData {
+  const includeTags = Object.keys(tagStates).filter(tag => tagStates[tag] === 'include');
+  const excludeTags = Object.keys(tagStates).filter(tag => tagStates[tag] === 'exclude');
 
-  const tagSet = new Set(selectedTags);
+  if (includeTags.length === 0 && excludeTags.length === 0) return data;
+
   const keep = new Set<string>();
   const memo = new Map<string, boolean>();
 
@@ -188,12 +154,28 @@ export function filterDagByTags(data: DagData, selectedTags: string[], mode: Tag
     if (!node) return false;
 
     const nodeTags = node.tags ?? [];
-    const matchesTags = mode === 'all'
-      ? selectedTags.every(tag => nodeTags.includes(tag))
-      : nodeTags.some(tag => tagSet.has(tag));
+    const hasTags = nodeTags.length > 0;
+    
+    // Check if node is rejected by any exclude tag
+    const isExcluded = excludeTags.some(tag => 
+      tag === '__untagged__' ? !hasTags : nodeTags.includes(tag)
+    );
 
-    let matches = matchesTags;
+    let matches = false;
 
+    if (!isExcluded) {
+      if (includeTags.length === 0) {
+        // No include tags, and not excluded -> keep
+        matches = true;
+      } else {
+        // Must match AT LEAST ONE include tag (OR logic)
+        matches = includeTags.some(tag => 
+          tag === '__untagged__' ? !hasTags : nodeTags.includes(tag)
+        );
+      }
+    }
+
+    // Traverse children to keep ancestors of matching nodes
     for (const childId of node.children ?? []) {
       if (dfs(childId)) {
         matches = true;
@@ -222,4 +204,16 @@ export function filterDagByTags(data: DagData, selectedTags: string[], mode: Tag
     root: data.root,
     nodes: newNodes
   };
+}export function findAllDagAncestors(dagData: DagData, targetId: string): string[] {
+  const result = new Set<string>();
+  const visited = new Set<string>();
+  function climb(id: string) {
+    if (visited.has(id)) return;
+    visited.add(id);
+    result.add(id);
+    const parents = getParents(dagData, id);
+    for (const p of parents) climb(p);
+  }
+  climb(targetId);
+  return Array.from(result);
 }

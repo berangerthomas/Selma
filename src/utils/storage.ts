@@ -11,8 +11,7 @@ export function safeLocalStorageSet(key: string, value: string): void {
 export const STORAGE_KEYS = {
   viewMode: 'selma_viewMode',
   activeTaxonomyId: 'selma_activeTaxonomyId',
-  selectedTags: 'selma_selectedTags',
-  tagMatchMode: 'selma_tagMatchMode',
+  tagStates: 'selma_tagStates',
   // NOTE: historical inconsistency: most keys use the `selma_` prefix with underscores,
   // but `theme` was intentionally left generic to allow easy cross-app theming.
   // Another inconsistency is `textSize` which uses a hyphen (`selma-text-size`).
@@ -25,6 +24,7 @@ export const STORAGE_KEYS = {
   vSpacing: 'selma_vSpacing',
   nodeShape: 'selma_nodeShape',
   orientation: 'selma_orientation',
+  labelPosition: 'selma_labelPosition',
 } as const;
 
 // Helper: in case the team decides to adopt `selma_theme`, call this function once

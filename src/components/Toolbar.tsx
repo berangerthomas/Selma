@@ -180,20 +180,27 @@ export default function Toolbar({
   const [openSections, setOpenSections] = useState<Record<'help'|'geometry'|'tools'|'tags', boolean>>({ help: false, geometry: false, tools: false, tags: false })
   const { 
     viewMode, setViewMode, activeTaxonomyId, setActiveTaxonomyId, availableTaxonomies, 
-    availableTags, selectedTags, setSelectedTags, tagMatchMode, setTagMatchMode,
+    availableTags, tagStates, setTagStates,
     nodeSize, setNodeSize, hSpacing, setHSpacing, vSpacing, setVSpacing, nodeShape, setNodeShape,
-    orientation, setOrientation,
-    dagData, data
+    orientation, setOrientation, labelPosition, setLabelPosition,
+    dagData, data, totalNodeCount, filteredNodeCount
   } = useTree()
+  const resolvedLabelPosition = (labelPosition as string) === 'auto' ? 'smart' : labelPosition
 
   const handleTagToggle = useCallback((tag: string) => {
-    const isSelected = selectedTags.includes(tag);
-    if (isSelected) {
-      setSelectedTags(selectedTags.filter(t => t !== tag));
-    } else {
-      setSelectedTags([...selectedTags, tag]);
+    const currentState = tagStates[tag] || 'neutral';
+    let nextState: 'neutral' | 'include' | 'exclude' = 'neutral';
+    
+    if (currentState === 'neutral') nextState = 'include';
+    else if (currentState === 'include') nextState = 'exclude';
+    else nextState = 'neutral';
+
+    const newStates = { ...tagStates, [tag]: nextState };
+    if (nextState === 'neutral') {
+      delete newStates[tag];
     }
-  }, [selectedTags, setSelectedTags]);
+    setTagStates(newStates);
+  }, [tagStates, setTagStates]);
 
   const handleAutoLayout = useCallback(() => {
     try {
@@ -297,6 +304,10 @@ export default function Toolbar({
     setSearchMenuOpen(false)
   }
 
+  const includeCount = Object.values(tagStates).filter(v => v === 'include').length
+  const excludeCount = Object.values(tagStates).filter(v => v === 'exclude').length
+  const hasActiveTagState = includeCount > 0 || excludeCount > 0
+
   const hasResults = totalResults > 0 && currentResultIndex >= 0
 
   return (
@@ -331,9 +342,14 @@ export default function Toolbar({
             {t('project_help', { defaultValue: '' })}
           </div>
         )}
-        <div className="toolbar-row flex gap-1 items-center border-b border-[var(--border-color)] px-2 py-1.5">
-          <div className="toolbar-title mr-2">{t('taxonomy', { defaultValue: 'Taxonomy' })}</div>
-          <div className="relative flex-1 min-w-0">
+        <div className="toolbar-row flex gap-1 items-stretch border-b border-[var(--border-color)] px-2 py-1.5">
+          <div className="flex flex-col justify-center min-w-0">
+            <div className="toolbar-title">{t('taxonomy', { defaultValue: 'Taxonomy' })}</div>
+            <div className="text-[10px] tabular-nums text-[var(--text-muted)] leading-tight" title={t('node_count_title', { defaultValue: 'Filtered nodes / total' })}>
+              {filteredNodeCount} / {totalNodeCount}
+            </div>
+          </div>
+          <div className="relative flex-1 min-w-0 flex items-center">
             <button
               ref={taxonomyMenuRefs.setReference}
               type="button"
@@ -400,7 +416,7 @@ export default function Toolbar({
 
               <LayoutSlider label={t('node_size', {defaultValue: 'Node'})} value={nodeSize} min={10} max={50} step={1} onChange={setNodeSize} />
               <LayoutSlider label={t('h_spacing', {defaultValue: 'H. space'})} value={hSpacing} min={80} max={400} step={10} onChange={setHSpacing} />
-              <LayoutSlider label={t('v_spacing', {defaultValue: 'V. space'})} value={vSpacing} min={Math.max(12, Math.round(nodeSize * 0.8))} max={200} step={2} onChange={setVSpacing} />
+              <LayoutSlider label={t('v_spacing', {defaultValue: 'V. space'})} value={vSpacing} min={10} max={200} step={2} onChange={setVSpacing} />
               <div className="toolbar-row flex flex-wrap gap-1 justify-start pt-1">
                 <ToolbarIconButton
                   label={t('auto_layout', { defaultValue: 'Auto layout' })}
@@ -428,6 +444,29 @@ export default function Toolbar({
                 >
                   <CollapseIcon className="w-[18px] h-[18px] block" />
                 </ToolbarIconButton>
+                {viewMode === 'tree' && (
+                  <ToolbarIconButton
+                    label={t(`label_position_${resolvedLabelPosition}`)}
+                    onClick={() => {
+                      const next = {
+                        smart: 'top',
+                        top: 'right',
+                        right: 'bottom',
+                        bottom: 'left',
+                        left: 'smart'
+                      } as const;
+                      setLabelPosition(next[resolvedLabelPosition]);
+                    }}
+                  >
+                    <div className="w-[48px] h-[18px] flex items-center justify-center text-base font-semibold leading-none select-none">
+                      {resolvedLabelPosition === 'smart' && 'A*'}
+                      {resolvedLabelPosition === 'top' && 'A↑'}
+                      {resolvedLabelPosition === 'right' && 'A→'}
+                      {resolvedLabelPosition === 'bottom' && 'A↓'}
+                      {resolvedLabelPosition === 'left' && 'A←'}
+                    </div>
+                  </ToolbarIconButton>
+                )}
               </div>
             </div>
           </ToolbarSection>
@@ -450,21 +489,45 @@ export default function Toolbar({
           </ToolbarSection>
 
             {availableTags && availableTags.length > 0 && (
-            <ToolbarSection title={t('tags_label', { defaultValue: 'Tags' })} open={openSections.tags} onToggle={() => setOpenSections(prev => ({ ...prev, tags: !prev.tags }))}>
+            <ToolbarSection
+              title={t('tags_label', { defaultValue: 'Tags' })}
+              open={openSections.tags}
+              onToggle={() => setOpenSections(prev => ({ ...prev, tags: !prev.tags }))}
+              rightContent={hasActiveTagState ? (
+                <span className="text-[10px] tabular-nums leading-none flex items-center gap-1 mr-1">
+                  {includeCount > 0 && <span className="text-blue-600 dark:text-blue-400">+{includeCount}</span>}
+                  {excludeCount > 0 && <span className="text-red-600 dark:text-red-400">-{excludeCount}</span>}
+                </span>
+              ) : undefined}
+            >
               <div className="toolbar-row flex flex-wrap gap-1 px-2 py-1.5">
                 <div className="w-full mb-[2px] text-[12px] font-semibold flex flex-wrap items-center justify-between gap-2">
                   <span />
                   <div className="flex flex-wrap items-center justify-end gap-2 text-[11px] font-normal">
-                    <label className="flex items-center gap-1 whitespace-nowrap cursor-pointer select-none text-[var(--text-muted)]" title={t('tags_accumulate_title', { defaultValue: 'Require all selected tags' })}>
-                      <input type="checkbox" checked={tagMatchMode === 'all'} onChange={(e) => setTagMatchMode(e.target.checked ? 'all' : 'any')} aria-label={t('tags_accumulate_title', { defaultValue: 'Require all selected tags' })} />
-                      <span>{t('tags_accumulate', { defaultValue: 'All' })}</span>
-                    </label>
-                    {selectedTags.length > 0 && <button onClick={() => setSelectedTags([])} className="text-blue-600 dark:text-blue-400 hover:underline text-[10px] bg-none border-none cursor-pointer p-0">{t('clear_tags', { defaultValue: 'Clear all' })}</button>}
+                    {Object.keys(tagStates).length > 0 && <button onClick={() => setTagStates({})} className="text-blue-600 dark:text-blue-400 hover:underline text-[10px] bg-none border-none cursor-pointer p-0">{t('clear_tags', { defaultValue: 'Clear all' })}</button>}
                   </div>
                 </div>
                 {availableTags.map(tag => {
-                  const isSelected = selectedTags.includes(tag)
-                  return <button key={tag} onClick={() => handleTagToggle(tag)} className={`tag-pill px-2 py-0.5 text-[11px] rounded-xl border cursor-pointer transition-all duration-200 ${isSelected ? 'bg-blue-600 text-white border-blue-600 dark:bg-blue-500' : 'bg-transparent text-gray-700 dark:text-gray-300 border-gray-300 dark:border-neutral-600 hover:bg-black/5 dark:hover:bg-white/10'}`}>{t(`tags.${tag}`, { defaultValue: tag })}</button>
+                  const state = tagStates[tag] || 'neutral';
+                  const baseClasses = 'tag-pill px-2 py-0.5 text-[11px] rounded-md border cursor-pointer transition-all duration-200 select-none flex flex-row items-center gap-1';
+                  let stateClasses = 'bg-transparent text-gray-700 dark:text-gray-300 border-gray-300 dark:border-neutral-600 hover:bg-black/5 dark:hover:bg-white/10';
+                  let icon = null;
+                  
+                  if (state === 'include') {
+                    stateClasses = 'bg-blue-600 text-white border-blue-600 dark:bg-blue-500';
+                    icon = <span className="font-bold opacity-80">+</span>;
+                  } else if (state === 'exclude') {
+                    stateClasses = 'bg-red-600 text-white border-red-600 dark:bg-red-500';
+                    icon = <span className="font-bold opacity-80">-</span>;
+                  }
+
+                  const displayLabel = tag === '__untagged__' ? t('tags_untagged', { defaultValue: '[Untagged]' }) : t(`tags.${tag}`, { defaultValue: tag });
+
+                  return (
+                    <button key={tag} onClick={() => handleTagToggle(tag)} className={`${baseClasses} ${stateClasses}`}>
+                      {icon} {displayLabel}
+                    </button>
+                  );
                 })}
               </div>
             </ToolbarSection>
