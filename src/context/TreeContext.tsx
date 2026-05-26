@@ -1,9 +1,9 @@
 import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect, useMemo } from 'react';
-import type { TreeNode, ViewMode, NodeShape, Orientation, DagData, CrossEdge, TaxonomyDescription, TagMatchMode } from '../types';
+import type { TreeNode, ViewMode, NodeShape, Orientation, LabelPosition, DagData, CrossEdge, TaxonomyDescription, TagStates } from '../types';
 import { findNodePathIds } from '../utils/treeUtils';
 import { useTaxonomyData } from '../hooks/useTaxonomyData';
 import { useI18n } from '../i18n';
-import { buildSpanningTree, getAllDagNodeIds, hasMultipleParents, getParents, getAllTags, filterDagByTags } from '../utils/dagUtils';
+import { buildSpanningTree, getAllDagNodeIds, hasMultipleParents, getParents, getAllTags, findAllDagAncestors, filterDagByTags } from '../utils/dagUtils';
 import { useUrlSync } from '../hooks/useUrlSync';
 import { useSearchEngine } from '../hooks/useSearchEngine';
 import { safeLocalStorageGet, safeLocalStorageSet, STORAGE_KEYS } from '../utils/storage';
@@ -31,6 +31,8 @@ interface TreeContextType {
   setNodeShape: (s: NodeShape) => void;
   orientation: Orientation;
   setOrientation: (o: Orientation) => void;
+  labelPosition: LabelPosition;
+  setLabelPosition: (lp: LabelPosition) => void;
   toggleNode: (id: string) => void;
   setExpandedToPath: (pathIds: string[]) => void;
   collapseAll: () => void;
@@ -51,11 +53,11 @@ interface TreeContextType {
   searchQuery: string;
   activeSearchType: 'simple' | 'deep' | null;
 
-  selectedTags: string[];
-  setSelectedTags: (tags: string[]) => void;
-  tagMatchMode: TagMatchMode;
-  setTagMatchMode: (mode: TagMatchMode) => void;
+  tagStates: TagStates;
+  setTagStates: (states: TagStates) => void;
   availableTags: string[];
+  totalNodeCount: number;
+  filteredNodeCount: number;
 }
 
 const TreeContext = createContext<TreeContextType | undefined>(undefined);
@@ -95,41 +97,36 @@ export function TreeProvider({ children }: { children: ReactNode }) {
   const { data: rawDagData, loading, error } = useTaxonomyData(activeTaxonomyId);
   const { t, lang } = useI18n();
 
-  const [selectedTags, setSelectedTags] = usePersistedState<string[]>(
-    STORAGE_KEYS.selectedTags,
-    [],
+  const [tagStates, setTagStatesState] = usePersistedState<TagStates>(
+    STORAGE_KEYS.tagStates,
+    {},
     (v) => JSON.stringify(v),
     (s) => {
       try {
-        return JSON.parse(s) as string[];
+        return JSON.parse(s) as TagStates;
       } catch {
-        return [];
+        return {};
       }
     }
   );
 
-  const [tagMatchMode, setTagMatchModeState] = usePersistedState<TagMatchMode>(
-    STORAGE_KEYS.tagMatchMode,
-    'any',
-    (v) => v,
-    (s) => (s === 'all' ? 'all' : 'any')
-  );
-
-  // clear selected tags when taxonomy changes
+  // clear tags when taxonomy changes
   useEffect(() => {
-    setSelectedTags([]);
+    setTagStatesState({});
   }, [activeTaxonomyId]);
 
   const availableTags = useMemo(() => {
     if (!rawDagData) return [];
-    return getAllTags(rawDagData);
+    const tags = getAllTags(rawDagData);
+    return ['__untagged__', ...tags];
   }, [rawDagData]);
 
   const dagData = useMemo(() => {
     if (!rawDagData) return null;
-    if (selectedTags.length === 0) return rawDagData;
-    return filterDagByTags(rawDagData, selectedTags, tagMatchMode);
-  }, [rawDagData, selectedTags, tagMatchMode]);
+    const hasActiveTags = Object.values(tagStates).some(state => state !== 'neutral');
+    if (!hasActiveTags) return rawDagData;
+    return filterDagByTags(rawDagData, tagStates);
+  }, [rawDagData, tagStates]);
 
   const { tree: data, crossEdges } = useMemo(() => {
     if (!dagData) return { tree: null as unknown as TreeNode, crossEdges: [] as CrossEdge[] };
@@ -198,6 +195,20 @@ export function TreeProvider({ children }: { children: ReactNode }) {
   );
   const setOrientation = useCallback((o: Orientation) => { setOrientationState(o); }, []);
 
+  const [labelPosition, setLabelPositionState] = usePersistedState<LabelPosition>(
+    STORAGE_KEYS.labelPosition,
+    'smart',
+    (v) => v,
+    (s) => {
+      if (s === 'auto') {
+        safeLocalStorageSet(STORAGE_KEYS.labelPosition, 'smart');
+        return 'smart';
+      }
+      return (s as LabelPosition) || 'smart';
+    }
+  );
+  const setLabelPosition = useCallback((lp: LabelPosition) => { setLabelPositionState(lp); }, []);
+
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [activeId, setActiveId] = useState<string>('');
   const [forceCenterOnActive, setForceCenterOnActive] = useState<boolean>(false);
@@ -207,21 +218,15 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     setResetViewTrigger(prev => prev + 1);
   }, []);
 
-  const updateSelectedTags = useCallback((tags: string[]) => {
-    setSelectedTags(tags);
-    safeLocalStorageSet(STORAGE_KEYS.selectedTags, JSON.stringify(tags));
-    resetView();
-  }, [resetView]);
-
-  const updateTagMatchMode = useCallback((mode: TagMatchMode) => {
-    setTagMatchModeState(mode);
-    safeLocalStorageSet(STORAGE_KEYS.tagMatchMode, mode);
+  const setTagStates = useCallback((states: TagStates) => {
+    setTagStatesState(states);
+    safeLocalStorageSet(STORAGE_KEYS.tagStates, JSON.stringify(states));
     resetView();
   }, [resetView]);
 
   const navigateToResult = useCallback((nodeId: string, forceCenter: boolean = true) => {
     if (!data) return;
-    const path = findNodePathIds(data, nodeId);
+    const path = dagData ? findAllDagAncestors(dagData, nodeId) : findNodePathIds(data, nodeId);
     if (path) {
       setExpanded(new Set(path));
       setActiveId(nodeId);
@@ -252,11 +257,20 @@ export function TreeProvider({ children }: { children: ReactNode }) {
   const toggleNode = useCallback((id: string) => {
     setExpanded((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+        if (dagData) {
+          const path = findAllDagAncestors(dagData, id);
+          if (path) {
+            path.forEach(pid => next.add(pid));
+          }
+        }
+      }
       return next;
     });
-  }, []);
+  }, [dagData]);
 
   const setExpandedToPath = useCallback((pathIds: string[]) => {
     setExpanded(new Set(pathIds));
@@ -305,6 +319,9 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     setForceCenterOnActive(true);
   }, []);
 
+  const totalNodeCount = rawDagData ? Object.keys(rawDagData.nodes).length : 0;
+  const filteredNodeCount = dagData ? Object.keys(dagData.nodes).length : 0;
+
   // value must be memoized before any early return to keep hook count stable
   const value = useMemo(() => ({
     data,
@@ -328,6 +345,8 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     setNodeShape,
     orientation,
     setOrientation,
+    labelPosition,
+    setLabelPosition,
     toggleNode,
     setExpandedToPath,
     collapseAll,
@@ -345,11 +364,11 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     activeTaxonomyId,
     setActiveTaxonomyId,
     availableTaxonomies,
-    selectedTags,
-    setSelectedTags: updateSelectedTags,
-    tagMatchMode,
-    setTagMatchMode: updateTagMatchMode,
+    tagStates,
+    setTagStates,
     availableTags,
+    totalNodeCount,
+    filteredNodeCount,
   }), [
     data,
     dagData,
@@ -372,6 +391,8 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     setNodeShape,
     orientation,
     setOrientation,
+    labelPosition,
+    setLabelPosition,
     toggleNode,
     setExpandedToPath,
     collapseAll,
@@ -389,11 +410,11 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     activeTaxonomyId,
     setActiveTaxonomyId,
     availableTaxonomies,
-    selectedTags,
-    updateSelectedTags,
-    tagMatchMode,
-    updateTagMatchMode,
+    tagStates,
+    setTagStates,
     availableTags,
+    totalNodeCount,
+    filteredNodeCount,
   ]);
 
   if (loading && !dagData) {

@@ -14,7 +14,8 @@
   },
   "dependencies": {
     "@floating-ui/react": "^0.27.19",
-    "d3": "^7.9.0",
+    "@xyflow/react": "^12.10.2",
+    "dagre": "^0.8.5",
     "hast-util-sanitize": "^5.0.2",
     "highlight.js": "^11.11.1",
     "i18next": "^26.0.3",
@@ -38,7 +39,7 @@
     "@tailwindcss/typography": "^0.5.19",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
-    "@types/d3": "^7.4.3",
+    "@types/dagre": "^0.7.54",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",

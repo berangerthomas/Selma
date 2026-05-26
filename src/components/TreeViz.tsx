@@ -1,351 +1,164 @@
-import React, { useEffect, useLayoutEffect, useMemo, useRef, useCallback, useDeferredValue } from 'react'
-import * as d3 from 'd3'
-import { useI18n } from '../i18n'
+import { useCallback, useRef, useEffect, MouseEvent } from 'react'
+import {
+  ReactFlow,
+  Controls,
+  useNodesState,
+  useEdgesState,
+  ReactFlowProvider,
+  useReactFlow
+} from '@xyflow/react'
+import '@xyflow/react/dist/style.css'
+
 import { useTree } from '../context/TreeContext'
-import type { TreeNode, PrunedNode } from '../types'
-import { FALLBACK_COLOR } from '../types'
-import { buildParentMap, getParents } from '../utils/dagUtils'
 import Sidebar from './Sidebar'
 import { useSidebar } from '../hooks/useSidebar'
-import { ANIMATION_MS, CENTER_MARGIN, computeBounds, computeTransform, useTreeZoom } from '../hooks/useTreeZoom'
-import { buildPrunedHierarchy } from '../utils/dagUtils'
-import TreeLinks from './tree/TreeLinks'
-import TreeNodesRenderer from './tree/TreeNodesRenderer'
+import TaxonomyNode from './tree/TaxonomyNode'
+import { useFlowGraph } from '../hooks/useFlowGraph'
 
-type Props = {
-  forwardedSvgRef?: React.RefObject<SVGSVGElement | null>
+const nodeTypes = {
+  taxonomyNode: TaxonomyNode
 }
 
-export default function TreeViz({ forwardedSvgRef }: Props) {
-  const defaultSvgRef = useRef<SVGSVGElement | null>(null)
-  const svgRef = forwardedSvgRef || defaultSvgRef
-  const innerGroupRef = useRef<SVGGElement | null>(null)
-  const { zoomRef, applyTransform } = useTreeZoom(svgRef, innerGroupRef)
+function TreeVizInner() {
   const {
-    data,
     dagData,
-    crossEdges,
     expanded,
     activeId,
-    forceCenterOnActive,
-    isFullyExpanded,
-    resetViewTrigger,
-    viewMode,
-    setActiveId,
-    clearForceCenter,
-    toggleNode,
-    requestForceCenter,
     searchQuery,
     nodeSize,
     hSpacing,
     vSpacing,
     nodeShape,
-    orientation
+    orientation,
+    labelPosition,
+    toggleNode,
+    setActiveId,
+    requestForceCenter,
+    isFullyExpanded,
+    resetViewTrigger,
+    clearForceCenter,
+    forceCenterOnActive
   } = useTree()
 
-  const parentMap = useMemo(() => {
-    if (!dagData) return new Map<string, string[]>();
-    return buildParentMap(dagData);
-  }, [dagData]);
+  const { open: sidebarOpen, setOpen: setSidebarOpen, width: sidebarWidth, setWidth: setSidebarWidth } = useSidebar(activeId)
+  const { fitView, setCenter, getViewport } = useReactFlow()
+  
+  // Custom hook wrapping `dagre`
+  const { nodes: initialNodes, edges: initialEdges } = useFlowGraph(
+    dagData,
+    expanded,
+    activeId,
+    searchQuery,
+    nodeSize,
+    nodeShape,
+    orientation,
+    labelPosition,
+    hSpacing,
+    vSpacing
+  )
 
-  const onToggleNode = useCallback((id: string, shouldSelect = true) => {
-    const willOpen = !expanded.has(id)
-    toggleNode(id);
-    if (shouldSelect) setActiveId(id);
-    if (willOpen || isFullyExpanded) requestForceCenter();
-  }, [expanded, toggleNode, setActiveId, isFullyExpanded, requestForceCenter]);
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
 
-  const { lang } = useI18n()
-  const { open: sidebarOpen, setOpen: setSidebarOpen, width: sidebarWidth, setWidth: setSidebarWidth } = useSidebar(activeId);
+  useEffect(() => {
+    setNodes(initialNodes)
+    setEdges(initialEdges)
+  }, [initialNodes, initialEdges, setNodes, setEdges])
 
-  const nodeClickGuard = useRef<'node' | null>(null)
+  const onNodeClick = useCallback(
+    (_event: MouseEvent, node: any) => {
+      const id = node.data.id
+      if (node.data.isCluster) {
+        // Expand the cluster's owner
+        toggleNode(id.replace('__cluster', ''))
+        setActiveId(id.replace('__cluster', ''))
+      } else {
+        const willOpen = !expanded.has(id)
+        toggleNode(id)
+        setActiveId(id)
+        if (willOpen || isFullyExpanded) requestForceCenter()
+      }
+    },
+    [expanded, toggleNode, setActiveId, isFullyExpanded, requestForceCenter]
+  )
 
-  const clearSelection = useCallback((_e?: React.MouseEvent) => {
-    // If a node was just clicked, ignore the clearSelection event
-    if (nodeClickGuard.current === 'node') {
-      nodeClickGuard.current = null
-      return
-    }
+  const onPaneClick = useCallback(() => {
     setSidebarOpen(false)
     setActiveId('')
   }, [setSidebarOpen, setActiveId])
 
-  const deferredVSpacing = useDeferredValue(vSpacing);
-  const deferredHSpacing = useDeferredValue(hSpacing);
-
-  // Build pruned tree and preserve node metadata (color)
-  const layoutRoot = useMemo(() => {
-    // Build pruned hierarchy first
-    const prunedRoot = buildPrunedHierarchy(data as TreeNode, expanded) as d3.HierarchyNode<PrunedNode>
-
-    // Swap nodeSize based on orientation:
-    // - horizontal: d3.x = vertical spacing, d3.y = horizontal spacing (root→right)
-    // - vertical:   d3.x = horizontal spacing, d3.y = vertical spacing   (root→down)
-    const sizeX = orientation === 'horizontal' ? deferredVSpacing : deferredHSpacing
-    const sizeY = orientation === 'horizontal' ? deferredHSpacing : deferredVSpacing
-
-    const treeLayout = d3.tree<PrunedNode>()
-      .nodeSize([sizeX, sizeY])
-      .separation((a, b) => a.parent === b.parent ? 1 : 1.4)
-
-    return treeLayout(prunedRoot)
-  }, [data, expanded, deferredVSpacing, deferredHSpacing, orientation])
-
-  const { positions, d3NodeMap } = useMemo(() => {
-    const positions = new Map<string, { x: number; y: number; depth: number }>()
-    const d3NodeMap = new Map<string, d3.HierarchyPointNode<PrunedNode>>()
-    layoutRoot.descendants().forEach((d) => {
-      positions.set(d.data.id, { x: d.x ?? 0, y: d.y ?? 0, depth: d.depth })
-      d3NodeMap.set(d.data.id, d as d3.HierarchyPointNode<PrunedNode>)
-    })
-    return { positions, d3NodeMap }
-  }, [layoutRoot])
-
-  const links = useMemo(() => {
-    // Use D3's native links() produced from the hierarchy to avoid manual construction.
-    // layoutRoot.links() returns objects with .source and .target nodes.
-    return layoutRoot.links() as unknown as Array<d3.HierarchyPointLink<PrunedNode>>
-  }, [layoutRoot])
-
-  const treeNodeMap = useMemo(() => {
-    const map = new Map<string, TreeNode>()
-    function walk(node: TreeNode) {
-      map.set(node.id, node)
-      node.children?.forEach(walk)
-    }
-    walk(data)
-    return map
-  }, [data])
-
-  const activePathAndSubtree = useMemo(() => {
-    const set = new Set<string>()
-    if (!activeId) return set
-    const node = d3NodeMap.get(activeId)
-    if (!node) return set
-
-    let current: d3.HierarchyPointNode<PrunedNode> | null = node
-    while (current) {
-      set.add(current.data.id)
-      current = current.parent
-    }
-
-    node.descendants().forEach((d) => set.add(d.data.id))
-    return set
-  }, [activeId, d3NodeMap])
-
-  // All DAG ancestors (all parent chains) of the active node — used to highlight secondary paths
-  const activeDagAncestors = useMemo(() => {
-    const set = new Set<string>()
-    if (!activeId || !dagData) return set
-    const dd = dagData
-    function dfsUp(id: string) {
-      if (set.has(id)) return
-      set.add(id)
-      const parents = getParents(dd, id, parentMap)
-      for (const p of parents) dfsUp(p)
-    }
-    dfsUp(activeId)
-    return set
-  }, [activeId, dagData, parentMap])
-
-  const isInViewport = useCallback((id: string, margin = CENTER_MARGIN) => {
-    const svgEl = svgRef.current
-    if (!svgEl) return false
-    const p = positions.get(id)
-    if (!p) return false
-    const t = d3.zoomTransform(svgEl)
-    // depth → screen X, orthogonal → screen Y
-    const screenX = (orientation === 'vertical' ? p.x : p.y) * t.k + t.x
-    const screenY = (orientation === 'vertical' ? p.y : p.x) * t.k + t.y
-    const { width, height } = svgEl.getBoundingClientRect()
-    const effectiveWidth = width - (sidebarOpen ? sidebarWidth : 0)
-    return screenX >= margin && screenX <= effectiveWidth - margin && screenY >= margin && screenY <= height - margin
-  }, [positions, sidebarOpen, sidebarWidth, svgRef, orientation])
-
-  const activeIdRef = useRef<string>(activeId)
-  useLayoutEffect(() => {
-    activeIdRef.current = activeId
-  }, [activeId])
-
-  // centerOn must be declared before the useEffect hooks that reference it,
-  // so that ESLint can resolve the dependency correctly at static analysis time.
-  const centerOn = useCallback((id: string, scale = 1) => {
-    const svgEl = svgRef.current
-    if (!svgEl || !zoomRef.current) return
-    const p = positions.get(id)
-    if (!p) return
-    const rect = svgEl.getBoundingClientRect()
-    const transform = computeTransform(p, null, rect, sidebarOpen ? sidebarWidth : 0, scale, { hSpacing, nodeSize }, orientation)
-    applyTransform(transform)
-  }, [positions, sidebarOpen, sidebarWidth, applyTransform, zoomRef, orientation])
-
+  // Center on activeId
   useEffect(() => {
-    try {
-      document.documentElement.style.setProperty('--anim-ms', `${ANIMATION_MS}ms`)
-    } catch (e) {
-      // ignore (server-side rendering or restricted environment)
-    }
-
-    const svgEl = svgRef.current
-    if (!svgEl) return
-
-    const handleResize = () => {
-      const currentActiveId = activeIdRef.current
-      if (currentActiveId && !isInViewport(currentActiveId)) {
-        const current = d3.zoomTransform(svgEl)
-        centerOn(currentActiveId, current.k || 1)
-      }
-    }
-
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [centerOn, isInViewport, svgRef])
-
-  useEffect(() => {
-    // recompute centering only when active changes or when forced
-    const svgEl = svgRef.current
-    if (!svgEl || !zoomRef.current) return
-
     if (!activeId) return
-
-    const p = positions.get(activeId)
-    if (!p) return
-
-    const current = d3.zoomTransform(svgEl)
-    const targetScale = Math.max(0.9, Math.min(1.6, current.k || 1))
-
-    centerOn(activeId, targetScale)
-    if (forceCenterOnActive) { clearForceCenter(); }
-    // Intentional omission of other dependencies (refs and stable functions)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeId, positions, sidebarOpen, sidebarWidth, forceCenterOnActive])
-
-  useEffect(() => {
-    // If sidebar state changes and we have an active node, ensure it remains centered
-    const svgEl = svgRef.current
-    if (svgEl && activeId && zoomRef.current) {
-      const current = d3.zoomTransform(svgEl)
-      centerOn(activeId, current.k || 1)
-    }
-    // Intentional omission: re-centering only on sidebar change
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sidebarOpen, sidebarWidth])
-
-  const fitView = useCallback((duration: number = ANIMATION_MS) => {
-    const svgEl = svgRef.current
-    if (!svgEl || !layoutRoot || !zoomRef.current) return
-
-    const bounds = computeBounds(
-      layoutRoot.descendants().map(n => n.data.id),
-      positions
-    )
-    if (!bounds) return
-    const { minX, maxX, minY, maxY } = bounds
-
-    const rootPos = positions.get(layoutRoot.data.id)
-    if (!rootPos) return
-
-    const extents = { minX, maxX, minY, maxY }
-    const rect = svgEl.getBoundingClientRect()
-    const transform = computeTransform(rootPos, extents, rect, sidebarOpen ? sidebarWidth : 0, undefined, { hSpacing, nodeSize }, orientation)
-
-    if (duration === 0) {
-      applyTransform(transform, true)
-    } else {
-      applyTransform(transform)
-    }
-  }, [layoutRoot, positions, sidebarOpen, sidebarWidth, applyTransform, zoomRef])
-
-  const lastResetRef = useRef<number>(0)
-  const initialFitDone = useRef<boolean>(false)
-
-  // Fit view on initial load and when viewMode changes
-  useEffect(() => {
-    if (!initialFitDone.current && layoutRoot && positions.size > 0 && zoomRef.current) {
-      initialFitDone.current = true
-      fitView(0)
-    }
-  }, [layoutRoot, positions, fitView, zoomRef])
-
-  useEffect(() => {
-    if (initialFitDone.current && layoutRoot && positions.size > 0) {
-      fitView(ANIMATION_MS)
-    }
-    // fitView intentionally omitted from deps: this effect must only fire on viewMode change.
-    // Including fitView (which depends on layoutRoot/positions) would trigger a full-tree
-    // fit on every navigation, displacing nodes from their centered position.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viewMode])
-
-  useEffect(() => {
-    if (resetViewTrigger > lastResetRef.current && layoutRoot && layoutRoot.descendants().length > 0) {
-      lastResetRef.current = resetViewTrigger
-      fitView()
-    }
-  }, [resetViewTrigger, layoutRoot, positions, sidebarOpen, sidebarWidth])
-
-  const colorFor = useCallback((node: d3.HierarchyPointNode<PrunedNode>) => {
-    const clusterFor = node.data.__cluster_for
-    if (clusterFor) {
-      const original = d3NodeMap.get(clusterFor)
-      if (original) {
-        if (original.data && original.data.color) return original.data.color
+    const activeNode = nodes.find(n => n.id === activeId)
+    if (activeNode) {
+      if (forceCenterOnActive) {
+        const currentZoom = getViewport().zoom
+        setCenter(activeNode.position.x + nodeSize, activeNode.position.y + nodeSize / 2, { zoom: currentZoom, duration: 500 })
+        clearForceCenter()
       }
-      // fallback: try searching the original data source
-      const src = treeNodeMap.get(clusterFor)
-      if (src?.color) return src.color
     }
-    let cur: d3.HierarchyPointNode<PrunedNode> | null = node
-    while (cur) {
-      if (cur.data.color) return cur.data.color
-      cur = (cur.parent as d3.HierarchyPointNode<PrunedNode>) || null
+  }, [activeId, nodes, forceCenterOnActive, setCenter, getViewport, clearForceCenter, nodeSize])
+
+  // Reset View Listener
+  const lastResetRef = useRef<number>(0)
+  useEffect(() => {
+    if (resetViewTrigger > lastResetRef.current) {
+      lastResetRef.current = resetViewTrigger
+      fitView({ duration: 500, padding: 0.2 })
     }
-    return FALLBACK_COLOR
-  }, [d3NodeMap, treeNodeMap]);
+  }, [resetViewTrigger, fitView])
 
-  const activeNode = d3NodeMap.get(activeId)
-
-  const nodeHalfWidth = nodeShape === 'rect' ? nodeSize * 0.55 : nodeSize;
+  // Fit View on initial mount / spacing change
+  const isFirstRender = useRef(true)
+  useEffect(() => {
+    if (nodes.length > 0) {
+      if (isFirstRender.current) {
+        window.setTimeout(() => fitView({ duration: 500, padding: 0.2 }), 50)
+        isFirstRender.current = false
+      }
+    }
+  }, [nodes.length, fitView])
 
   return (
-    <div
-      className="viz-container"
-      onClick={clearSelection}
-    >
-      <svg ref={svgRef} className="viz-svg">
-        <g ref={innerGroupRef}>
-          <TreeLinks
-            layoutRoot={layoutRoot}
-            links={links}
-            crossEdges={crossEdges}
-            d3NodeMap={d3NodeMap}
-            activeId={activeId}
-            activePathAndSubtree={activePathAndSubtree}
-            nodeShape={nodeShape}
-            nodeHalfWidth={nodeHalfWidth}
-            activeDagAncestors={activeDagAncestors}
-            viewMode={viewMode}
-            orientation={orientation}
-          />
-          <TreeNodesRenderer
-            layoutRoot={layoutRoot}
-            activeId={activeId}
-            activePathAndSubtree={activePathAndSubtree}
-            activeDagAncestors={activeDagAncestors}
-            viewMode={viewMode}
-            searchQuery={searchQuery}
-            onToggleNode={onToggleNode}
-            setActiveId={setActiveId}
-            colorFor={colorFor}
-            nodeClickGuardRef={nodeClickGuard}
-            nodeRadius={nodeSize}
-            nodeShape={nodeShape}
-            orientation={orientation}
-          />
-        </g>
-      </svg>
+    <div className="viz-container relative w-full h-full flex overflow-hidden">
+      <div className="flex-1 h-full">
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          nodeTypes={nodeTypes}
+          onNodeClick={onNodeClick}
+          onPaneClick={onPaneClick}
+          nodesDraggable={false}
+          elementsSelectable={true}
+          panOnScroll={false}
+          fitViewOptions={{ padding: 0.1 }}
+          minZoom={0.1}
+          maxZoom={3}
+          proOptions={{ hideAttribution: true }}
+          colorMode="system"
+        >
+          <Controls position="bottom-right" style={{ bottom: 100, right: 18 }} className="react-flow__controls override-controls bg-white dark:bg-neutral-800 shadow-md border border-neutral-200 dark:border-neutral-700" fitViewOptions={{ duration: 350, padding: 0.1 }} />
+        </ReactFlow>
+      </div>
 
-      <Sidebar open={sidebarOpen} onClose={clearSelection} node={activeNode?.data} initialWidth={sidebarWidth} onWidthChange={(w) => setSidebarWidth(w)} />
+      <Sidebar 
+        open={sidebarOpen} 
+        onClose={onPaneClick}
+        node={dagData?.nodes[activeId]} 
+        initialWidth={sidebarWidth} 
+        onWidthChange={(w) => setSidebarWidth(w)} 
+      />
     </div>
+  )
+}
+
+export default function TreeViz() {
+  return (
+    <ReactFlowProvider>
+      <TreeVizInner />
+    </ReactFlowProvider>
   )
 }
