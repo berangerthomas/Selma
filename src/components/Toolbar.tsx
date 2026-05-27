@@ -415,7 +415,7 @@ export default function Toolbar({
               </div>
 
               <LayoutSlider label={t('node_size', {defaultValue: 'Node'})} value={nodeSize} min={10} max={50} step={1} onChange={setNodeSize} />
-              <LayoutSlider label={t('h_spacing', {defaultValue: 'H. space'})} value={hSpacing} min={80} max={400} step={10} onChange={setHSpacing} />
+              <LayoutSlider label={t('h_spacing', {defaultValue: 'H. space'})} value={hSpacing} min={10} max={400} step={10} onChange={setHSpacing} />
               <LayoutSlider label={t('v_spacing', {defaultValue: 'V. space'})} value={vSpacing} min={10} max={200} step={2} onChange={setVSpacing} />
               <div className="toolbar-row flex flex-wrap gap-1 justify-start pt-1">
                 <ToolbarIconButton
