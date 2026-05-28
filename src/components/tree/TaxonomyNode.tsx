@@ -1,6 +1,8 @@
+import React from 'react';
 import { Handle, Position } from '@xyflow/react';
 import { useI18n } from '../../i18n';
 import { HighlightMatch } from '../../utils/highlight';
+import { getNodeDimensions } from '../../utils/nodeLayout';
 import type { Attachment, Orientation } from '../../types';
 
 export type TaxonomyNodeData = {
@@ -26,7 +28,36 @@ type Props = {
   data: TaxonomyNodeData;
 };
 
-export default function TaxonomyNode({ data }: Props) {
+function getLabelStyle(
+  labelPosition: TaxonomyNodeData['labelPosition'],
+  orientation: Orientation
+): React.CSSProperties {
+  const base: React.CSSProperties = {
+    position: 'absolute',
+    whiteSpace: 'nowrap',
+    fontSize: 14,
+    textShadow: '0 0 4px var(--panel-bg), 0 0 6px var(--panel-bg)',
+    color: 'var(--text-main)',
+    fontWeight: 500,
+    pointerEvents: 'none',
+  };
+
+  const effectivePosition =
+    labelPosition === 'smart'
+      ? orientation === 'horizontal' ? 'top' : 'bottom'
+      : labelPosition;
+
+  const positions: Record<string, React.CSSProperties> = {
+    top:    { bottom: '100%', marginBottom: 8, left: '50%', transform: 'translateX(-50%)' },
+    bottom: { top: '100%', marginTop: 8, left: '50%', transform: 'translateX(-50%)' },
+    right:  { left: '100%', marginLeft: 10, top: '50%', transform: 'translateY(-50%)' },
+    left:   { right: '100%', marginRight: 10, top: '50%', transform: 'translateY(-50%)' },
+  };
+
+  return { ...base, ...(positions[effectivePosition] ?? positions.top) };
+}
+
+const TaxonomyNode = React.memo(function TaxonomyNode({ data }: Props) {
   const { t } = useI18n();
   const { nodeSize, nodeShape, orientation, labelPosition, color, isCluster, clusterCount } = data;
 
@@ -35,28 +66,14 @@ export default function TaxonomyNode({ data }: Props) {
   const nodeName = isCluster ? '' : t(`nodes.${data.id}.name`, { defaultValue: data.name || '' });
 
   const radius = nodeSize; // scale equivalent
-  const width = nodeShape === 'circle' ? radius * 2 : radius * 2.0;
-  const height = nodeShape === 'circle' ? radius * 2 : radius * 1.1;
+  const { width, height } = getNodeDimensions(nodeSize, nodeShape);
 
   const shapeClass = nodeShape === 'circle' ? 'rounded-full' : 'rounded-md';
 
   const sourcePosition = orientation === 'vertical' ? Position.Bottom : Position.Right;
   const targetPosition = orientation === 'vertical' ? Position.Top : Position.Left;
 
-  let labelStyle: React.CSSProperties = { position: 'absolute', whiteSpace: 'nowrap', fontSize: 14, textShadow: '0 0 4px var(--panel-bg), 0 0 6px var(--panel-bg)', color: 'var(--text-main)', fontWeight: 500, pointerEvents: 'none' };
-  
-  if (labelPosition === 'top' || (labelPosition === 'smart' && orientation === 'horizontal')) {
-    labelStyle = { ...labelStyle, bottom: '100%', marginBottom: 8, left: '50%', transform: 'translateX(-50%)' };
-  } else if (labelPosition === 'bottom' || (labelPosition === 'smart' && orientation === 'vertical')) {
-    labelStyle = { ...labelStyle, top: '100%', marginTop: 8, left: '50%', transform: 'translateX(-50%)' };
-  } else if (labelPosition === 'right') {
-    labelStyle = { ...labelStyle, left: '100%', marginLeft: 10, top: '50%', transform: 'translateY(-50%)' };
-  } else if (labelPosition === 'left') {
-    labelStyle = { ...labelStyle, right: '100%', marginRight: 10, top: '50%', transform: 'translateY(-50%)' };
-  } else {
-    // fallback smart just in case
-    labelStyle = { ...labelStyle, bottom: '100%', marginBottom: 8, left: '50%', transform: 'translateX(-50%)' };
-  }
+  const labelStyle = getLabelStyle(labelPosition, orientation);
 
   return (
     <div
@@ -157,4 +174,6 @@ export default function TaxonomyNode({ data }: Props) {
       />
     </div>
   );
-}
+});
+
+export default TaxonomyNode;

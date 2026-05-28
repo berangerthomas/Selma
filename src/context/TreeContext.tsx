@@ -1,11 +1,13 @@
 import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect, useMemo } from 'react';
-import type { TreeNode, ViewMode, NodeShape, Orientation, LabelPosition, DagData, CrossEdge, TaxonomyDescription, TagStates } from '../types';
+import type { TreeNode, ViewMode, DagData, CrossEdge, TaxonomyDescription, TagStates } from '../types';
+import type { NodeShape, Orientation, LabelPosition } from '../hooks/useVisualizationSettings';
 import { findNodePathIds } from '../utils/treeUtils';
 import { useTaxonomyData } from '../hooks/useTaxonomyData';
 import { useI18n } from '../i18n';
 import { buildSpanningTree, getAllDagNodeIds, hasMultipleParents, getParents, getAllTags, findAllDagAncestors, filterDagByTags } from '../utils/dagUtils';
 import { useUrlSync } from '../hooks/useUrlSync';
 import { useSearchEngine } from '../hooks/useSearchEngine';
+import { useVisualizationSettings } from '../hooks/useVisualizationSettings';
 import { safeLocalStorageGet, safeLocalStorageSet, STORAGE_KEYS } from '../utils/storage';
 import usePersistedState from '../hooks/usePersistedState';
 
@@ -155,59 +157,14 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     setViewModeState(mode);
   }, []);
 
-  const [nodeSize, setNodeSizeState] = usePersistedState<number>(
-    STORAGE_KEYS.nodeSize,
-    26,
-    (v) => String(v),
-    (s) => Number(s)
-  );
-  const setNodeSize = useCallback((n: number) => { setNodeSizeState(n); }, []);
-
-  const [hSpacing, setHSpacingState] = usePersistedState<number>(
-    STORAGE_KEYS.hSpacing,
-    220,
-    (v) => String(v),
-    (s) => Number(s)
-  );
-  const setHSpacing = useCallback((n: number) => { setHSpacingState(n); }, []);
-
-  const [vSpacing, setVSpacingState] = usePersistedState<number>(
-    STORAGE_KEYS.vSpacing,
-    80,
-    (v) => String(v),
-    (s) => Number(s)
-  );
-  const setVSpacing = useCallback((n: number) => { setVSpacingState(n); }, []);
-
-  const [nodeShape, setNodeShapeState] = usePersistedState<NodeShape>(
-    STORAGE_KEYS.nodeShape,
-    'circle',
-    (v) => v,
-    (s) => (s as NodeShape) || 'circle'
-  );
-  const setNodeShape = useCallback((s: NodeShape) => { setNodeShapeState(s); }, []);
-
-  const [orientation, setOrientationState] = usePersistedState<Orientation>(
-    STORAGE_KEYS.orientation,
-    'horizontal',
-    (v) => v,
-    (s) => (s as Orientation) || 'horizontal'
-  );
-  const setOrientation = useCallback((o: Orientation) => { setOrientationState(o); }, []);
-
-  const [labelPosition, setLabelPositionState] = usePersistedState<LabelPosition>(
-    STORAGE_KEYS.labelPosition,
-    'smart',
-    (v) => v,
-    (s) => {
-      if (s === 'auto') {
-        safeLocalStorageSet(STORAGE_KEYS.labelPosition, 'smart');
-        return 'smart';
-      }
-      return (s as LabelPosition) || 'smart';
-    }
-  );
-  const setLabelPosition = useCallback((lp: LabelPosition) => { setLabelPositionState(lp); }, []);
+  const {
+    nodeSize, setNodeSize,
+    hSpacing, setHSpacing,
+    vSpacing, setVSpacing,
+    nodeShape, setNodeShape,
+    orientation, setOrientation,
+    labelPosition, setLabelPosition,
+  } = useVisualizationSettings();
 
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [activeId, setActiveId] = useState<string>('');

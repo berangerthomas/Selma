@@ -1,11 +1,5 @@
 export const FALLBACK_COLOR = '#6b7280';
 
-export interface PrunedNode extends Omit<TreeNode, 'children'> {
-  __cluster_for?: string;
-  __cluster_count?: number;
-  children?: PrunedNode[];
-}
-
 export type ViewMode = 'tree' | 'list' | 'columns';
 export type NodeShape = 'circle' | 'rect';
 export type Orientation = 'horizontal' | 'vertical';

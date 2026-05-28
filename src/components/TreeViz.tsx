@@ -5,14 +5,15 @@ import {
   useNodesState,
   useEdgesState,
   ReactFlowProvider,
-  useReactFlow
+  useReactFlow,
+  type Node as FlowNode
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 
 import { useTree } from '../context/TreeContext'
 import Sidebar from './Sidebar'
 import { useSidebar } from '../hooks/useSidebar'
-import TaxonomyNode from './tree/TaxonomyNode'
+import TaxonomyNode, { type TaxonomyNodeData } from './tree/TaxonomyNode'
 import { useFlowGraph } from '../hooks/useFlowGraph'
 
 const nodeTypes = {
@@ -43,7 +44,7 @@ function TreeVizInner() {
   const { open: sidebarOpen, setOpen: setSidebarOpen, width: sidebarWidth, setWidth: setSidebarWidth } = useSidebar(activeId)
   const { fitView, setCenter, getViewport } = useReactFlow()
   
-  // Custom hook wrapping `dagre`
+  // Custom hook wrapping ELK mrtree layout
   const { nodes: initialNodes, edges: initialEdges } = useFlowGraph(
     dagData,
     expanded,
@@ -66,12 +67,12 @@ function TreeVizInner() {
   }, [initialNodes, initialEdges, setNodes, setEdges])
 
   const onNodeClick = useCallback(
-    (_event: MouseEvent, node: any) => {
+    (_event: MouseEvent, node: FlowNode<TaxonomyNodeData>) => {
       const id = node.data.id
       if (node.data.isCluster) {
-        // Expand the cluster's owner
-        toggleNode(id.replace('__cluster', ''))
-        setActiveId(id.replace('__cluster', ''))
+        const parentId = id.replace('__cluster', '')
+        toggleNode(parentId)
+        setActiveId(parentId)
       } else {
         const willOpen = !expanded.has(id)
         toggleNode(id)
@@ -135,8 +136,8 @@ function TreeVizInner() {
           elementsSelectable={true}
           panOnScroll={false}
           fitViewOptions={{ padding: 0.1 }}
-          minZoom={0.1}
-          maxZoom={3}
+          minZoom={0.2}
+          maxZoom={2}
           proOptions={{ hideAttribution: true }}
           colorMode="system"
         >
