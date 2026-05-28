@@ -27,7 +27,7 @@ export function useSearchEngine(
   }, [dagData]);
 
   const handleSearch = useCallback((query: string, mode: 'simple' | 'deep' = 'simple') => {
-    if (!data) return;
+    // `data` (TreeNode) is only required for deep searches. Simple searches use `dagData`.
     const trimmed = query.trim();
     if (!trimmed) {
       setSearchQuery('');
@@ -45,6 +45,17 @@ export function useSearchEngine(
     }
 
     // deep search: mark active type then perform runtime fetches via useDeepSearch hook
+    if (!data) {
+      // Deep search needs the resolved tree structure; if it's not available,
+      // fallback to an empty result set and log in dev.
+      if (import.meta.env.DEV) console.debug('Deep search requested but TreeNode data is not available');
+      setSearchResults([]);
+      setCurrentResultIndex(-1);
+      prevSearchStateRef.current = { query: trimmed, type: 'deep' };
+      setActiveSearchType('deep');
+      return;
+    }
+
     setActiveSearchType('deep');
     setSearchQuery(trimmed);
     performDeepSearch(trimmed).then((results: string[]) => {
@@ -63,7 +74,7 @@ export function useSearchEngine(
       setCurrentResultIndex(0);
       navigateToResult(results[0], true);
     });
-  }, [data, performDeepSearch, navigateToResult]);
+  }, [performDeepSearch, navigateToResult]);
 
   // Effect: run simple search when deferred query changes
   useEffect(() => {

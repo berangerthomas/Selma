@@ -28,6 +28,14 @@ type Props = {
   data: TaxonomyNodeData;
 };
 
+function NodeLabel({ text, query, style }: { text: string; query: string; style: React.CSSProperties }) {
+  return (
+    <div style={style}>
+      <HighlightMatch text={text} query={query} />
+    </div>
+  );
+}
+
 function getLabelStyle(
   labelPosition: TaxonomyNodeData['labelPosition'],
   orientation: Orientation
@@ -74,10 +82,15 @@ const TaxonomyNode = React.memo(function TaxonomyNode({ data }: Props) {
   const targetPosition = orientation === 'vertical' ? Position.Top : Position.Left;
 
   const labelStyle = getLabelStyle(labelPosition, orientation);
+  const ariaLabel = nodeName || data.name || `Node ${data.id}`;
 
   return (
     <div
-      className={`relative flex items-center justify-center border-2 border-white shadow-sm ${shapeClass} ${isCluster ? 'cursor-pointer' : 'cursor-pointer'}`}
+      className={`relative flex items-center justify-center border-2 border-white shadow-sm ${shapeClass} cursor-pointer`}
+      role="button"
+      tabIndex={0}
+      aria-label={ariaLabel}
+      aria-expanded={data.hasChildren ? 'false' : undefined}
       style={{
         width,
         height,
@@ -122,14 +135,14 @@ const TaxonomyNode = React.memo(function TaxonomyNode({ data }: Props) {
 
       {/* Label rendering */}
       {!isCluster && (
-        <div style={labelStyle}>
-          <HighlightMatch text={nodeName} query={data.searchQuery} />
-        </div>
+        <NodeLabel text={nodeName} query={data.searchQuery} style={labelStyle} />
       )}
 
       {/* Cluster text (if cluster) */}
       {isCluster && (
-        <div
+        <NodeLabel
+          text={t('', { defaultValue: data.name || '' })}
+          query={data.searchQuery}
           style={{
             position: 'absolute',
             ...(nodeShape === 'rect' ? { left: '100%', marginLeft: 8 } : { left: '100%', marginLeft: 6 }),
@@ -142,9 +155,7 @@ const TaxonomyNode = React.memo(function TaxonomyNode({ data }: Props) {
             fontWeight: 500,
             pointerEvents: 'none',
           }}
-        >
-          <HighlightMatch text={t('', { defaultValue: data.name || '' })} query={data.searchQuery} />
-        </div>
+        />
       )}
 
       {/* Attachments indicator */}

@@ -189,6 +189,19 @@ export function filterDagByTags(data: DagData, tagStates: TagStates): DagData {
 
   dfs(data.root);
 
+  // Warn in development if the DAG contains cycles — this can cause
+  // the temporary `memo.set(id, false)` trick to silently drop nodes.
+  if (import.meta.env.DEV) {
+    try {
+      if (hasCycle(data)) {
+        // eslint-disable-next-line no-console
+        console.warn('filterDagByTags: input DagData contains cycles — filter results may be incomplete');
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+
   keep.add(data.root);
 
   const newNodes: Record<string, DagNode> = {};
@@ -204,7 +217,12 @@ export function filterDagByTags(data: DagData, tagStates: TagStates): DagData {
     root: data.root,
     nodes: newNodes
   };
-}export function findAllDagAncestors(dagData: DagData, targetId: string): string[] {
+}
+
+/**
+ * Return the set of ancestor ids (including the target) by climbing parents.
+ */
+export function findAllDagAncestors(dagData: DagData, targetId: string): string[] {
   const result = new Set<string>();
   const visited = new Set<string>();
   function climb(id: string) {

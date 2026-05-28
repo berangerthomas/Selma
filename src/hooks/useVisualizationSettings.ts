@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import usePersistedState from './usePersistedState';
 import { STORAGE_KEYS } from '../utils/storage';
 import type { NodeShape, Orientation, LabelPosition } from '../types';
@@ -5,59 +6,59 @@ import type { NodeShape, Orientation, LabelPosition } from '../types';
 export type { NodeShape, Orientation, LabelPosition };
 
 export function useVisualizationSettings() {
-  const [nodeSize, setNodeSizeState] = usePersistedState<number>(
+  const serializeNumber = useCallback((v: number) => String(v), []);
+  const deserializeNumber = useCallback((s: string) => Number(s), []);
+
+  const [nodeSize, setNodeSize] = usePersistedState<number>(
     STORAGE_KEYS.nodeSize,
     26,
-    (v) => String(v),
-    (s) => Number(s)
+    serializeNumber,
+    deserializeNumber
   );
-  const setNodeSize = (n: number) => setNodeSizeState(n);
 
-  const [hSpacing, setHSpacingState] = usePersistedState<number>(
+  const [hSpacing, setHSpacing] = usePersistedState<number>(
     STORAGE_KEYS.hSpacing,
     220,
-    (v) => String(v),
-    (s) => Number(s)
+    serializeNumber,
+    deserializeNumber
   );
-  const setHSpacing = (n: number) => setHSpacingState(n);
 
-  const [vSpacing, setVSpacingState] = usePersistedState<number>(
+  const [vSpacing, setVSpacing] = usePersistedState<number>(
     STORAGE_KEYS.vSpacing,
     80,
-    (v) => String(v),
-    (s) => Number(s)
+    serializeNumber,
+    deserializeNumber
   );
-  const setVSpacing = (n: number) => setVSpacingState(n);
 
-  const [nodeShape, setNodeShapeState] = usePersistedState<NodeShape>(
+  const serializeIdentity = useCallback(<T,>(v: T) => v as unknown as string, []);
+  const deserializeNodeShape = useCallback((s: string) => (s as NodeShape) || 'circle', []);
+
+  const [nodeShape, setNodeShape] = usePersistedState<NodeShape>(
     STORAGE_KEYS.nodeShape,
     'circle',
-    (v) => v,
-    (s) => (s as NodeShape) || 'circle'
+    serializeIdentity,
+    deserializeNodeShape
   );
-  const setNodeShape = (s: NodeShape) => setNodeShapeState(s);
 
-  const [orientation, setOrientationState] = usePersistedState<Orientation>(
+  const deserializeOrientation = useCallback((s: string) => (s as Orientation) || 'horizontal', []);
+  const [orientation, setOrientation] = usePersistedState<Orientation>(
     STORAGE_KEYS.orientation,
     'horizontal',
-    (v) => v,
-    (s) => (s as Orientation) || 'horizontal'
+    serializeIdentity,
+    deserializeOrientation
   );
-  const setOrientation = (o: Orientation) => setOrientationState(o);
 
-  const [labelPosition, setLabelPositionState] = usePersistedState<LabelPosition>(
+  const deserializeLabelPosition = useCallback((s: string) => {
+    if (s === 'auto') return 'smart';
+    return (s as LabelPosition) || 'smart';
+  }, []);
+
+  const [labelPosition, setLabelPosition] = usePersistedState<LabelPosition>(
     STORAGE_KEYS.labelPosition,
     'smart',
-    (v) => v,
-    (s) => {
-      if (s === 'auto') {
-        // Migration: 'auto' was renamed to 'smart'
-        return 'smart';
-      }
-      return (s as LabelPosition) || 'smart';
-    }
+    serializeIdentity,
+    deserializeLabelPosition
   );
-  const setLabelPosition = (lp: LabelPosition) => setLabelPositionState(lp);
 
   return {
     nodeSize,

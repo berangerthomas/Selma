@@ -1,15 +1,16 @@
 import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect, useMemo } from 'react';
-import type { TreeNode, ViewMode, DagData, CrossEdge, TaxonomyDescription, TagStates } from '../types';
-import type { NodeShape, Orientation, LabelPosition } from '../hooks/useVisualizationSettings';
+import type { TreeNode, ViewMode, DagData, CrossEdge, TaxonomyDescription, TagStates, NodeShape, Orientation, LabelPosition } from '../types';
 import { findNodePathIds } from '../utils/treeUtils';
 import { useTaxonomyData } from '../hooks/useTaxonomyData';
 import { useI18n } from '../i18n';
-import { buildSpanningTree, getAllDagNodeIds, hasMultipleParents, getParents, getAllTags, findAllDagAncestors, filterDagByTags } from '../utils/dagUtils';
+import { buildSpanningTree, getAllDagNodeIds, getAllTags, findAllDagAncestors, filterDagByTags } from '../utils/dagUtils';
 import { useUrlSync } from '../hooks/useUrlSync';
 import { useSearchEngine } from '../hooks/useSearchEngine';
 import { useVisualizationSettings } from '../hooks/useVisualizationSettings';
-import { safeLocalStorageGet, safeLocalStorageSet, STORAGE_KEYS } from '../utils/storage';
+import { safeLocalStorageSet, STORAGE_KEYS } from '../utils/storage';
 import usePersistedState from '../hooks/usePersistedState';
+import { useTaxonomyLoader } from '../hooks/useTaxonomyLoader';
+import { useExpansionState } from '../hooks/useExpansionState';
 
 interface TreeContextType {
   data: TreeNode;
@@ -65,36 +66,15 @@ interface TreeContextType {
 const TreeContext = createContext<TreeContextType | undefined>(undefined);
 
 const centeredFullscreenStyle: React.CSSProperties = {
-  display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', fontFamily: 'sans-serif'
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  height: '100vh',
+  fontFamily: 'sans-serif',
 };
 
 export function TreeProvider({ children }: { children: ReactNode }) {
-  const [availableTaxonomies, setAvailableTaxonomies] = useState<TaxonomyDescription[]>([]);
-  const [activeTaxonomyId, setActiveTaxonomyId] = useState<string>('');
-
-  useEffect(() => {
-    const controller = new AbortController();
-    fetch('/data/taxonomies.json', { signal: controller.signal })
-      .then(res => res.json())
-      .then((data: TaxonomyDescription[]) => {
-        setAvailableTaxonomies(data);
-        if (data.length > 0 && !activeTaxonomyId) {
-          const p = new URLSearchParams(window.location.search);
-          const urlTaxo = p.get('taxonomy');
-          const savedTaxo = urlTaxo || safeLocalStorageGet(STORAGE_KEYS.activeTaxonomyId);
-          
-          if (savedTaxo && data.find(t => t.id === savedTaxo)) {
-            setActiveTaxonomyId(savedTaxo);
-          } else {
-            setActiveTaxonomyId(data[0].id);
-          }
-        }
-      })
-      .catch(err => {
-        if (err.name !== 'AbortError') console.error('Failed to load taxonomies registry:', err);
-      });
-    return () => controller.abort();
-  }, []);
+  const { availableTaxonomies, activeTaxonomyId, setActiveTaxonomyId } = useTaxonomyLoader();
 
   const { data: rawDagData, loading, error } = useTaxonomyData(activeTaxonomyId);
   const { t, lang } = useI18n();
@@ -155,7 +135,7 @@ export function TreeProvider({ children }: { children: ReactNode }) {
 
   const setViewMode = useCallback((mode: ViewMode) => {
     setViewModeState(mode);
-  }, []);
+  }, [setViewModeState]);
 
   const {
     nodeSize, setNodeSize,
@@ -165,8 +145,6 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     orientation, setOrientation,
     labelPosition, setLabelPosition,
   } = useVisualizationSettings();
-
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [activeId, setActiveId] = useState<string>('');
   const [forceCenterOnActive, setForceCenterOnActive] = useState<boolean>(false);
   const [resetViewTrigger, setResetViewTrigger] = useState<number>(0);
@@ -175,11 +153,20 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     setResetViewTrigger(prev => prev + 1);
   }, []);
 
+  const {
+    expanded,
+    setExpanded,
+    toggleNode,
+    setExpandedToPath,
+    collapseAll,
+    expandAll,
+  } = useExpansionState(dagData, data, activeId, setActiveId, resetView);
+
   const setTagStates = useCallback((states: TagStates) => {
     setTagStatesState(states);
     safeLocalStorageSet(STORAGE_KEYS.tagStates, JSON.stringify(states));
     resetView();
-  }, [resetView]);
+  }, [resetView, setTagStatesState]);
 
   const navigateToResult = useCallback((nodeId: string, forceCenter: boolean = true) => {
     if (!data) return;
@@ -189,7 +176,7 @@ export function TreeProvider({ children }: { children: ReactNode }) {
       setActiveId(nodeId);
       if (forceCenter) setForceCenterOnActive(true);
     }
-  }, [data]);
+  }, [data, dagData, setExpanded]);
 
   // Hook 1: URL synchronization
   useUrlSync(activeId, activeTaxonomyId, data, setExpanded, setActiveId, navigateToResult);
@@ -210,63 +197,6 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     const allIds = getAllDagNodeIds(dagData);
     return allIds.every((id) => expanded.has(id));
   }, [dagData, expanded]);
-
-  const toggleNode = useCallback((id: string) => {
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-        if (dagData) {
-          const path = findAllDagAncestors(dagData, id);
-          if (path) {
-            path.forEach(pid => next.add(pid));
-          }
-        }
-      }
-      return next;
-    });
-  }, [dagData]);
-
-  const setExpandedToPath = useCallback((pathIds: string[]) => {
-    setExpanded(new Set(pathIds));
-    setActiveId(pathIds[pathIds.length - 1]);
-  }, []);
-
-  const collapseAll = useCallback(() => {
-    if (!data) return;
-    let pathSet: Set<string>;
-    if (dagData && activeId && hasMultipleParents(dagData, activeId)) {
-      pathSet = new Set<string>();
-      const parents = getParents(dagData, activeId);
-      for (const p of parents) {
-        const ppath = findNodePathIds(data, p) ?? [];
-        ppath.forEach(id => pathSet.add(id));
-      }
-      pathSet.add(activeId);
-    } else {
-      const path = findNodePathIds(data, activeId || data.id) ?? [data.id];
-      pathSet = new Set(path);
-    }
-
-    const hasNodesOutsidePath = Array.from(expanded).some(id => !pathSet.has(id));
-
-    if (hasNodesOutsidePath) {
-      setExpanded(pathSet);
-    } else {
-      setExpanded(new Set([data.id]));
-      setActiveId(data.id);
-    }
-
-    resetView();
-  }, [data, activeId, expanded, resetView, dagData]);
-
-  const expandAll = useCallback(() => {
-    if (!dagData) return;
-    setExpanded(new Set(getAllDagNodeIds(dagData)));
-    resetView();
-  }, [dagData, resetView]);
 
   const clearForceCenter = useCallback(() => {
     setForceCenterOnActive(false);

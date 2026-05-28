@@ -9,7 +9,6 @@ import Footer from './components/Footer'
 import { useTree } from './context/TreeContext'
 
 export default function App() {
-  const svgRef = useRef<SVGSVGElement>(null)
   const htmlRef = useRef<HTMLDivElement>(null)
   const { t } = useI18n()
 
@@ -43,7 +42,6 @@ export default function App() {
         onResetView={resetView}
         currentResultIndex={currentResultIndex}
         totalResults={searchResults.length}
-        svgRef={svgRef}
         htmlRef={htmlRef}
       />
       <Suspense fallback={<div className="viz-loading">{t('loading', { defaultValue: 'Loading...' })}</div>}>

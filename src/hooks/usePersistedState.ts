@@ -1,8 +1,9 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useRef } from 'react';
 import { safeLocalStorageGet, safeLocalStorageSet } from '../utils/storage';
+import type { StorageKey } from '../utils/storage';
 
 export default function usePersistedState<T>(
-  storageKey: string,
+  storageKey: StorageKey,
   defaultValue: T,
   serialize: (v: T) => string = (v) => String(v),
   deserialize: (s: string) => T = (s) => (s as unknown as T)
@@ -16,14 +17,19 @@ export default function usePersistedState<T>(
     }
   });
 
+  // Stabilize serializer/deserializer references so that callers may pass
+  // inline functions without forcing setPersisted to change on every render.
+  const serializeRef = useRef(serialize);
+  serializeRef.current = serialize;
+
   const setPersisted = useCallback((v: T) => {
     setState(v);
     try {
-      safeLocalStorageSet(storageKey, serialize(v));
+      safeLocalStorageSet(storageKey, serializeRef.current(v));
     } catch {
       // ignore storage errors
     }
-  }, [storageKey, serialize]);
+  }, [storageKey]);
 
   return [state, setPersisted];
 }
