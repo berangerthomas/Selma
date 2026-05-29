@@ -30,13 +30,14 @@ export function useVisualizationSettings() {
     deserializeNumber
   );
 
-  const serializeIdentity = useCallback(<T,>(v: T) => v as unknown as string, []);
+  const serializeString = useCallback((v: string) => v, []);
+
   const deserializeNodeShape = useCallback((s: string) => (s as NodeShape) || 'circle', []);
 
   const [nodeShape, setNodeShape] = usePersistedState<NodeShape>(
     STORAGE_KEYS.nodeShape,
     'circle',
-    serializeIdentity,
+    serializeString,
     deserializeNodeShape
   );
 
@@ -44,7 +45,7 @@ export function useVisualizationSettings() {
   const [orientation, setOrientation] = usePersistedState<Orientation>(
     STORAGE_KEYS.orientation,
     'horizontal',
-    serializeIdentity,
+    serializeString,
     deserializeOrientation
   );
 
@@ -56,7 +57,7 @@ export function useVisualizationSettings() {
   const [labelPosition, setLabelPosition] = usePersistedState<LabelPosition>(
     STORAGE_KEYS.labelPosition,
     'smart',
-    serializeIdentity,
+    serializeString,
     deserializeLabelPosition
   );
 

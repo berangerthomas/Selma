@@ -5,6 +5,11 @@ import { useDeepSearch } from './useDeepSearch';
 import { clearMarkdownCache } from '../utils/fetchMarkdown';
 import { type TranslateFn } from '../utils/searchRegex';
 
+/**
+ * @param dagData - Current DAG data (used for simple search)
+ * @param data    - Spanning tree derived from the DAG (passed to useDeepSearch for
+ *                  searching within node Markdown content)
+ */
 export function useSearchEngine(
   dagData: DagData | null,
   data: TreeNode | null,

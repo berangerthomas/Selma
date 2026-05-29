@@ -14,6 +14,7 @@ export type TaxonomyNodeData = {
   iconFont?: string;
   attachments?: Attachment[];
   hasChildren: boolean;
+  isExpanded?: boolean;
   searchQuery: string;
   nodeSize: number;
   nodeShape: 'circle' | 'rect';
@@ -90,7 +91,7 @@ const TaxonomyNode = React.memo(function TaxonomyNode({ data }: Props) {
       role="button"
       tabIndex={0}
       aria-label={ariaLabel}
-      aria-expanded={data.hasChildren ? 'false' : undefined}
+      aria-expanded={data.hasChildren ? (data.isExpanded ? 'true' : 'false') : undefined}
       style={{
         width,
         height,

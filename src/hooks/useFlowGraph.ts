@@ -122,6 +122,8 @@ function buildFlowElements(params: {
   nodeHeight: number;
   hSpacing: number;
   vSpacing: number;
+  horizontalScale: number;
+  verticalScale: number;
   elkEdges: ElkExtendedEdge[];
   elkNodePos: Map<string, { x: number; y: number }>;
   getColor: (id: string) => string;
@@ -140,6 +142,8 @@ function buildFlowElements(params: {
     nodeHeight,
     hSpacing,
     vSpacing,
+    horizontalScale,
+    verticalScale,
     elkEdges,
     elkNodePos,
     getColor,
@@ -176,6 +180,7 @@ function buildFlowElements(params: {
         iconFont: node.iconFont,
         attachments: node.attachments,
         hasChildren: !!hasChildren,
+        isExpanded,
         searchQuery,
         nodeSize,
         nodeShape,
@@ -192,7 +197,7 @@ function buildFlowElements(params: {
     if (unexpandedWithChildren) {
       const clusterId = `${id}__cluster`;
       const clusterCount = node.children!.length;
-      const clusterSpacing = orientation === 'horizontal' ? hSpacing : vSpacing;
+      const clusterSpacing = orientation === 'horizontal' ? hSpacing * horizontalScale : vSpacing * verticalScale;
       const offsetDist = nodeShape === 'circle'
         ? Math.max(nodeSize + 10, clusterSpacing * 0.4)
         : Math.max(nodeSize + 20, clusterSpacing * 0.4);
@@ -349,6 +354,8 @@ export function useFlowGraph(
         nodeHeight,
         hSpacing,
         vSpacing,
+        horizontalScale,
+        verticalScale,
         elkEdges,
         elkNodePos,
         getColor,

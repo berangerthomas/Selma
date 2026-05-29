@@ -115,7 +115,7 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     return buildSpanningTree(dagData);
   }, [dagData]);
 
-  const [viewMode, setViewModeState] = usePersistedState<ViewMode>(
+  const [viewMode, setViewMode] = usePersistedState<ViewMode>(
     STORAGE_KEYS.viewMode,
     'tree',
     (v) => v,
@@ -132,10 +132,6 @@ export function TreeProvider({ children }: { children: ReactNode }) {
       return s as ViewMode;
     }
   );
-
-  const setViewMode = useCallback((mode: ViewMode) => {
-    setViewModeState(mode);
-  }, [setViewModeState]);
 
   const {
     nodeSize, setNodeSize,

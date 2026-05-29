@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { safeLocalStorageGet, STORAGE_KEYS } from '../utils/storage';
+import { useCallback, useEffect, useState } from 'react';
+import { safeLocalStorageGet, safeLocalStorageSet, STORAGE_KEYS } from '../utils/storage';
 import type { TaxonomyDescription } from '../types';
 
 export function useTaxonomyLoader() {
@@ -32,5 +32,10 @@ export function useTaxonomyLoader() {
     return () => controller.abort();
   }, []);
 
-  return { availableTaxonomies, activeTaxonomyId, setActiveTaxonomyId };
+  const setActiveTaxonomyIdPersisted = useCallback((id: string) => {
+    setActiveTaxonomyId(id);
+    safeLocalStorageSet(STORAGE_KEYS.activeTaxonomyId, id);
+  }, []);
+
+  return { availableTaxonomies, activeTaxonomyId, setActiveTaxonomyId: setActiveTaxonomyIdPersisted };
 }
