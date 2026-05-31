@@ -112,9 +112,8 @@ export default function MarkdownRenderer({ content, className = '', sanitize = t
     }
     
     // Custom components to intercept img and fix relative paths
-    const components = {
-      img: (props: any) => {
-        let src = props.src;
+    const components: import('react-markdown').Components = {
+      img: ({ src, alt, ...props }) => {
         if (src && basePath && !src.startsWith('http') && !src.startsWith('data:') && !src.startsWith('//') && !src.startsWith('/')) {
             // If the src is relative, resolve it against the basePath
             // basePath is expected as a file path, e.g. /details/en/mammals.md
@@ -128,7 +127,7 @@ export default function MarkdownRenderer({ content, className = '', sanitize = t
           </Zoom>
         );
       },
-      pre: (props: any) => {
+      pre: ({ children, ...props }) => {
         const preRef = useRef<HTMLPreElement>(null);
         const getTextToCopy = () => {
           return preRef.current?.innerText || '';
@@ -143,9 +142,11 @@ export default function MarkdownRenderer({ content, className = '', sanitize = t
             />
             <pre 
               ref={preRef} 
-              {...props} 
+              {...props}
               className={`!bg-slate-100 !text-slate-800 dark:!bg-slate-800 dark:!text-slate-200 dark:[&_.hljs-string]:!text-blue-300 dark:[&_.hljs-comment]:!text-slate-400 dark:[&_.hljs-keyword]:!text-pink-400 dark:[&_.hljs-title]:!text-purple-300 dark:[&_.hljs-number]:!text-cyan-300 dark:[&_.hljs-variable]:!text-orange-300 dark:[&_.hljs-built_in]:!text-cyan-300 dark:[&_.hljs-attr]:!text-sky-300 dark:[&_.hljs-name]:!text-green-300 ${props.className || ''}`} 
-            />
+            >
+              {children}
+            </pre>
           </div>
         );
       }

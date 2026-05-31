@@ -1,4 +1,4 @@
-// highlight SVG functions
+// TODO: used when SVG export search highlight is implemented
 import { splitByHighlight } from './searchRegex';
 
 export function HighlightSVGText({ text, query }: { text: string; query: string }) {

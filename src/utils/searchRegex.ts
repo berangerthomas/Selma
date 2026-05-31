@@ -1,4 +1,4 @@
-/** Construit une regex d'highlight case-insensitive à partir d'une requête utilisateur. */
+/** Builds a case-insensitive highlight regex from a user query string. */
 export function buildHighlightRegex(query: string): RegExp {
   return new RegExp(
     `(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`,
@@ -6,12 +6,12 @@ export function buildHighlightRegex(query: string): RegExp {
   );
 }
 
-// Type alias cohérent avec la signature de t() retournée par react-i18next
+// Type alias matching the t() signature returned by react-i18next
 export type TranslateFn = (key: string, opts?: Record<string, unknown>) => string;
 
 /**
- * Teste si un nœud correspond à une requête de recherche.
- * Match sur l'id, le nom localisé du nœud ou ses tags.
+ * Tests whether a node matches a search query.
+ * Matches on the node's id, its localized name, or its tags.
  */
 export function nodeMatchesQuery(
   id: string,

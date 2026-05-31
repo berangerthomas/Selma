@@ -128,6 +128,7 @@ export default function Sidebar({ open, onClose, node, initialWidth = 420, minWi
       setTimeout(() => window.removeEventListener('click', preventClick, true), 50)
     }
 
+    // Assign refs BEFORE adding listeners to prevent race condition on unmount
     moveListenerRef.current = onMouseMove
     upListenerRef.current = onMouseUp
 

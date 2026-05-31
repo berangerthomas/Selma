@@ -115,22 +115,12 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     return buildSpanningTree(dagData);
   }, [dagData]);
 
+  // v0.8.0: legacy 'compact'/'organic' viewMode values removed (replaced by nodeShape)
   const [viewMode, setViewMode] = usePersistedState<ViewMode>(
     STORAGE_KEYS.viewMode,
     'tree',
     (v) => v,
-    (s) => {
-      if (s === 'compact') {
-        safeLocalStorageSet(STORAGE_KEYS.viewMode, 'tree');
-        safeLocalStorageSet(STORAGE_KEYS.nodeShape, 'rect');
-        return 'tree';
-      }
-      if (s === 'organic') {
-        safeLocalStorageSet(STORAGE_KEYS.viewMode, 'tree');
-        return 'tree';
-      }
-      return s as ViewMode;
-    }
+    (s) => s as ViewMode
   );
 
   const {

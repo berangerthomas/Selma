@@ -1,4 +1,4 @@
-import { useRef, RefObject, useState, useCallback } from 'react'
+import { useRef, RefObject, useState, useCallback, useMemo } from 'react'
 import {
   useFloating,
   autoUpdate,
@@ -12,6 +12,7 @@ import {
   useInteractions,
   safePolygon
 } from '@floating-ui/react';
+import type { Placement } from '@floating-ui/react';
 import { useI18n } from '../i18n'
 import { useTheme } from '../hooks/useTheme'
 import { useTree } from '../context/TreeContext'
@@ -38,6 +39,42 @@ interface ToolbarIconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonEl
   label: string
 }
 
+function useDropdownMenu(
+  open: boolean,
+  onOpenChange: (v: boolean) => void,
+  opts?: { withHover?: boolean; placement?: Placement }
+) {
+  const placement = opts?.placement ?? 'bottom-start';
+  const { context: floatingContext, refs, floatingStyles } = useFloating({
+    open,
+    onOpenChange,
+    placement,
+    whileElementsMounted: autoUpdate,
+    middleware: [
+      offset(4),
+      flip({ fallbackAxisSideDirection: 'end' }),
+      shift({ padding: 8 })
+    ]
+  });
+
+  const hover = useHover(floatingContext, { handleClose: safePolygon(), enabled: !!opts?.withHover });
+  const focus = useFocus(floatingContext, { enabled: !!opts?.withHover });
+  const dismiss = useDismiss(floatingContext);
+  const role = useRole(floatingContext, { role: 'menu' });
+
+  const interactions = useInteractions(
+    opts?.withHover ? [hover, focus, dismiss, role] : [dismiss, role]
+  );
+
+  return {
+    refs,
+    floatingStyles,
+    context: floatingContext,
+    getReferenceProps: interactions.getReferenceProps,
+    getFloatingProps: interactions.getFloatingProps,
+  };
+}
+
 function LayoutSlider({ label, value, min, max, step, onChange }: {
   label: string; value: number; min: number; max: number; step: number;
   onChange: (n: number) => void
@@ -56,12 +93,13 @@ function LayoutSlider({ label, value, min, max, step, onChange }: {
 }
 
 function ViewModeButton({
-  mode, current, label, icon: Icon, onClick
+  mode, current, label, icon: Icon, onClick, isActive: overrideActive
 }: {
   mode: ViewMode; current: ViewMode; label: string;
   icon: React.ComponentType<{ className?: string }>; onClick: () => void;
+  isActive?: boolean;
 }) {
-  const active = mode === current;
+  const active = overrideActive ?? (mode === current);
   return (
     <ToolbarIconButton
       label={label}
@@ -224,49 +262,8 @@ export default function Toolbar({
     }
   }, [dagData, data, orientation, setNodeSize, setHSpacing, setVSpacing, setViewMode, onResetView])
 
-  const { refs: searchMenuRefs, floatingStyles: searchMenuFloatingStyles, context: searchMenuContext } = useFloating({
-    open: searchMenuOpen,
-    onOpenChange: setSearchMenuOpen,
-    placement: 'bottom-start',
-    whileElementsMounted: autoUpdate,
-    middleware: [
-      offset(4),
-      flip({ fallbackAxisSideDirection: 'end' }),
-      shift({ padding: 8 })
-    ]
-  });
-
-  const searchMenuHover = useHover(searchMenuContext, { handleClose: safePolygon() });
-  const searchMenuFocus = useFocus(searchMenuContext);
-  const searchMenuDismiss = useDismiss(searchMenuContext);
-  const searchMenuRole = useRole(searchMenuContext, { role: 'menu' });
-
-  const { getReferenceProps: getSearchMenuReferenceProps, getFloatingProps: getSearchMenuFloatingProps } = useInteractions([
-    searchMenuHover,
-    searchMenuFocus,
-    searchMenuDismiss,
-    searchMenuRole
-  ]);
-
-  const { refs: taxonomyMenuRefs, floatingStyles: taxonomyMenuFloatingStyles, context: taxonomyMenuContext } = useFloating({
-    open: taxonomyMenuOpen,
-    onOpenChange: setTaxonomyMenuOpen,
-    placement: 'bottom-start',
-    whileElementsMounted: autoUpdate,
-    middleware: [
-      offset(4),
-      flip({ fallbackAxisSideDirection: 'end' }),
-      shift({ padding: 8 })
-    ]
-  });
-
-  const taxonomyMenuDismiss = useDismiss(taxonomyMenuContext)
-  const taxonomyMenuRole = useRole(taxonomyMenuContext, { role: 'menu' })
-
-  const { getFloatingProps: getTaxonomyMenuFloatingProps } = useInteractions([
-    taxonomyMenuDismiss,
-    taxonomyMenuRole
-  ])
+  const searchMenu = useDropdownMenu(searchMenuOpen, setSearchMenuOpen, { withHover: true });
+  const taxonomyMenu = useDropdownMenu(taxonomyMenuOpen, setTaxonomyMenuOpen);
 
   const activeTaxonomy = availableTaxonomies.find((taxo) => taxo.id === activeTaxonomyId)
   const activeTaxonomyLabel = activeTaxonomy
@@ -304,8 +301,14 @@ export default function Toolbar({
     setSearchMenuOpen(false)
   }
 
-  const includeCount = Object.values(tagStates).filter(v => v === 'include').length
-  const excludeCount = Object.values(tagStates).filter(v => v === 'exclude').length
+  const { includeCount, excludeCount } = useMemo(() => {
+    let inc = 0, exc = 0;
+    for (const v of Object.values(tagStates)) {
+      if (v === 'include') inc++;
+      else if (v === 'exclude') exc++;
+    }
+    return { includeCount: inc, excludeCount: exc };
+  }, [tagStates]);
   const hasActiveTagState = includeCount > 0 || excludeCount > 0
 
   const hasResults = totalResults > 0 && currentResultIndex >= 0
@@ -351,7 +354,7 @@ export default function Toolbar({
           </div>
           <div className="relative flex-1 min-w-0 flex items-center">
             <button
-              ref={taxonomyMenuRefs.setReference}
+              ref={taxonomyMenu.refs.setReference}
               type="button"
               onClick={() => setTaxonomyMenuOpen((open) => !open)}
               className="w-full h-[32px] px-3 py-1.5 rounded-lg border border-[var(--input-border)] bg-[var(--panel-bg)] text-left text-[12px] text-[var(--text-main)] shadow-sm hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex items-center justify-between gap-3"
@@ -364,9 +367,9 @@ export default function Toolbar({
             </button>
             {taxonomyMenuOpen && (
               <div
-                ref={taxonomyMenuRefs.setFloating}
-                style={{ ...taxonomyMenuFloatingStyles, zIndex: 1000 }}
-                {...getTaxonomyMenuFloatingProps()}
+                ref={taxonomyMenu.refs.setFloating}
+                style={{ ...taxonomyMenu.floatingStyles, zIndex: 1000 }}
+                {...taxonomyMenu.getFloatingProps()}
                 className="search-mode-menu min-w-[220px] max-w-[280px]"
                 role="menu"
                 aria-label={t('taxonomy', { defaultValue: 'Taxonomy' })}
@@ -406,8 +409,8 @@ export default function Toolbar({
             <div className="flex flex-col gap-1">
               <div className="toolbar-row flex gap-1 items-center mt-1">
                 <div className="toolbar-title mr-2">{t('view', { defaultValue: 'View' })}</div>
-                <ToolbarIconButton label={t('view_organic', { defaultValue: 'Organic graph' })} onClick={() => { setViewMode('tree'); setNodeShape('circle'); }} className={`p-[6px] rounded transition-colors ${viewMode === 'tree' && nodeShape === 'circle' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'bg-transparent hover:bg-black/5 dark:hover:bg-white/10'}`}><OrganicIcon className="w-[18px] h-[18px] block" /></ToolbarIconButton>
-                <ToolbarIconButton label={t('view_compact', { defaultValue: 'Rectangular graph' })} onClick={() => { setViewMode('tree'); setNodeShape('rect'); }} className={`p-[6px] rounded transition-colors ${viewMode === 'tree' && nodeShape === 'rect' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'bg-transparent hover:bg-black/5 dark:hover:bg-white/10'}`}><CompactIcon className="w-[18px] h-[18px] block" /></ToolbarIconButton>
+                <ViewModeButton mode="tree" current={viewMode} label={t('view_organic', { defaultValue: 'Organic graph' })} icon={OrganicIcon} isActive={viewMode === 'tree' && nodeShape === 'circle'} onClick={() => { setViewMode('tree'); setNodeShape('circle'); }} />
+                <ViewModeButton mode="tree" current={viewMode} label={t('view_compact', { defaultValue: 'Rectangular graph' })} icon={CompactIcon} isActive={viewMode === 'tree' && nodeShape === 'rect'} onClick={() => { setViewMode('tree'); setNodeShape('rect'); }} />
                 <ViewModeButton mode="list" current={viewMode} label={t('view_list', { defaultValue: 'List Tree' })} icon={FileTreeIcon} onClick={() => setViewMode('list')} />
                 <ViewModeButton mode="columns" current={viewMode} label={t('view_columns', { defaultValue: 'Miller Columns' })} icon={MillerIcon} onClick={() => setViewMode('columns')} />
                 {viewMode === 'tree' && <ToolbarIconButton label={t('toggle_orientation', { defaultValue: 'Toggle orientation' })} onClick={() => setOrientation(orientation === 'horizontal' ? 'vertical' : 'horizontal')} className={`p-[6px] rounded transition-colors ${orientation === 'vertical' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'bg-transparent hover:bg-black/5 dark:hover:bg-white/10'}`}><RotateIcon className="w-[18px] h-[18px] block" /></ToolbarIconButton>}
@@ -544,9 +547,9 @@ export default function Toolbar({
                 aria-label={t('search_placeholder', { defaultValue: 'Go to a node (id or name)...' })}
               />
               <div className="relative inline-block">
-                <div ref={searchMenuRefs.setReference} {...getSearchMenuReferenceProps()} className="inline-block"><ToolbarIconButton label={t('go', { defaultValue: 'Go' })} onClick={() => handleSearch()}><ArrowRightIcon className="w-[18px] h-[18px] block" /></ToolbarIconButton></div>
+                <div ref={searchMenu.refs.setReference} {...searchMenu.getReferenceProps()} className="inline-block"><ToolbarIconButton label={t('go', { defaultValue: 'Go' })} onClick={() => handleSearch()}><ArrowRightIcon className="w-[18px] h-[18px] block" /></ToolbarIconButton></div>
                 {searchMenuOpen && (
-                  <div ref={searchMenuRefs.setFloating} style={{ ...searchMenuFloatingStyles, zIndex: 1000 }} {...getSearchMenuFloatingProps()} className="search-mode-menu min-w-max bg-white dark:bg-neutral-800 rounded-lg shadow-lg border border-neutral-200 dark:border-neutral-700 text-sm overflow-hidden py-1" role="menu" aria-label={t('search_mode_menu', { defaultValue: 'Search mode' })}>
+                  <div ref={searchMenu.refs.setFloating} style={{ ...searchMenu.floatingStyles, zIndex: 1000 }} {...searchMenu.getFloatingProps()} className="search-mode-menu min-w-max bg-white dark:bg-neutral-800 rounded-lg shadow-lg border border-neutral-200 dark:border-neutral-700 text-sm overflow-hidden py-1" role="menu" aria-label={t('search_mode_menu', { defaultValue: 'Search mode' })}>
                     <button className="search-mode-item w-full text-left px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 whitespace-nowrap transition-colors" onClick={() => { handleSearch('deep'); }}>{t('search_deep', { defaultValue: 'Recherche approfondie' })}</button>
                   </div>
                 )}

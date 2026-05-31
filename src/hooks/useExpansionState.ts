@@ -1,6 +1,6 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import type { DagData, TreeNode } from '../types';
-import { findAllDagAncestors, getAllDagNodeIds, hasMultipleParents, getParents } from '../utils/dagUtils';
+import { findAllDagAncestors, getAllDagNodeIds, hasMultipleParents, getParents, buildParentMap } from '../utils/dagUtils';
 import { findNodePathIds } from '../utils/treeUtils';
 
 export function useExpansionState(
@@ -10,6 +10,7 @@ export function useExpansionState(
   setActiveId: (id: string) => void,
   resetView: () => void
 ) {
+  const parentMap = useMemo(() => dagData ? buildParentMap(dagData) : undefined, [dagData]);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   const toggleNode = useCallback((id: string) => {
@@ -39,9 +40,9 @@ export function useExpansionState(
     if (!data) return;
 
     let pathSet: Set<string>;
-    if (dagData && activeId && hasMultipleParents(dagData, activeId)) {
+    if (dagData && activeId && hasMultipleParents(dagData, activeId, parentMap)) {
       pathSet = new Set<string>();
-      const parents = getParents(dagData, activeId);
+      const parents = getParents(dagData, activeId, parentMap);
       for (const p of parents) {
         const ppath = findNodePathIds(data, p) ?? [];
         ppath.forEach(id => pathSet.add(id));
@@ -62,7 +63,7 @@ export function useExpansionState(
     }
 
     resetView();
-  }, [data, dagData, activeId, expanded, resetView, setActiveId]);
+  }, [data, dagData, activeId, expanded, resetView, setActiveId, parentMap]);
 
   const expandAll = useCallback(() => {
     if (!dagData) return;

@@ -42,6 +42,17 @@ export function buildDagDataFromFiles(taxoFile: TaxoFile, nodesDict: Record<stri
     };
   }
 
+  // DEV-only validation: warn when a child ID referenced in children[] has no node entry
+  if (import.meta.env.DEV) {
+    for (const [id, node] of Object.entries(dagData.nodes)) {
+      for (const childId of node.children ?? []) {
+        if (!dagData.nodes[childId]) {
+          console.warn(`buildDagDataFromFiles: child "${childId}" of "${id}" has no corresponding node entry`);
+        }
+      }
+    }
+  }
+
   if (hasCycle(dagData)) {
     throw new Error('Taxonomy contains a cycle — DAG must be acyclic.');
   }
