@@ -57,3 +57,23 @@ export type TaxonomyDescription = {
   id: string
   label: string
 }
+
+export type TaxonomyNodeData = {
+  id: string
+  name: string
+  color: string
+  image?: string
+  iconChar?: string
+  iconFont?: string
+  attachments?: Attachment[]
+  hasChildren: boolean
+  isExpanded?: boolean
+  searchQuery: string
+  nodeSize: number
+  nodeShape: NodeShape
+  orientation: Orientation
+  labelPosition: LabelPosition
+  hasMultipleParents?: boolean
+  isCluster?: boolean
+  clusterCount?: number
+}

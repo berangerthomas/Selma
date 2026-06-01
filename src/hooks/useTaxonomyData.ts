@@ -11,27 +11,41 @@ export type TaxoFile = {
  * Build a DagData object from the taxonomy file and nodes registry.
  * Throws on invalid format or when the resulting graph contains a cycle.
  */
-export function buildDagDataFromFiles(taxoFile: TaxoFile, nodesDict: Record<string, any>): DagData {
+export function buildDagDataFromFiles(taxoFile: TaxoFile, nodesDict: Record<string, unknown>): DagData {
   // validate shape early to avoid building invalid structures
   if (!taxoFile || !taxoFile.root || !taxoFile.nodes) {
     throw new Error('Invalid taxonomy format. Expected DAG format with "root" and "nodes".');
   }
 
   const allIds = new Set<string>();
-  for (const [id, structNode] of Object.entries(taxoFile.nodes)) {
+  const taxonomyOrder: string[] = [];
+  const addTaxonomyId = (id: string) => {
+    if (allIds.has(id)) return;
     allIds.add(id);
+    taxonomyOrder.push(id);
+  };
+
+  for (const [id, structNode] of Object.entries(taxoFile.nodes)) {
+    addTaxonomyId(id);
     const struct = structNode as { children?: string[] };
     for (const childId of struct.children ?? []) {
-      allIds.add(childId);
+      addTaxonomyId(childId);
     }
   }
+
+  const nodeRegistryIds = Object.keys(nodesDict).filter(id => allIds.has(id));
+  const knownRegistryIds = new Set(nodeRegistryIds);
+  const orderedIds = [
+    ...nodeRegistryIds,
+    ...taxonomyOrder.filter(id => !knownRegistryIds.has(id)),
+  ];
 
   const dagData: DagData = {
     root: taxoFile.root as string,
     nodes: {}
   };
 
-  for (const id of allIds) {
+  for (const id of orderedIds) {
     const taxoNode = taxoFile.nodes[id] as { children?: string[] } | undefined;
     const detailNode = (nodesDict[id] || {}) as Record<string, unknown>;
     dagData.nodes[id] = {

@@ -3,27 +3,7 @@ import { Handle, Position } from '@xyflow/react';
 import { useI18n } from '../../i18n';
 import { HighlightMatch } from '../../utils/highlight';
 import { getNodeDimensions } from '../../utils/nodeLayout';
-import type { Attachment, Orientation } from '../../types';
-
-export type TaxonomyNodeData = {
-  id: string;
-  name: string;
-  color: string;
-  image?: string;
-  iconChar?: string;
-  iconFont?: string;
-  attachments?: Attachment[];
-  hasChildren: boolean;
-  isExpanded?: boolean;
-  searchQuery: string;
-  nodeSize: number;
-  nodeShape: 'circle' | 'rect';
-  orientation: Orientation;
-  labelPosition: 'smart' | 'top' | 'bottom' | 'right' | 'left';
-  hasMultipleParents?: boolean;
-  isCluster?: boolean;
-  clusterCount?: number;
-};
+import type { Orientation, TaxonomyNodeData } from '../../types';
 
 type Props = {
   data: TaxonomyNodeData;

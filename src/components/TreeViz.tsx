@@ -10,11 +10,13 @@ import {
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 
+import type { TaxonomyNodeData } from '../types'
 import { useTree } from '../context/TreeContext'
 import Sidebar from './Sidebar'
 import { useSidebar } from '../hooks/useSidebar'
-import TaxonomyNode, { type TaxonomyNodeData } from './tree/TaxonomyNode'
+import TaxonomyNode from './tree/TaxonomyNode'
 import { useFlowGraph } from '../hooks/useFlowGraph'
+import { getNodeDimensions } from '../utils/nodeLayout'
 
 const nodeTypes = {
   taxonomyNode: TaxonomyNode
@@ -44,7 +46,7 @@ function TreeVizInner() {
   const { open: sidebarOpen, setOpen: setSidebarOpen, width: sidebarWidth, setWidth: setSidebarWidth } = useSidebar(activeId)
   const { fitView, setCenter, getViewport } = useReactFlow()
   
-  // Custom hook wrapping ELK mrtree layout
+  // Custom hook wrapping ELK layout and React Flow element conversion
   const { nodes: initialNodes, edges: initialEdges } = useFlowGraph(
     dagData,
     expanded,
@@ -95,11 +97,12 @@ function TreeVizInner() {
     if (activeNode) {
       if (forceCenterOnActive) {
         const currentZoom = getViewport().zoom
-        setCenter(activeNode.position.x + nodeSize, activeNode.position.y + nodeSize / 2, { zoom: currentZoom, duration: 500 })
+        const { width, height } = getNodeDimensions(nodeSize, nodeShape)
+        setCenter(activeNode.position.x + width / 2, activeNode.position.y + height / 2, { zoom: currentZoom, duration: 500 })
         clearForceCenter()
       }
     }
-  }, [activeId, nodes, forceCenterOnActive, setCenter, getViewport, clearForceCenter, nodeSize])
+  }, [activeId, nodes, forceCenterOnActive, setCenter, getViewport, clearForceCenter, nodeSize, nodeShape])
 
   // Reset View Listener
   const lastResetRef = useRef<number>(0)
