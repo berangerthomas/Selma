@@ -11,6 +11,10 @@ type Props = {
 
 const LABEL_TRUNCATE_WIDTH = 180;
 
+function getLabelFontSize(nodeSize: number): number {
+  return Math.max(11, Math.min(35, Math.round(11 + (nodeSize - 11) * 0.2)));
+}
+
 function NodeLabel({ text, query, style }: { text: string; query: string; style: React.CSSProperties }) {
   const labelRef = useRef<HTMLDivElement>(null);
   const [isOverflowing, setIsOverflowing] = useState(false);
@@ -32,11 +36,11 @@ function NodeLabel({ text, query, style }: { text: string; query: string; style:
   );
 }
 
-function getLabelStyle(labelPosition: string): React.CSSProperties {
+function getLabelStyle(labelPosition: string, nodeSize: number): React.CSSProperties {
   const base: React.CSSProperties = {
     position: 'absolute',
     whiteSpace: 'nowrap',
-    fontSize: 14,
+    fontSize: getLabelFontSize(nodeSize),
     textShadow: '0 0 4px var(--panel-bg), 0 0 6px var(--panel-bg)',
     color: 'var(--text-main)',
     fontWeight: 500,
@@ -69,7 +73,7 @@ const TaxonomyNode = React.memo(function TaxonomyNode({ data }: Props) {
   const sourcePosition = data.orientation === 'vertical' ? Position.Bottom : Position.Right;
   const targetPosition = data.orientation === 'vertical' ? Position.Top : Position.Left;
 
-  const labelStyle = getLabelStyle(labelPosition);
+  const labelStyle = getLabelStyle(labelPosition, nodeSize);
   const ariaLabel = nodeName || data.name || `Node ${data.id}`;
 
   return (
@@ -137,7 +141,7 @@ const TaxonomyNode = React.memo(function TaxonomyNode({ data }: Props) {
             top: '50%',
             transform: 'translateY(-50%)',
             whiteSpace: 'nowrap',
-            fontSize: 13,
+            fontSize: Math.max(11, getLabelFontSize(nodeSize) - 1),
             textShadow: '0 0 4px var(--panel-bg), 0 0 6px var(--panel-bg)',
             color: 'var(--text-main)',
             fontWeight: 500,
