@@ -1,26 +1,38 @@
-import React from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import { useI18n } from '../../i18n';
 import { HighlightMatch } from '../../utils/highlight';
 import { getNodeDimensions } from '../../utils/nodeLayout';
-import type { Orientation, TaxonomyNodeData } from '../../types';
+import type { TaxonomyNodeData } from '../../types';
 
 type Props = {
   data: TaxonomyNodeData;
 };
 
+const LABEL_TRUNCATE_WIDTH = 180;
+
 function NodeLabel({ text, query, style }: { text: string; query: string; style: React.CSSProperties }) {
+  const labelRef = useRef<HTMLDivElement>(null);
+  const [isOverflowing, setIsOverflowing] = useState(false);
+
+  useEffect(() => {
+    if (labelRef.current) {
+      setIsOverflowing(labelRef.current.scrollWidth > labelRef.current.clientWidth);
+    }
+  }, [text]);
+
   return (
-    <div style={style}>
+    <div
+      ref={labelRef}
+      style={{ ...style, maxWidth: LABEL_TRUNCATE_WIDTH, overflow: 'hidden', textOverflow: 'ellipsis' }}
+      title={isOverflowing ? text : undefined}
+    >
       <HighlightMatch text={text} query={query} />
     </div>
   );
 }
 
-function getLabelStyle(
-  labelPosition: TaxonomyNodeData['labelPosition'],
-  orientation: Orientation
-): React.CSSProperties {
+function getLabelStyle(labelPosition: string): React.CSSProperties {
   const base: React.CSSProperties = {
     position: 'absolute',
     whiteSpace: 'nowrap',
@@ -31,11 +43,6 @@ function getLabelStyle(
     pointerEvents: 'none',
   };
 
-  const effectivePosition =
-    labelPosition === 'smart'
-      ? orientation === 'horizontal' ? 'top' : 'bottom'
-      : labelPosition;
-
   const positions: Record<string, React.CSSProperties> = {
     top:    { bottom: '100%', marginBottom: 8, left: '50%', transform: 'translateX(-50%)' },
     bottom: { top: '100%', marginTop: 8, left: '50%', transform: 'translateX(-50%)' },
@@ -43,12 +50,12 @@ function getLabelStyle(
     left:   { right: '100%', marginRight: 10, top: '50%', transform: 'translateY(-50%)' },
   };
 
-  return { ...base, ...(positions[effectivePosition] ?? positions.top) };
+  return { ...base, ...(positions[labelPosition] ?? positions.top) };
 }
 
 const TaxonomyNode = React.memo(function TaxonomyNode({ data }: Props) {
   const { t } = useI18n();
-  const { nodeSize, nodeShape, orientation, labelPosition, color, isCluster, clusterCount } = data;
+  const { nodeSize, nodeShape, labelPosition, color, isCluster, clusterCount } = data;
 
   const finalIconChar = t(`nodes.${data.id}.iconChar`, { defaultValue: data.iconChar || '' });
   const finalIconFont = t(`nodes.${data.id}.iconFont`, { defaultValue: data.iconFont || 'sans-serif' });
@@ -59,10 +66,10 @@ const TaxonomyNode = React.memo(function TaxonomyNode({ data }: Props) {
 
   const shapeClass = nodeShape === 'circle' ? 'rounded-full' : 'rounded-md';
 
-  const sourcePosition = orientation === 'vertical' ? Position.Bottom : Position.Right;
-  const targetPosition = orientation === 'vertical' ? Position.Top : Position.Left;
+  const sourcePosition = data.orientation === 'vertical' ? Position.Bottom : Position.Right;
+  const targetPosition = data.orientation === 'vertical' ? Position.Top : Position.Left;
 
-  const labelStyle = getLabelStyle(labelPosition, orientation);
+  const labelStyle = getLabelStyle(labelPosition);
   const ariaLabel = nodeName || data.name || `Node ${data.id}`;
 
   return (

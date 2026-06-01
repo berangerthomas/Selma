@@ -60,6 +60,35 @@ function computeOpacity(isDimmed: boolean, isCluster = false): number {
   return isCluster ? 0.2 : 0.3;
 }
 
+/**
+ * Resolve "smart" label position based on node category and orientation.
+ *
+ * Table:
+ *                | vertical (DOWN) | horizontal (RIGHT)
+ *   Root         | top             | top
+ *   Has children | right           | top
+ *   Leaf         | bottom          | right
+ */
+function resolveSmartLabelPosition(
+  id: string,
+  root: string,
+  dagData: DagData,
+  orientation: Orientation
+): 'top' | 'bottom' | 'right' {
+  if (id === root) return 'top';
+
+  const node = dagData.nodes[id];
+  const hasChildren = (node.children?.length ?? 0) > 0;
+
+  if (hasChildren) {
+    // Has children (deployed or not) → same rule
+    return orientation === 'vertical' ? 'right' : 'top';
+  }
+
+  // Leaf node (no children)
+  return orientation === 'vertical' ? 'bottom' : 'right';
+}
+
 function estimateLabelWidth(text: string, fontSize = LABEL_FONT_SIZE): number {
   return Math.ceil(text.length * fontSize * LABEL_WIDTH_FACTOR) + LABEL_PADDING;
 }
@@ -404,6 +433,10 @@ export function buildFlowElements(params: {
     const hasChildren = Boolean(node.children?.length);
     const color = getColor(id);
 
+    const resolvedLabelPosition = labelPosition === 'smart'
+      ? resolveSmartLabelPosition(id, dagData.root, dagData, orientation)
+      : labelPosition;
+
     nodes.push({
       id,
       type: 'taxonomyNode',
@@ -422,7 +455,7 @@ export function buildFlowElements(params: {
         nodeSize,
         nodeShape,
         orientation,
-        labelPosition,
+        labelPosition: resolvedLabelPosition,
         hasMultipleParents: hasMultipleParents(dagData, id, parentMap),
       },
       style: transitionStyle(computeOpacity(isDimmed)),
@@ -439,7 +472,7 @@ export function buildFlowElements(params: {
           x: position.x + (orientation === 'horizontal' ? clusterOffset : 0),
           y: position.y + (orientation === 'vertical' ? clusterOffset : 0),
         },
-        data: {
+      data: {
           id: clusterId,
           name: '',
           color,
@@ -448,7 +481,7 @@ export function buildFlowElements(params: {
           nodeSize: nodeSize * CLUSTER_SIZE_RATIO,
           nodeShape: 'circle',
           orientation,
-          labelPosition,
+          labelPosition: 'bottom',
           hasMultipleParents: false,
           isCluster: true,
           clusterCount: node.children?.length ?? 0,
