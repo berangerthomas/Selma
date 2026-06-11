@@ -1,4 +1,14 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
+import {
+  useFloating,
+  useDismiss,
+  useRole,
+  useInteractions,
+  offset,
+  flip,
+  shift,
+  autoUpdate,
+} from '@floating-ui/react';
 import { useTree } from '../context/TreeContext';
 import { useI18n } from '../i18n';
 import type { TreeNode } from '../types';
@@ -11,6 +21,52 @@ import { ChevronRight } from './icons/ChevronRight';
 import { NodeIcon } from './NodeIcon';
 import { useSidebar } from '../hooks/useSidebar';
 
+/**
+ * Pure presentational popover body. The reference element lives in the
+ * parent (`FileNode`) so that `useFloating` can anchor the floating UI
+ * correctly to the badge button.
+ */
+function ParentsPopoverBody({
+  parentIds,
+  getParentName,
+  onSelect,
+  setFloatingRef,
+  floatingStyles,
+  getFloatingProps,
+}: {
+  parentIds: string[];
+  getParentName: (id: string) => string;
+  onSelect: (parentId: string) => void;
+  setFloatingRef: (el: HTMLDivElement | null) => void;
+  floatingStyles: React.CSSProperties;
+  getFloatingProps: () => Record<string, unknown>;
+}) {
+  return (
+    <div
+      ref={setFloatingRef}
+      style={floatingStyles}
+      {...getFloatingProps()}
+      className="z-50 bg-white dark:bg-neutral-800 border border-amber-200 dark:border-amber-800 rounded shadow-lg p-1 min-w-[180px] max-w-[280px]"
+      role="menu"
+    >
+      <div className="text-[10px] uppercase tracking-wide text-amber-700 dark:text-amber-300 px-2 pt-1 pb-0.5 font-semibold">
+        Also in
+      </div>
+      {parentIds.map(pid => (
+        <button
+          key={pid}
+          role="menuitem"
+          onClick={() => onSelect(pid)}
+          className="block w-full text-left text-sm px-2 py-1 rounded hover:bg-amber-50 dark:hover:bg-amber-900/30 text-gray-800 dark:text-gray-100 truncate"
+          title={getParentName(pid)}
+        >
+          {getParentName(pid)}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 const FileNode = React.memo(({ node, depth, parentMap }: { node: TreeNode; depth: number; parentMap: Map<string, string[]> }) => {
   const { data, dagData, expanded, activeId, setActiveId, toggleNode, requestForceCenter, isFullyExpanded, searchQuery } = useTree();
   const { t } = useI18n();
@@ -20,6 +76,20 @@ const FileNode = React.memo(({ node, depth, parentMap }: { node: TreeNode; depth
   const hasChildren = !!node.children && node.children.length > 0;
   const parents = dagData ? getParents(dagData, node.id, parentMap) : [];
   const isMultiParent = parents.length > 1;
+  const [showParentsPopover, setShowParentsPopover] = useState(false);
+
+  // `useFloating` is owned by FileNode so `setReference` can be attached
+  // to the badge button in this component's render output.
+  const { refs, floatingStyles, context } = useFloating({
+    open: showParentsPopover,
+    onOpenChange: setShowParentsPopover,
+    placement: 'bottom-end',
+    middleware: [offset(6), flip(), shift({ padding: 8 })],
+    whileElementsMounted: autoUpdate,
+  });
+  const dismiss = useDismiss(context);
+  const role = useRole(context, { role: 'menu' });
+  const { getFloatingProps } = useInteractions([dismiss, role]);
 
   const handleToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -62,21 +132,43 @@ const FileNode = React.memo(({ node, depth, parentMap }: { node: TreeNode; depth
           )}
         </div>
 
-        {/* Multi-parent badge */}
+        {/* Multi-parent badge — Floating-UI reference element */}
         {dagData && isMultiParent && (
           <button
-            onClick={(e) => { e.stopPropagation(); }}
+            ref={refs.setReference}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowParentsPopover(v => !v);
+            }}
             title={`Also in: ${parents.map(pid => dagData.nodes[pid]?.name ?? pid).join(', ')}`}
             className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/40
                        text-amber-700 dark:text-amber-300 flex-shrink-0 cursor-pointer hover:bg-amber-200
                        dark:hover:bg-amber-800/60 transition-colors"
             aria-label={`${parents.length} parent groups — click to see`}
+            aria-haspopup="menu"
+            aria-expanded={showParentsPopover}
           >
             ×{parents.length}
           </button>
         )}
       </div>
-      
+
+      {/* Multi-parent popover body — rendered via a portal-less inline div,
+          positioned by Floating-UI relative to the badge button above. */}
+      {dagData && isMultiParent && showParentsPopover && (
+        <ParentsPopoverBody
+          parentIds={parents}
+          getParentName={(pid) => dagData.nodes[pid]?.name ?? pid}
+          onSelect={(pid) => {
+            setShowParentsPopover(false);
+            setActiveId(pid);
+          }}
+          setFloatingRef={refs.setFloating}
+          floatingStyles={floatingStyles}
+          getFloatingProps={getFloatingProps}
+        />
+      )}
+
       {/* Children */}
       {hasChildren && isExpanded && (
         <div className="flex flex-col">
@@ -97,20 +189,20 @@ export default function FileTreeView({ ref }: { ref?: React.RefObject<HTMLDivEle
     if (!dagData) return new Map<string, string[]>();
     return buildParentMap(dagData);
   }, [dagData]);
-  
+
   // Cast since findNodeById returns TreeNode | null and Sidebar might want it
   const activeNode = data ? findNodeById(data, activeId) : null;
 
   return (
-    <div 
+    <div
       ref={ref}
-      className="flex h-[95vh] w-full overflow-hidden bg-white dark:bg-[#1e1e1e]" 
+      className="flex h-[95vh] w-full overflow-hidden bg-white dark:bg-[#1e1e1e]"
       onClick={() => {
         setSidebarOpen(false);
       }}
     >
-      <div 
-        className="flex-1 overflow-auto pt-4 pb-32" 
+      <div
+        className="flex-1 overflow-auto pt-4 pb-32"
         style={{ paddingLeft: '260px' }}
       >
         <div className="max-w-5xl px-6">
@@ -120,15 +212,15 @@ export default function FileTreeView({ ref }: { ref?: React.RefObject<HTMLDivEle
 
       {/* Spacer dynamique : réduit la largeur de l'arbre quand la Sidebar est ouverte pour empêcher la Sidebar de cacher l'ascenseur */}
       {sidebarOpen && <div style={{ width: sidebarWidth, flexShrink: 0 }} />}
-      
-      <Sidebar 
-        open={sidebarOpen} 
+
+      <Sidebar
+        open={sidebarOpen}
         onClose={() => {
           setSidebarOpen(false);
-        }} 
-        node={activeNode} 
-        initialWidth={sidebarWidth} 
-        onWidthChange={(w) => setSidebarWidth(w)} 
+        }}
+        node={activeNode}
+        initialWidth={sidebarWidth}
+        onWidthChange={(w) => setSidebarWidth(w)}
       />
     </div>
   );

@@ -1,5 +1,61 @@
 # Changelog
 
+## [v0.8.0] - 2026-06-11
+
+### Added
+- Accessibility: `TaxonomyNode` now exposes `role="button"`, `tabIndex`, and `aria-label`/`aria-expanded` where appropriate.
+- `TaxonomyNodeData` now includes `isExpanded` field to accurately reflect the node's expansion state for `aria-expanded`.
+- JSDoc documentation for `useSearchEngine` clarifying the role of the `data` parameter (spanning tree for deep search).
+- `useTaxonomyData.ts` (`src/hooks/useTaxonomyData.ts`): added a DEV-only validation pass in `buildDagDataFromFiles` that warns when a child ID referenced in `children[]` has no corresponding entry in `dagData.nodes`.
+- `highlightSVG.tsx` (`src/utils/highlightSVG.tsx`): added `// TODO: used when SVG export search highlight is implemented` comment to clarify the component's purpose.
+
+### Modified
+- `TaxonomyNode.tsx` (`src/components/tree/TaxonomyNode.tsx`): made node labels scale slightly with `nodeSize` so the text grows more at the largest node sizes while keeping the minimum size unchanged.
+- `flowLayout.ts` (`src/utils/flowLayout.ts`): `LabelPosition 'smart'` now resolves contextually based on node category (root, has-children, leaf) and orientation (vertical/horizontal) instead of using a single static rule.
+- `TaxonomyNode.tsx` (`src/components/tree/TaxonomyNode.tsx`): removed redundant smart-position logic; added auto-truncation with tooltip for long labels.
+- `Toolbar.tsx` (`src/components/Toolbar.tsx`): extracted duplicated `useFloating`/`useInteractions` logic into a shared `useDropdownMenu` internal hook and replaced both floating menus with calls to this hook.
+- `Toolbar.tsx` (`src/components/Toolbar.tsx`): replaced inline organic/compact view buttons with extended `ViewModeButton` using a new `isActive` prop, allowing both to share the same component.
+- `Toolbar.tsx` (`src/components/Toolbar.tsx`): optimized `includeCount`/`excludeCount` calculation from two separate `.filter()` calls (O(2n)) to a single loop (O(n)).
+- `useFlowGraph.ts` (`src/hooks/useFlowGraph.ts`): in `buildFlowElements`, computed `nodeOpacity` once per node and `clusterOpacity`/`edgeOpacity` once per element instead of calling `computeOpacity` repeatedly.
+- `useVisualizationSettings.ts` (`src/hooks/useVisualizationSettings.ts`): moved `serializeNumber`, `deserializeNumber`, and `serializeString` to module-level constants; inlined `deserializeNodeShape`, `deserializeOrientation`, and `deserializeLabelPosition` as arrow functions in `usePersistedState` calls (removed all `useCallback` wrappers); also removed trivial setter wrappers and stabilized the remaining serializers/deserializers to avoid unnecessary re-creations.
+- `useExpansionState.ts` (`src/hooks/useExpansionState.ts`): added a memoized `parentMap` via `buildParentMap` and passed it to `getParents`/`hasMultipleParents` in `collapseAll` for O(1) lookups instead of O(n) scans.
+- `TreeContext.tsx` (`src/context/TreeContext.tsx`): removed legacy `'compact'`/`'organic'` migration branches from the `viewMode` deserializer (replaced by `nodeShape` in v0.8.0); added version comment.
+- `Sidebar.tsx` (`src/components/Sidebar.tsx`): fixed listener ref assignment order in `handlePointerDown` — refs are now set before `addEventListener` to prevent a race condition on unmount.
+- `searchRegex.ts` (`src/utils/searchRegex.ts`): translated remaining French comments to English for consistency.
+- `usePersistedState` (`src/hooks/usePersistedState.ts`): stabilized `serialize`/`deserialize` via refs so inline functions no longer force callback recreation.
+- `useFlowGraph` (`src/hooks/useFlowGraph.ts`): consolidated opacity rules into `computeOpacity` (applied uniformly to nodes/edges/clusters), added a per-effect color cache via a `getColor` helper to avoid repeated `getInheritedColorDag` traversals, and applied user spacing scaling to ELK before layout so ELK computes positions with correct spacing.
+ - `useTaxonomyLoader` (`src/hooks/useTaxonomyLoader.ts`): extracted taxonomy registry loading and `activeTaxonomyId` persistence from `TreeContext` into a dedicated hook. Registry fetch now runs once on mount (instead of refetching on taxonomy switches) and includes explicit HTTP error handling.
+ - `useExpansionState` (`src/hooks/useExpansionState.ts`): extracted expansion/collapse logic (toggle, collapseAll, expandAll) from `TreeContext` into a dedicated hook to improve testability and readability.
+ - `useFlowGraph` (`src/hooks/useFlowGraph.ts`): further decomposed layout conversion into named helpers (`buildActivePathAndSubtree`, `buildFlowElements`) so the effect is mostly orchestration.
+- `flowLayout` (`src/utils/flowLayout.ts`): extracted visible-node resolution, ELK graph creation, spacing mapping, and React Flow conversion into pure tested helpers; `useFlowGraph` now only orchestrates async ELK layout.
+- `flowLayout` (`src/utils/flowLayout.ts`): stabilized graph layout by computing positions over the complete DAG (not just visible nodes); nodes at the same depth are now aligned on their depth axis with a secondary orthogonal separation pass to prevent overlaps.
+- `TaxonomyNodeData` moved to shared project types so layout utilities no longer depend on the node component.
+- `dagUtils` (`src/utils/dagUtils.ts`): added JSDoc and a development-time warning when cycles are detected; implemented minor formatting/clarity fixes.
+- `TaxonomyNode` (`src/components/tree/TaxonomyNode.tsx`): extracted `NodeLabel` helper to avoid duplicated inline styles and simplified `className` logic.
+- `TreeContext` (`src/context/TreeContext.tsx`): import cleanup (types now imported from `../types`) and fixed `navigateToResult` to include `dagData` in its dependency list.
+- `useSearchEngine` (`src/hooks/useSearchEngine.ts`): clarified the `data` usage (deep search only), guarded deep-search execution when tree data is unavailable, and kept debug logs gated to development.
+- `storage` (`src/utils/storage.ts`): exported strict `StorageKey` typing and aligned persisted-state callers to typed storage helpers.
+- `App` (`src/App.tsx`): removed unused `svgRef` creation and stop passing it to `Toolbar` (TreeViz owns the SVG rendering).
+
+### Fixed
+- Stabilized a number of TypeScript typing/closure issues that could cause unnecessary re-renders or stale closures (notably in persisted-state hooks and navigation callbacks).
+- Restored active-node updates on breadcrumb path navigation and root-reset behavior on repeated collapse actions after expansion logic extraction.
+- Consolidated expansion-state hook naming by keeping a single canonical module: `src/hooks/useExpansionState.ts`.
+- `aria-expanded` now reflects the actual expansion state instead of always being `'false'` (`TaxonomyNode` + `isExpanded` passed from `buildFlowElements`).
+- `activeTaxonomyId` is now persisted to `localStorage` when the user manually switches taxonomy (`useTaxonomyLoader`).
+- `clusterSpacing` in `buildFlowElements` now applies `horizontalScale`/`verticalScale` factors so cluster positioning stays consistent with user spacing preferences.
+- `serializeIdentity` (unsafe `as unknown as string` cast) replaced with properly typed `serializeString` in `useVisualizationSettings`.
+- Removed unnecessary `setViewMode` wrapper in `TreeContext` — `usePersistedState` already returns a stable setter.
+- `MarkdownRenderer.tsx` (`src/components/MarkdownRenderer.tsx`): replaced `any`-typed component props with properly typed `Components` from `react-markdown`; added explicit `children` rendering for the `pre` component.
+- Graph layout spacing now feeds ELK directly as layer/sibling spacing instead of scaling coordinates after layout.
+- Active-node centering now uses the actual rendered node dimensions for both circular and rectangular nodes.
+- **Multi-parent context in Miller Columns**: `findDagPath(root, target, preferredParent)` was removed during the v0.7.1 dead-code cleanup, but the MillerColumnsView context switcher described in Issue #20 §6d needs it. Re-introduced in `dagUtils.ts` with a per-path cycle guard (global `visited` would have pruned the secondary parent chain before the DFS could find the preferred path). 12 vitest cases now cover `findDagPath`, `buildSpanningTree` cross-edges, `buildParentMap`/`getParents`/`hasMultipleParents`/`findAllDagAncestors` and `hasCycle`.
+- **FileTreeView multi-parent popover**: the `×N` badge now opens a Floating-UI popover (using the project's existing `@floating-ui/react` setup) listing the alternative parents. Each parent button calls `setActiveId(parentId)` and closes the popover. Closes on outside click / Escape via `useDismiss`.
+- **MillerColumnsView context switcher**: when the active node is multi-parent, the last live column now shows an amber "View in:" banner with one button per parent. Clicking a parent calls `findDagPath(..., preferredParentId)` so the columns rebuild along that parent's chain. The context auto-resets when navigation leaves a multi-parent node. A memoized `parentMap` keeps the lookups O(1).
+- **`NodeIcon` type relaxed**: now accepts a structural `IconableNode` (id, image, iconChar, iconFont) so it can be rendered from both `TreeNode` and `DagNode` contexts (e.g. MillerColumnsView passes raw `DagNode` rows from `findDagPath`).
+- **FileTreeView popover anchoring fix**: the multi-parent popover was rendered as a sibling of the badge but its `useFloating` hook never received a `setReference` ref, so the body fell back to `0,0` of the viewport and was hidden behind the toolbar. Moved the `useFloating` instance up into `FileNode` and attached `setReference` to the badge button — the popover is now anchored to the badge and visible. The popover body was extracted into a presentational `ParentsPopoverBody` for clarity.
+- **Text export ⬡ marker**: `PrintButton` called `exportTreeAsText(data, t)` without passing `dagData`, so multi-parent nodes were exported without the `⬡` marker even though the function supported it. Added `dagData` to the destructure from `useTree()` and forwarded it to the export call.
+
 ## [v0.7.3] - 2026-05-25
 
 ### Added
@@ -13,13 +69,13 @@
 - **Optimization (Tree Traversals)**: Drastically optimized node path and node lookup traversals in `findNodeById` & `findNodePath` (O(N) to O(1)) by implementing `WeakMap` cached indexes inside `treeUtils.ts`.
 - **Unify project title** webpage title, filename for exports now use `project_title` variable, located in the public\locales\en\taxonomy.json file.
 - **Improved Toolbar Layout** and **Collapsible Toolbar Sections**: To make the interface more compact, the toolbox now features retractable sections for "Geometry", "Tools" and "Tags". Each section header is clickable to toggle visibility, and states are maintained within the session.
- **Refactor: usePersistedState**: Added the `usePersistedState` hook and replaced persisted local state in `TreeContext.tsx` to centralize `localStorage` logic.
- **Toolbar cleanup**: Removed unused `closeTimerRef`, consolidated section state into a single `openSections`, and extracted the auto-layout handler into `src/utils/autoLayout.ts`.
- **Taxonomy data improvements**: Made the `nodes.json` cache resettable via `clearNodesDictCache()` (useful for tests/HMR) and moved format validation to the start of `buildDagDataFromFiles`.
- **Debug logs gated**: Guarded `console.debug` calls for empty search results behind `import.meta.env.DEV` in `useSearchEngine`.
- **Typing fixes**: Replaced avoidable `any` usages in `Toolbar.tsx` and `useDiagnostics.ts`.
- **Storage keys**: Documented inconsistency in `STORAGE_KEYS` and added `migrateThemeKeyToSelma()` helper for manual theme-key migration.
- **Dead code removed**: Removed the commented `window.close()` from the SVG export flow.
+- **Refactor: usePersistedState**: Added the `usePersistedState` hook and replaced persisted local state in `TreeContext.tsx` to centralize `localStorage` logic.
+- **Toolbar cleanup**: Removed unused `closeTimerRef`, consolidated section state into a single `openSections`, and extracted the auto-layout handler into `src/utils/autoLayout.ts`.
+- **Taxonomy data improvements**: Made the `nodes.json` cache resettable via `clearNodesDictCache()` (useful for tests/HMR) and moved format validation to the start of `buildDagDataFromFiles`.
+- **Debug logs gated**: Guarded `console.debug` calls for empty search results behind `import.meta.env.DEV` in `useSearchEngine`.
+- **Typing fixes**: Replaced avoidable `any` usages in `Toolbar.tsx` and `useDiagnostics.ts`.
+- **Storage keys**: Documented inconsistency in `STORAGE_KEYS` and added `migrateThemeKeyToSelma()` helper for manual theme-key migration.
+- **Dead code removed**: Removed the commented `window.close()` from the SVG export flow.
 
 
 ## [v0.7.2] - 2026-05-21

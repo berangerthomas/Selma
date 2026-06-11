@@ -235,3 +235,49 @@ export function findAllDagAncestors(dagData: DagData, targetId: string): string[
   climb(targetId);
   return Array.from(result);
 }
+
+/**
+ * Find a path from root to targetId in the DAG.
+ *
+ * If `preferredParentId` is provided and the target has multiple parents,
+ * the returned path goes through that parent. Otherwise, the first path
+ * discovered by DFS is returned.
+ *
+ * Used by MillerColumnsView to build columns that reflect the user's
+ * navigation context (e.g. Dolphin reached via Cetacea vs via Mammalia).
+ */
+export function findDagPath(
+  data: DagData,
+  rootId: string,
+  targetId: string,
+  preferredParentId: string | null = null
+): DagNode[] {
+  let firstResult: DagNode[] | null = null;
+  let preferredResult: DagNode[] | null = null;
+
+  // We need to explore multiple branches in a DAG (a target can be reached
+  // via different parents), so the cycle guard is per-path rather than
+  // global. A global `visited` would prune the second parent chain before
+  // the DFS has a chance to find the preferred path.
+  function dfs(id: string, path: DagNode[]): void {
+    if (path.some(n => n.id === id)) return; // cycle guard on current path
+    if (preferredResult) return; // already found what we wanted
+    const node = data.nodes[id];
+    if (!node) return;
+    const newPath = [...path, node];
+    if (id === targetId) {
+      if (firstResult === null) firstResult = newPath;
+      if (preferredParentId && newPath.some(n => n.id === preferredParentId)) {
+        preferredResult = newPath;
+      }
+      return;
+    }
+    for (const childId of node.children ?? []) {
+      if (preferredResult) return;
+      dfs(childId, newPath);
+    }
+  }
+
+  dfs(rootId, []);
+  return preferredResult ?? firstResult ?? [];
+}

@@ -4,8 +4,19 @@ import { useI18n } from '../i18n';
 import type { TreeNode, DagData } from '../types';
 import { FALLBACK_COLOR } from '../types';
 
+/**
+ * Structural type satisfied by both `TreeNode` and `DagNode` — the icon
+ * only ever reads these four fields, so we don't need the heavier types.
+ */
+type IconableNode = {
+  id: string;
+  image?: string;
+  iconChar?: string;
+  iconFont?: string;
+};
+
 interface NodeIconProps {
-  node: TreeNode;
+  node: IconableNode;
   data: TreeNode | null;
   dagData?: DagData | null;
   className?: string;

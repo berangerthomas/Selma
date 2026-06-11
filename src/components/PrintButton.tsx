@@ -55,7 +55,7 @@ function ExportImageButton({
 
 export function PrintAndExportButtons({ svgRef, htmlRef, title, className = '' }: PrintAndExportButtonsProps) {
   const { t } = useI18n();
-  const { data, viewMode } = useTree();
+  const { data, dagData, viewMode } = useTree();
   const isSVGMode = viewMode === 'tree';
 
   const effectiveTitle = title || t('project_title', { defaultValue: 'Taxonomy' });
@@ -115,7 +115,8 @@ export function PrintAndExportButtons({ svgRef, htmlRef, title, className = '' }
 
   const handleDownloadText = () => {
     if (!data) return;
-    const text = exportTreeAsText(data, t);
+    // Pass `dagData` so multi-parent nodes get a `⬡` marker in the export.
+    const text = exportTreeAsText(data, t, '', true, dagData ?? undefined);
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
     triggerDownload(blob, `${effectiveTitle}.txt`);
   };
