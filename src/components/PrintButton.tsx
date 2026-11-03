@@ -159,7 +159,7 @@ export function PrintAndExportButtons({ svgRef, htmlRef, title, className = '' }
                 <>
                   <button
                     onClick={() => handleAction('svg', () => svgActions.downloadSVG(effectiveTitle ? `${effectiveTitle}.svg` : 'export.svg'))}
-                    className={`w-full text-left px-4 py-2.5 flex items-center gap-3 transition-colors ${!!loadingType ? 'cursor-default opacity-50' : 'cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-700'}`}
+                    className={`w-full text-left px-4 py-2.5 flex items-center gap-3 transition-colors ${loadingType ? 'cursor-default opacity-50' : 'cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-700'}`}
                     disabled={!!loadingType}
                   >
                     <CodeIcon className="w-4 h-4 shrink-0 text-neutral-500" />
@@ -185,7 +185,7 @@ export function PrintAndExportButtons({ svgRef, htmlRef, title, className = '' }
               ) : (
                 <button
                   onClick={() => handleAction('text', handleDownloadText)}
-                  className={`w-full text-left px-4 py-2.5 flex items-center gap-3 transition-colors ${!!loadingType ? 'cursor-default opacity-50' : 'cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-700'}`}
+                  className={`w-full text-left px-4 py-2.5 flex items-center gap-3 transition-colors ${loadingType ? 'cursor-default opacity-50' : 'cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-700'}`}
                   disabled={!!loadingType}
                 >
                   {loadingType === 'text' ? (

@@ -18,7 +18,7 @@ export function useDeepSearch(
     try {
       const simpleMatches = findAllPathsByQuery(data, query, t)
       simpleMatches.forEach((id) => resultsSet.add(id))
-    } catch (e) {
+    } catch {
       // ignore
     }
 
@@ -33,7 +33,7 @@ export function useDeepSearch(
           if (mdContent !== null && mdContent.toLowerCase().includes(q)) {
             resultsSet.add(id)
           }
-        } catch (err) {
+        } catch {
           // ignore
         }
       }))

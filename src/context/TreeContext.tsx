@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect, useMemo } from 'react';
-import type { TreeNode, ViewMode, DagData, CrossEdge, TaxonomyDescription, TagStates, NodeShape, Orientation, LabelPosition } from '../types';
+import type { TreeNode, ViewMode, DagData, TaxonomyDescription, TagStates, NodeShape, Orientation, LabelPosition } from '../types';
 import { findNodePathIds } from '../utils/treeUtils';
 import { useTaxonomyData } from '../hooks/useTaxonomyData';
 import { useI18n } from '../i18n';
@@ -15,7 +15,6 @@ import { useExpansionState } from '../hooks/useExpansionState';
 interface TreeContextType {
   data: TreeNode;
   dagData: DagData | null;
-  crossEdges: CrossEdge[];
   expanded: Set<string>;
   activeId: string;
   searchResults: string[];
@@ -110,9 +109,9 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     return filterDagByTags(rawDagData, tagStates);
   }, [rawDagData, tagStates]);
 
-  const { tree: data, crossEdges } = useMemo(() => {
-    if (!dagData) return { tree: null as unknown as TreeNode, crossEdges: [] as CrossEdge[] };
-    return buildSpanningTree(dagData);
+  const data = useMemo(() => {
+    if (!dagData) return null as unknown as TreeNode;
+    return buildSpanningTree(dagData).tree;
   }, [dagData]);
 
   // v0.8.0: legacy 'compact'/'organic' viewMode values removed (replaced by nodeShape)
@@ -199,7 +198,6 @@ export function TreeProvider({ children }: { children: ReactNode }) {
   const value = useMemo(() => ({
     data,
     dagData,
-    crossEdges,
     expanded,
     activeId,
     searchResults,
@@ -245,7 +243,6 @@ export function TreeProvider({ children }: { children: ReactNode }) {
   }), [
     data,
     dagData,
-    crossEdges,
     expanded,
     activeId,
     searchResults,

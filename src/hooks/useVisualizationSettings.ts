@@ -2,8 +2,6 @@ import usePersistedState from './usePersistedState';
 import { STORAGE_KEYS } from '../utils/storage';
 import type { NodeShape, Orientation, LabelPosition } from '../types';
 
-export type { NodeShape, Orientation, LabelPosition };
-
 // Module-level serializers — pure functions, no hook dependencies
 const serializeNumber = (v: number) => String(v);
 const deserializeNumber = (s: string) => Number(s);

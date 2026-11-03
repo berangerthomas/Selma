@@ -28,20 +28,20 @@ describe('storage utils', () => {
   it('returns null when localStorage.getItem throws', () => {
     // make getItem throw
     vi.stubGlobal('localStorage', { getItem: () => { throw new Error('fail') } } as any)
-    expect(safeLocalStorageGet('whatever')).toBeNull()
+    expect(safeLocalStorageGet(STORAGE_KEYS.viewMode)).toBeNull()
   })
 
   it('does not throw when setItem throws', () => {
     const setMock = vi.fn(() => { throw new Error('nope') })
     vi.stubGlobal('localStorage', { setItem: setMock } as any)
     // should not throw
-    expect(() => safeLocalStorageSet('k', 'v')).not.toThrow()
+    expect(() => safeLocalStorageSet(STORAGE_KEYS.viewMode, 'v')).not.toThrow()
   })
 
   it('exposes expected STORAGE_KEYS', () => {
     expect(STORAGE_KEYS).toHaveProperty('viewMode')
     expect(STORAGE_KEYS).toHaveProperty('activeTaxonomyId')
-    expect(STORAGE_KEYS).toHaveProperty('selectedTags')
+    expect(STORAGE_KEYS).toHaveProperty('tagStates')
     expect(typeof STORAGE_KEYS.viewMode).toBe('string')
   })
 })

@@ -69,7 +69,7 @@ export function usePrintHTML(htmlRef: RefObject<HTMLDivElement | null>, landscap
                 window.print();
               }, 500);
             };
-          <\/script>
+          </script>
         </body>
       </html>
     `;

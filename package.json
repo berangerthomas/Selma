@@ -1,15 +1,21 @@
 {
   "name": "selma",
-  "version": "0.7.3",
+  "version": "0.8.0",
   "type": "module",
   "private": true,
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
   "scripts": {
     "predev": "node scripts/generate_taxonomies_registry.mjs",
     "dev": "node node_modules/vite/bin/vite.js",
     "check-data": "node scripts/check-data.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "lint": "eslint .",
     "prebuild": "node scripts/generate_taxonomies_registry.mjs",
-    "build": "node node_modules/vite/bin/vite.js build",
-    "test": "vitest run --no-isolate --execArgv=--max-old-space-size=4096 --logHeapUsage",
+    "build": "npm run typecheck && node node_modules/vite/bin/vite.js build",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "preview": "node node_modules/vite/bin/vite.js preview"
   },
   "dependencies": {
@@ -35,6 +41,7 @@
     "unist-util-visit": "^5.1.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@tailwindcss/postcss": "^4.2.4",
     "@tailwindcss/typography": "^0.5.19",
     "@testing-library/jest-dom": "^6.9.1",
@@ -42,11 +49,14 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
-    "autoprefixer": "^10.4.27",
+    "eslint": "^10.13.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.13.0",
     "jsdom": "^29.1.1",
     "postcss": "^8.5.8",
     "tailwindcss": "^4.2.4",
     "typescript": "^6.0.2",
+    "typescript-eslint": "^8.72.1",
     "vite": "^8.0.11",
     "vite-plugin-svgr": "^5.2.0",
     "vitepress": "^1.6.4",

@@ -29,12 +29,6 @@ export function isSupportedLanguage(language: string): language is SupportedLang
   return supportedLanguages.length === 0 ? language === 'en' : supportedLanguages.includes(language as SupportedLanguage)
 }
 
-export function getNextSupportedLanguage(currentLanguage: string): SupportedLanguage {
-  const currentIndex = supportedLanguages.findIndex((language) => language === currentLanguage)
-  const nextIndex = currentIndex >= 0 ? (currentIndex + 1) % supportedLanguages.length : 0
-  return supportedLanguages[nextIndex]
-}
-
 export function buildMarkdownPath(language: SupportedLanguage, nodeId: string) {
   return `/details/${language}/${nodeId}.md`
 }

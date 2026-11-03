@@ -83,7 +83,7 @@ export function useDiagnostics() {
           if (nodesResp.ok) {
             currentNodesDict = await nodesResp.json()
           }
-        } catch (e) {
+        } catch {
           console.warn('nodes.json not found or invalid')
         }
         if (mounted) setNodesDict(currentNodesDict)
@@ -163,7 +163,7 @@ export function useDiagnostics() {
             } else {
               results[lang] = null
             }
-          } catch (err) {
+          } catch {
             results[lang] = null
           }
         }))

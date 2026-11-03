@@ -157,10 +157,6 @@ export function buildVisibleNodeIds(dagData: DagData, expanded: Set<string>): Se
   return visible;
 }
 
-export function buildLayoutNodeIds(dagData: DagData): Set<string> {
-  return new Set(Object.keys(dagData.nodes));
-}
-
 export function resolveElkSpacing(orientation: Orientation, hSpacing: number, vSpacing: number): ElkSpacing {
   return orientation === 'horizontal'
     ? { layer: hSpacing, node: vSpacing }

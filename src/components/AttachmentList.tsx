@@ -82,7 +82,6 @@ export default function AttachmentList({ attachments, lang, compact = false }: P
   const [showOtherLangs, setShowOtherLangs] = useState<boolean>(false)
 
   const all = attachments || []
-  if (all.length === 0) return null
 
   // Group attachments: agnostic (no lang), current language, others by language
   const agnostic = all.filter((a) => !a.lang)
@@ -129,7 +128,7 @@ export default function AttachmentList({ attachments, lang, compact = false }: P
       ro = new ResizeObserver(update)
       ro.observe(el)
       Array.from(el.querySelectorAll('a')).forEach((a) => ro && ro.observe(a))
-    } catch (err) {
+    } catch {
       window.addEventListener('resize', update)
     }
 
@@ -143,6 +142,8 @@ export default function AttachmentList({ attachments, lang, compact = false }: P
       }
     }
   }, [agnostic.length, currentLangList.length, textSizeClass])
+
+  if (all.length === 0) return null
 
   return (
     <div className={containerClass}>

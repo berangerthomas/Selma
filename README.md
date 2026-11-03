@@ -35,7 +35,7 @@ Detailed documentation is in the `docs/` folder or [online](https://berangerthom
 
 ## Quick start
 
-Requirements: Node.js 18 or higher (Node 20+ recommended).
+Requirements: Node.js 20.19+ or 22.12+ (required by Vite 8).
 
 ```bash
 git clone https://github.com/berangerthomas/selma.git

@@ -227,7 +227,7 @@ export default function Toolbar({
 
   const handleTagToggle = useCallback((tag: string) => {
     const currentState = tagStates[tag] || 'neutral';
-    let nextState: 'neutral' | 'include' | 'exclude' = 'neutral';
+    let nextState: 'neutral' | 'include' | 'exclude';
     
     if (currentState === 'neutral') nextState = 'include';
     else if (currentState === 'include') nextState = 'exclude';
@@ -349,7 +349,7 @@ export default function Toolbar({
           <div className="flex flex-col justify-center min-w-0">
             <div className="toolbar-title">{t('taxonomy', { defaultValue: 'Taxonomy' })}</div>
             <div className="text-[10px] tabular-nums text-[var(--text-muted)] leading-tight" title={t('node_count_title', { defaultValue: 'Filtered nodes / total' })}>
-              {filteredNodeCount} / {totalNodeCount}
+              {filteredNodeCount}&#x202F;/&#x202F;{totalNodeCount}
             </div>
           </div>
           <div className="relative flex-1 min-w-0 flex items-center">

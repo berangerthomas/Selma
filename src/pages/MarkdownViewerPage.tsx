@@ -87,7 +87,7 @@ export default function MarkdownViewerPage() {
         setFileContent(md)
         setIsFallback(false)
         setError(null)
-      } catch (err) {
+      } catch {
         if (!mounted) return
         // Catch network errors and still show the nice fallback
         setIsFallback(true)
@@ -133,7 +133,7 @@ export default function MarkdownViewerPage() {
     : t('markdown_view_tabs', { defaultValue: 'Tabbed view' })
 
   // Construct content dynamically
-  let displayMarkdown = ''
+  let displayMarkdown: string
   if (isFallback) {
     const title = node?.name ? t(`nodes.${node?.id}.name`, { defaultValue: node.name }) : (nodeId || currentPath)
     displayMarkdown = `# ${title}\n\n*${t('description_not_provided', { defaultValue: 'No description provided.' })}*`

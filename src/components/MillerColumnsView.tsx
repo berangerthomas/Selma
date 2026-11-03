@@ -116,10 +116,10 @@ const MillerColumnsView = React.forwardRef<HTMLDivElement>((_props, ref) => {
         if (targetChild) {
           try {
             containerRef.current.scrollTo({ left: targetChild.offsetLeft, behavior: 'smooth' });
-          } catch (e) {
+          } catch {
             try {
               targetChild.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
-            } catch (e2) {
+            } catch {
               // noop
             }
           }

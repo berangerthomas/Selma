@@ -197,7 +197,7 @@ export function filterDagByTags(data: DagData, tagStates: TagStates): DagData {
         // eslint-disable-next-line no-console
         console.warn('filterDagByTags: input DagData contains cycles — filter results may be incomplete');
       }
-    } catch (e) {
+    } catch {
       // ignore
     }
   }

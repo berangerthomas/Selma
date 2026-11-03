@@ -1,5 +1,30 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+- **Continuous integration** (`.github/workflows/ci.yml`): every push and pull request runs `npm ci`, `typecheck`, `lint`, `test`, `check-data` and `build` on Node 22.
+- **ESLint** (`eslint.config.js`): flat config with the `@eslint/js` and `typescript-eslint` recommended rules, `react-hooks/rules-of-hooks` (error), `react-hooks/exhaustive-deps` (warning) and `@typescript-eslint/no-explicit-any` (warning); browser globals for `src/`, Node globals for `scripts/` and the root config files. New devDependencies: `eslint`, `@eslint/js`, `typescript-eslint`, `eslint-plugin-react-hooks`, `globals`.
+- `package.json`: `typecheck` (`tsc --noEmit -p tsconfig.json`), `lint`, `test:watch` scripts, and an `engines.node` field (`^20.19.0 || >=22.12.0`, required by Vite 8).
+
+### Modified
+- `build` now runs `typecheck` before the Vite build, so type errors fail the build.
+- `test` runs `vitest run` without the leftover debugging flags (`--no-isolate`, `--execArgv=--max-old-space-size=4096`, `--logHeapUsage`).
+- **Dead code removed**: the D3-era renderers, never imported since the React Flow migration, which imported `d3` (not a dependency) and a `PrunedNode` type that no longer exists: `ClusterNode.tsx`, `CompactNode.tsx`, `OrganicNode.tsx`, `TreeLinks.tsx`, `TreeNodesRenderer.tsx` (`src/components/tree/`), `useTreeZoom.ts`, `useNavigationHistory.ts` (`src/hooks/`) and `highlightSVG.tsx` (`src/utils/`).
+- **Unused exports removed**: `buildLayoutNodeIds` (`src/utils/flowLayout.ts`), `getNextSupportedLanguage` (`src/utils/localization.ts`), and the `NodeShape`/`Orientation`/`LabelPosition` re-export of `useVisualizationSettings.ts` (these types live in `src/types.ts`).
+- `TreeContext.tsx` (`src/context/TreeContext.tsx`): removed the `crossEdges` field, which no component read; `buildSpanningTree` still returns the cross-edges.
+- `MarkdownRenderer.tsx` (`src/components/MarkdownRenderer.tsx`): the `pre` renderer is now a module-level `CodeBlock` component, so its `useRef` call follows the rules of hooks.
+- Removed `autoprefixer` from `postcss.config.cjs` and the devDependencies: `@tailwindcss/postcss` (Tailwind 4) already handles vendor prefixes.
+- Lint cleanups without behavior change: unused `catch` bindings, initial values that were always overwritten, redundant `!!` in ternaries, a needless `<\/script>` escape, a ternary used as a statement in `scripts/check-data.mjs`, and the narrow no-break spaces of the Toolbar node counter written as `&#x202F;` (`MillerColumnsView.tsx`, `PrintButton.tsx`, `Toolbar.tsx`, `MarkdownViewerPage.tsx`, `AttachmentList.tsx`, `useDeepSearch.ts`, `useDiagnostics.ts`, `usePrintHTML.ts`, `usePrintSVG.ts`, `useTextSize.ts`, `dagUtils.ts`).
+- README: the Node.js requirement is now 20.19+ or 22.12+ (required by Vite 8) instead of 18.
+
+### Fixed
+- `AttachmentList.tsx` (`src/components/AttachmentList.tsx`): `useEffect` was called after an early `return null`, breaking the rules of hooks (React throws "Rendered more hooks than during the previous render" when an instance goes from no attachments to some). The early return now comes after all hooks.
+- `MarkdownRenderer.tsx`: images keep their `alt` text instead of dropping it.
+- `storage.test.ts` (`src/utils/storage.test.ts`): the test expected the old `selectedTags` key (renamed `tagStates`) and passed untyped keys to the storage helpers.
+- `npx tsc --noEmit -p tsconfig.json` passes again (18 errors before).
+- Version: `package.json` and `package-lock.json` said 0.7.3 instead of 0.8.0.
+
 ## [v0.8.0] - 2026-06-11
 
 ### Added

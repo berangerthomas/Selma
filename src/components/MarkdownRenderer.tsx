@@ -1,8 +1,8 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, type ComponentProps } from 'react';
 import { visit } from 'unist-util-visit';
 import 'react-medium-image-zoom/dist/styles.css';
 import Zoom from 'react-medium-image-zoom';
-import ReactMarkdown from 'react-markdown';
+import ReactMarkdown, { type ExtraProps } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeSanitize from 'rehype-sanitize';
@@ -69,6 +69,31 @@ function rehypeSearchHighlight(options: { query?: string }) {
   };
 }
 
+// Code block with a copy button; must stay a module-level component so it can use hooks
+function CodeBlock({ children, ...props }: ComponentProps<'pre'> & ExtraProps) {
+  const preRef = useRef<HTMLPreElement>(null);
+  const getTextToCopy = () => {
+    return preRef.current?.innerText || '';
+  };
+
+  return (
+    <div className="relative group">
+      <CopyButton
+        textToCopy={getTextToCopy}
+        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-all bg-transparent text-slate-500 hover:bg-slate-200 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-100 p-1 rounded z-10"
+        title="Copier le code"
+      />
+      <pre
+        ref={preRef}
+        {...props}
+        className={`!bg-slate-100 !text-slate-800 dark:!bg-slate-800 dark:!text-slate-200 dark:[&_.hljs-string]:!text-blue-300 dark:[&_.hljs-comment]:!text-slate-400 dark:[&_.hljs-keyword]:!text-pink-400 dark:[&_.hljs-title]:!text-purple-300 dark:[&_.hljs-number]:!text-cyan-300 dark:[&_.hljs-variable]:!text-orange-300 dark:[&_.hljs-built_in]:!text-cyan-300 dark:[&_.hljs-attr]:!text-sky-300 dark:[&_.hljs-name]:!text-green-300 ${props.className || ''}`}
+      >
+        {children}
+      </pre>
+    </div>
+  );
+}
+
 interface MarkdownRendererProps {
   content: string;
   className?: string;
@@ -113,7 +138,7 @@ export default function MarkdownRenderer({ content, className = '', sanitize = t
     
     // Custom components to intercept img and fix relative paths
     const components: import('react-markdown').Components = {
-      img: ({ src, alt, ...props }) => {
+      img: ({ src, ...props }) => {
         if (src && basePath && !src.startsWith('http') && !src.startsWith('data:') && !src.startsWith('//') && !src.startsWith('/')) {
             // If the src is relative, resolve it against the basePath
             // basePath is expected as a file path, e.g. /details/en/mammals.md
@@ -127,29 +152,7 @@ export default function MarkdownRenderer({ content, className = '', sanitize = t
           </Zoom>
         );
       },
-      pre: ({ children, ...props }) => {
-        const preRef = useRef<HTMLPreElement>(null);
-        const getTextToCopy = () => {
-          return preRef.current?.innerText || '';
-        };
-
-        return (
-          <div className="relative group">
-            <CopyButton 
-              textToCopy={getTextToCopy} 
-              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-all bg-transparent text-slate-500 hover:bg-slate-200 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-100 p-1 rounded z-10" 
-              title="Copier le code" 
-            />
-            <pre 
-              ref={preRef} 
-              {...props}
-              className={`!bg-slate-100 !text-slate-800 dark:!bg-slate-800 dark:!text-slate-200 dark:[&_.hljs-string]:!text-blue-300 dark:[&_.hljs-comment]:!text-slate-400 dark:[&_.hljs-keyword]:!text-pink-400 dark:[&_.hljs-title]:!text-purple-300 dark:[&_.hljs-number]:!text-cyan-300 dark:[&_.hljs-variable]:!text-orange-300 dark:[&_.hljs-built_in]:!text-cyan-300 dark:[&_.hljs-attr]:!text-sky-300 dark:[&_.hljs-name]:!text-green-300 ${props.className || ''}`} 
-            >
-              {children}
-            </pre>
-          </div>
-        );
-      }
+      pre: CodeBlock
     };
 
   return (

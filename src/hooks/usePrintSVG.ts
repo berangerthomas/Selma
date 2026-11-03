@@ -116,8 +116,8 @@ function serializeSVG(svgElement: SVGSVGElement): { svgString: string, width: nu
   // We expect the first <g> to wrap all nodes and paths.
   const mainGroup = svgElement.querySelector('g');
   
-  let boxWidth = 1200;
-  let boxHeight = 800;
+  let boxWidth: number;
+  let boxHeight: number;
   let boxX = 0;
   let boxY = 0;
 
@@ -167,7 +167,7 @@ function serializeSVG(svgElement: SVGSVGElement): { svgString: string, width: nu
         if (val && val !== 'none' && val !== 'normal') {
           try {
             cloned.style.setProperty(style, val);
-          } catch (e) {
+          } catch {
             // Ignore if setting style fails
           }
         }

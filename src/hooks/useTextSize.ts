@@ -28,7 +28,7 @@ export function useTextSize() {
     try {
       const ev = new CustomEvent(EVENT_NAME, { detail: sizes[sizeIndex] })
       window.dispatchEvent(ev)
-    } catch (err) {
+    } catch {
       // ignore
     }
   }, [sizeIndex]);
